@@ -454,9 +454,11 @@ unsigned int cParallelSimulation::getRecommendedThreadCount()
 
 void cParallelSimulation::insertEvent(cEvent*event)
 {
-//    std::lock_guard<std::mutex> fesLock(fesMutex);
+    {
+    std::lock_guard<std::mutex> fesLock(fesMutex);
 
    cSimulation::insertEvent(event);
+    }
 
 }
 
