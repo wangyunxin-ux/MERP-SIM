@@ -21,6 +21,7 @@
 #include "simkerneldefs.h"
 #include "cobject.h"
 #include "cexception.h"
+#include <atomic>
 
 namespace omnetpp {
 
@@ -37,7 +38,7 @@ class SIM_API cNamedObject : public cObject
     const char *name = nullptr;  // object name (stringpooled if flags&FL_NAMEPOOLING!=0)
 
   protected:
-    uint32_t flags = FL_NAMEPOOLING;  // FL_NAMEPOOLING flag; other bits used by derived classes
+    std::atomic<uint32_t> flags{FL_NAMEPOOLING};  // FL_NAMEPOOLING flag; other bits used by derived classes
     enum {FL_NAMEPOOLING = 1};
 
   private:
@@ -45,8 +46,21 @@ class SIM_API cNamedObject : public cObject
 
   protected:
     // internal: set a bit in flags; flag is one of the FL_xxx constants
-    void setFlag(int flag, bool value) {if (value) flags|=flag; else flags&=~flag;}
-    int getFlag(int flag) {return flags & flag;}
+    // void setFlag(int flag, bool value) {if (value) flags|=flag; else flags&=~flag;}
+    void setFlag(int flag, bool value) {
+        if (value) {
+            flags.fetch_or(flag, std::memory_order_release);
+        } else {
+            flags.fetch_and(~flag, std::memory_order_release);
+        }
+    }
+    uint32_t getFlags() const { 
+        return flags.load(std::memory_order_acquire); 
+    }
+    // int getFlag(int flag) {return flags & flag;}
+    int getFlag(int flag) const { 
+        return getFlags() & flag; 
+    }
 
   public:
     /** @name Constructors, destructor, assignment. */
@@ -119,7 +133,7 @@ class SIM_API cNamedObject : public cObject
     /**
      * Returns whether name pooling is turned on for this object.
      */
-    virtual bool getNamePooling() {return flags&FL_NAMEPOOLING;}
+    virtual bool getNamePooling() {return (getFlags() & FL_NAMEPOOLING) != 0;}
     //@}
 };
 
