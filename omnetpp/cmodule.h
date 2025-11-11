@@ -308,14 +308,14 @@ class SIM_API cModule : public cComponent //implies noncopyable
   public:
     // internal: currently used by init
     void setRecordEvents(bool e)  {setFlag(FL_RECORD_EVENTS,e);}
-    bool isRecordEvents() const  {return flags&FL_RECORD_EVENTS;}
+    bool isRecordEvents() const { return (getFlags() & FL_RECORD_EVENTS) != 0; }
 
   protected:
     // internal: called from destructor, recursively unsubscribes all listeners
     void releaseListeners();
 
     // internal: has initialize() been called?
-    bool buildInsideCalled() const {return flags&FL_BUILDINSIDE_CALLED;}
+    bool buildInsideCalled() const { return (getFlags() & FL_BUILDINSIDE_CALLED) != 0; }
 
     // internal: called from callInitialize(). Does one stage for this submodule
     // tree, and returns true if there are more stages to do

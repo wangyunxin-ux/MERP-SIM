@@ -316,8 +316,8 @@ class SIM_API cSimpleModule : public cModule //implies noncopyable
     /**
      * Returns the event handling scheme: activity() or handleMessage().
      */
-    bool usesActivity() const  {return flags&FL_USESACTIVITY;}
-
+    // bool usesActivity() const  {return flags&FL_USESACTIVITY;}
+    bool usesActivity() const  {return (getFlags() & FL_USESACTIVITY) != 0;}
     /**
      * Calling this method with the argument of true indicates that this module
      * is prepared to receive transmission updates, and can handle them properly.
@@ -340,13 +340,14 @@ class SIM_API cSimpleModule : public cModule //implies noncopyable
      *
      * @see setTxUpdateSupport(), cPacket::isUpdate(), SendOptions::updateTx()
      */
-    bool supportsTxUpdates() const  {return flags&FL_SUPPORTSTXUPDATES;}
-
+    // bool supportsTxUpdates() const  {return flags&FL_SUPPORTSTXUPDATES;}
+    bool supportsTxUpdates() const  {return (getFlags() & FL_SUPPORTSTXUPDATES) != 0;}
     /**
      * Returns true if the module has already terminated, by having called end()
      * or returning from the activity() method.
      */
-    bool isTerminated() const {return flags&FL_ISTERMINATED;}
+    bool isTerminated() const { return (getFlags() & FL_ISTERMINATED) != 0; }
+    // bool isTerminated() const {return flags&FL_ISTERMINATED;}
     //@}
 
     /** @name Debugging aids. */

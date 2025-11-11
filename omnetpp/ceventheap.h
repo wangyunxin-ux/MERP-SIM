@@ -18,6 +18,7 @@
 
 #include "cfutureeventset.h"
 #include <atomic>
+#include <mutex>
 
 namespace omnetpp {
 

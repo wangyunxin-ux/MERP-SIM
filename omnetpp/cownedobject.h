@@ -22,7 +22,7 @@
 #include "simkerneldefs.h"
 #include "cnamedobject.h"
 #include "cexception.h"
-
+#include <atomic>
 namespace omnetpp {
 
 class cOwnedObject;
@@ -113,7 +113,7 @@ class SIM_API cOwnedObject : public cNamedObject
 
   private:
     cObject *owner;    // owner pointer
-    unsigned int pos;  // used only when owner is a cSoftOwner
+    std::atomic<unsigned int> pos;  // used only when owner is a cSoftOwner
 
     // list in which objects are accumulated if there is no simple module in context
     // (see also setOwningContext() and cSimulation::setContextModule())

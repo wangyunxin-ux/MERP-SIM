@@ -101,6 +101,7 @@ class SIM_API cSimulation : public cNamedObject, noncopyable
     cFingerprintCalculator *fingerprint = nullptr; // used for fingerprint calculation
     static thread_local simtime_t threadLocalSimTime;
     std::mutex currentSimtimeMutex;
+    static thread_local int eventNumber;  
   private:
     // internal
     void checkActive()  {if (getActiveSimulation()!=this) throw cRuntimeError(this, E_WRONGSIM);}

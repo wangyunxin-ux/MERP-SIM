@@ -17,6 +17,8 @@
 #define __OMNETPP_CSOFTOWNER_H
 
 #include "cownedobject.h"
+#include <atomic>
+#include <mutex>
 
 namespace omnetpp {
 
@@ -38,9 +40,9 @@ class SIM_API cSoftOwner : public cNoncopyableOwnedObject
 
   private:
     cOwnedObject **objs = nullptr; // array of owned objects
-    int numObjs = 0;         // number of elements used in objects[] (0..num-1)
+    std::atomic<int> numObjs {0};         // number of elements used in objects[] (0..num-1)
     int capacity = 0;        // allocated size of objs[]
-
+    std::mutex mtx;
 #ifdef SIMFRONTEND_SUPPORT
   private:
     int64_t lastChangeSerial;

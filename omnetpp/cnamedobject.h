@@ -23,6 +23,7 @@
 #include "cexception.h"
 #include <atomic>
 
+using namespace std;
 namespace omnetpp {
 
 
@@ -48,12 +49,17 @@ class SIM_API cNamedObject : public cObject
     // internal: set a bit in flags; flag is one of the FL_xxx constants
     // void setFlag(int flag, bool value) {if (value) flags|=flag; else flags&=~flag;}
     void setFlag(int flag, bool value) {
+        // if(flag > 0 && (flag & (flag - 1)) != 0)
+        // {
+        //     std::cout<<flag<<endl;
+        // }
         if (value) {
             flags.fetch_or(flag, std::memory_order_release);
         } else {
             flags.fetch_and(~flag, std::memory_order_release);
         }
     }
+    // void setFlag(int flag, bool value);
     uint32_t getFlags() const { 
         return flags.load(std::memory_order_acquire); 
     }

@@ -180,14 +180,14 @@ class SIM_API cComponent : public cSoftOwner //implies noncopyable
     virtual void recordParameterAsScalar(cPar *par);
 
     // internal: has finalizeParameters() been called?
-    bool parametersFinalized() const {return flags&FL_PARAMSFINALIZED;}
-
+    // bool parametersFinalized() const {return flags&FL_PARAMSFINALIZED;}
+    bool parametersFinalized() const {return (getFlags() & FL_PARAMSFINALIZED) != 0;}
     // internal: sets up @statistic-based result recording
     virtual void addResultRecorders();
     virtual void emitStatisticInitialValues();
 
     // internal: has initialize() been called?
-    bool initialized() const {return flags&FL_INITIALIZED;}
+    bool initialized() const { return (getFlags() & FL_INITIALIZED) != 0; }
 
     // internal: calls refreshDisplay() recursively
     virtual void callRefreshDisplay() = 0;
