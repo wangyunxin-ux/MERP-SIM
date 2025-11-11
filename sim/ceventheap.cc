@@ -165,7 +165,10 @@ void cEventHeap::sort()
 void cEventHeap::insert(cEvent *event)
 {
     take(event);
-
+    // static std::mutex sendMutex;  // 静态全局锁
+    // {
+    // std::lock_guard<std::mutex> lock(sendMutex);
+    
     event->insertOrder = insertCount.fetch_add(1, std::memory_order_relaxed);
 
     if (!useCb) {
@@ -190,6 +193,7 @@ void cEventHeap::insert(cEvent *event)
         cbInsert(event);
     else
         heapInsert(event);
+    //  }  
 }
 
 void cEventHeap::cbInsert(cEvent *event)

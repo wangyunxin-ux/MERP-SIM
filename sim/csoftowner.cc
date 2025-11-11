@@ -95,13 +95,16 @@ void cSoftOwner::doInsert(cOwnedObject *obj)
         // must allocate bigger vector (grow 25% but at least 2)
         capacity += (capacity < 8) ? 2 : (capacity >> 2);
         cOwnedObject **v = new cOwnedObject *[capacity];
-        std::copy_n(objs, numObjs, v);
+        // std::copy_n(objs, numObjs, v);
+        std::copy_n(objs, numObjs.load(), v);
         delete[] objs;
         objs = v;
     }
-
+    {
+    std::lock_guard<std::mutex> lock(mtx);
     obj->owner = this;
     objs[obj->pos = numObjs++] = obj;
+    }
 #ifdef SIMFRONTEND_SUPPORT
     lastChangeSerial = changeCounter++;
 #endif
@@ -128,8 +131,12 @@ void cSoftOwner::ownedObjectDeleted(cOwnedObject *obj)
         objectStealingOnDeletion(obj);
 
     // move last object to obj's old position
+    {
+    std::lock_guard<std::mutex> lock(mtx);
     int pos = obj->pos;
     (objs[pos] = objs[--numObjs])->pos = pos;
+    }
+   
 #ifdef SIMFRONTEND_SUPPORT
     lastChangeSerial = changeCounter++;
 #endif
@@ -143,8 +150,27 @@ void cSoftOwner::yieldOwnership(cOwnedObject *obj, cObject *newowner)
     obj->owner = newowner;
 
     // move last object to obj's old position
+    {
+    std::lock_guard<std::mutex> lock(mtx);
     int pos = obj->pos;
+    // std::cout<<pos<<endl;
     (objs[pos] = objs[--numObjs])->pos = pos;
+    }
+
+    // // 步骤1：减少对象计数
+    // unsigned int oldCount = numObjs;           // 保存原始计数
+    // unsigned int newCount = oldCount - 1;      // 计算新计数
+    // numObjs = newCount;                        // 更新计数
+    // std::cout<<newCount<<"0000"<<pos<<endl;
+    // // 步骤2：获取要移动的对象
+    // cOwnedObject* objectToMove = objs[newCount];  // 获取最后一个对象
+
+    // // 步骤3：将最后一个对象移动到被移除对象的位置
+    // objs[pos] = objectToMove;
+
+    // // 步骤4：更新被移动对象的位置索引
+    // objectToMove->pos = pos;
+    
 #ifdef SIMFRONTEND_SUPPORT
     lastChangeSerial = changeCounter++;
 #endif

@@ -146,6 +146,16 @@ void cNamedObject::parsimUnpack(cCommBuffer *buffer)
     buffer->unpack(flags);
 #endif
 }
-
+// void cNamedObject::setFlag(int flag, bool value) 
+// {
+//     std::cout<<flag<<std::endl;
+//     if (value) 
+//     {
+//         flags.fetch_or(flag, std::memory_order_release);
+//     } else 
+//     {
+//         flags.fetch_and(~flag, std::memory_order_release);
+//     }
+// }
 }  // namespace omnetpp
 

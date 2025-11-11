@@ -36,6 +36,7 @@
 #include "omnetpp/cenvir.h"
 #include "omnetpp/cexception.h"
 #include "omnetpp/platdep/platmisc.h"  // for DEBUG_TRAP
+#include <bitset> 
 
 using namespace omnetpp::common;
 
@@ -369,6 +370,7 @@ void cSimpleModule::send(cMessage *msg, const SendOptions& options, cGate *outGa
         delete msg;  // event log for this sending will end with "DM" (DeleteMessage) instead of "ES" (EndSend)
     else
         EVCB.endSend(msg);
+    
 }
 
 cGate *cSimpleModule::resolveSendDirectGate(cModule *mod, int gateId)
@@ -594,7 +596,11 @@ void cSimpleModule::cancelAndDelete(cMessage *msg)
 void cSimpleModule::arrived(cMessage *msg, cGate *ongate, const SendOptions& options, simtime_t t)
 {
     if (isTerminated())
+    {
+         std::cout<<"error:"<< std::bitset<32>(flags.load()) <<endl;
         throw cRuntimeError(E_MODFIN, getFullPath().c_str());
+    }
+    //   std::cout <<"normal:"<<std::bitset<32>(flags.load()) <<endl;
     if (t < simTime())
         throw cRuntimeError("Causality violation: Message '%s' arrival time %s at module '%s' "
                             "is earlier than current simulation time",
@@ -780,9 +786,11 @@ void cSimpleModule::doMessageEvent(cMessage *msg)
     take(msg);
 
     if (!initialized())
+    {
+        std::cout<<"Error:"<<std::bitset<32>(flags.load())<<endl;
         throw cRuntimeError(this, "Module not initialized (did you forget to invoke "
                                   "callInitialize() for a dynamically created module?)");
-
+    }
     if (usesActivity()) {
         // switch to the coroutine of the module's activity(). We'll get back control
         // when the module executes a receive() or wait() call.

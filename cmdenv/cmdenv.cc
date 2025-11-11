@@ -400,6 +400,8 @@ void Cmdenv::simulate()
             doStatusUpdate(speedometer);
 
             while (true) {
+                // auto I=simulation->getFES();
+                // std::cout<<simulation->getFES()->getLength()<<endl;
                 cEvent *event = simulation->takeNextEvent();
                 if (!event)
                     throw cTerminationException("Scheduler interrupted while waiting");

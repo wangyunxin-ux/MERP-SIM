@@ -299,12 +299,23 @@ void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
         
         // 获取FES中的所有事件
         std::vector<cEvent*> events;
+        int id=dynamic_cast<cMessage*>(yevent)->getArrivalModuleId();
+        std::vector<int> currentModuleIds;
+        currentModuleIds.push_back(id);
         while (!getFES()->isEmpty()) {
             cEvent* event = getFES()->peekFirst();
             if (dynamic_cast<cMessage*>(event)) {
+                id=dynamic_cast<cMessage*>(event)->getArrivalModuleId();
+                bool exists = std::find(currentModuleIds.begin(), currentModuleIds.end(), id) != currentModuleIds.end();
+                if(!exists){
                 events.push_back(event);
                 getFES()->remove(event);
-                pendingTasks++; // 在锁内增加
+                pendingTasks++;
+                }
+                else
+                {
+                    break;
+                } // 在锁内增加
                 // std::cout<<pendingTasks<<endl;
             } else {
                 break;
@@ -320,7 +331,7 @@ void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
             taskQueue.push(event);
         }
     // }
-    
+    // std::cout<<taskQueue.size()<<endl;
     // 唤醒所有工作线程
     workCondition.notify_all();
     
@@ -454,11 +465,11 @@ unsigned int cParallelSimulation::getRecommendedThreadCount()
 
 void cParallelSimulation::insertEvent(cEvent*event)
 {
-    {
-    std::lock_guard<std::mutex> fesLock(fesMutex);
+    // {
+    // std::lock_guard<std::mutex> lock(globalMutex);
 
    cSimulation::insertEvent(event);
-    }
+    // }
 
 }
 

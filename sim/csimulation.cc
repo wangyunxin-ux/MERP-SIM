@@ -59,6 +59,7 @@ using namespace omnetpp::internal;
 
 namespace omnetpp {
 thread_local simtime_t omnetpp::cSimulation::threadLocalSimTime = 0;
+thread_local int omnetpp::cSimulation::eventNumber=0;
 using std::ostream;
 
 #ifdef DEVELOPER_DEBUG
@@ -621,7 +622,8 @@ void cSimulation::executeEvent(cEvent *event)
     setContextType(CTX_EVENT);
 
     // increment event count
-    ++currentEventNumber;
+    // ++currentEventNumber;
+    eventNumber = ++currentEventNumber;
     // std::cout<<currentEventNumber<<endl;
 
     // advance simulation time
@@ -634,7 +636,7 @@ void cSimulation::executeEvent(cEvent *event)
     // store arrival event number of this message; it is useful input for the
     // sequence chart tool if the message doesn't get immediately deleted or
     // sent out again
-    event->setPreviousEventNumber(currentEventNumber);
+    event->setPreviousEventNumber(eventNumber);
 
     // ignore fingerprint of plain events, as they tend to be internal (like cEndSimulationEvent)
     if (getFingerprintCalculator() && event->isMessage())
@@ -726,8 +728,14 @@ void cSimulation::setFingerprintCalculator(cFingerprintCalculator *f)
 
 void cSimulation::insertEvent(cEvent *event)
 {
-    event->setPreviousEventNumber(currentEventNumber);
+    // event->setPreviousEventNumber(currentEventNumber);
+    // std::cout<<eventNumber<<endl;
+    static std::mutex sendMutex;  // 静态全局锁
+    {
+    std::lock_guard<std::mutex> lock(sendMutex);
+    event->setPreviousEventNumber(eventNumber);
     fes->insert(event);
+    }
 }
 
 
