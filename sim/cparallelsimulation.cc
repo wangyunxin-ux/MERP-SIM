@@ -37,6 +37,8 @@
 #include <condition_variable>
 #include <vector>
 #include <algorithm>
+#include "omnetpp/cdelaychannel.h"
+#include "omnetpp/cdataratechannel.h"
 
 
 namespace omnetpp {
@@ -95,13 +97,13 @@ bool cParallelSimulation::getUseLockFreeFES() const
 void cParallelSimulation::initializeParallelComponents()
 {
     // 创建并行事件集
-    parallelFES = new cParallelEventSet("parallel-fes");
+    // parallelFES = new cParallelEventSet("parallel-fes");
     
-    // 创建事件着色器
-    eventColorer = new cEventColorer();
+    // // 创建事件着色器
+    // eventColorer = new cEventColorer();
     
-    // 创建并行调度器
-    parallelScheduler = new cParallelScheduler();
+    // // 创建并行调度器
+    // parallelScheduler = new cParallelScheduler();
     
     // 替换基类的FES和调度器
     // setFES(parallelFES);
@@ -151,7 +153,7 @@ void cParallelSimulation::callInitialize()
    // 创建线程池
     {
         std::unique_lock<std::mutex> lock(initMutex);
-        for (unsigned i = 0; i < 2; i++) {
+        for (unsigned i = 0; i < 3; i++) {
             workerThreads.emplace_back([this] {
                 // 通知线程已启动
                 {
@@ -167,7 +169,7 @@ void cParallelSimulation::callInitialize()
         
         // 等待所有线程启动完成
         initCondition.wait(lock, [this] {
-            return threadsReady == 2;
+            return threadsReady == 3;
         });
     }
     
@@ -189,100 +191,7 @@ void cParallelSimulation::executeEvent(cEvent *event)
     concurrentEvents++;
 }
 
-// void cParallelSimulation::workerThreadFunction()
-// {
- 
-    
-//    while (threadPoolRunning) {  // 使用threadPoolRunning控制循环
-//         cEvent* event = nullptr;
-        
-//         // 等待任务或退出信号
-//         {
-//             std::unique_lock<std::mutex> lock(queueMutex);
-//             queueCondition.wait(lock, [this] {
-//                 return !threadPoolRunning || !taskQueue.empty();
-//             });
-            
-//             if (!threadPoolRunning) break;
-            
-//             if (!taskQueue.empty()) {
-//                 event = taskQueue.front();
-//                 taskQueue.pop();
-//                 activeWorkers++;
-//             }
-//         }
-        
-//         if (event) 
-//         {
-//             // 执行事件
-//             executeEvent(event);
-            
-//             // 更新状态
-//             {
-//                 std::lock_guard<std::mutex> lock(queueMutex);
-//                 activeWorkers--;
-//                 pendingTasks--;
-//                 //  std::cout<<pendingTasks<<endl;
-                
-//                 if (pendingTasks == 0) {
-//                     batchCompletionCondition.notify_one();
-//                 }
-//             }
-//         }
-//     }
-// }
-// void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
-// {
-//     // 确保线程池已创建
-//     if (!simulationRunning) {
-//         startSimulation();
-//     }
-    
-//     // 重置状态
-//     pendingTasks = 1;
-    
-//     // 获取FES中的所有事件
-//     std::vector<cEvent*> events;
-//     {
-//         // std::lock_guard<std::mutex> fesLock(fesMutex);
-//         while (!getFES()->isEmpty()) {
-//             cEvent* event = getFES()->peekFirst();
-//             if (dynamic_cast<cMessage*>(event)) {
-//                 events.push_back(event);
-//                 getFES()->remove(event);
-//                 pendingTasks++;
-//             }
-//             else
-//             {
-//                 break;
-//             }
-//         }
-//     }
-    
-//     // 将事件添加到任务队列
-//     {
-//         taskQueue.push(yevent);
-//         // std::lock_guard<std::mutex> queueLock(queueMutex);
-//         for (cEvent* event : events) {
-//             taskQueue.push(event);
-//         }
-//     }
-    
-//     // 唤醒所有工作线程
-//     queueCondition.notify_all();
-    
-//     // 等待所有事件完成
-//     {
-//         std::unique_lock<std::mutex> batchLock(batchMutex);
-//         batchCompletionCondition.wait(batchLock, [this] {
-//             return pendingTasks == 0;
-//         });
-//     }
-    
-//     // 重置线程池状态
-//     threadPoolState = ThreadPoolState::CREATED;
-//     //  std::cout<<1<<endl;
-// }
+
 void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
 {
     // 确保线程池已创建
@@ -290,6 +199,63 @@ void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
         startSimulation();
     }
     
+    if(uniqueConnections.empty())
+    {
+     cSimulation* sim=getSimulation();
+     cModule*systemModule=sim->getSystemModule();
+     for (cModule::SubmoduleIterator jt(systemModule); !jt.end(); ++jt)
+    {
+        cModule* module = *jt;
+        if(module->hasGates()) 
+        {
+                for (cModule::GateIterator it(module); !it.end(); it++) {
+                    cGate* gate = *it;
+                    if(gate->getChannel() && gate->getNextGate()) {
+                        cModule* oModule = gate->getNextGate()->getOwnerModule();
+                        cChannel* channel = gate->getChannel();
+                        simtime_t delay=0;
+                        if(dynamic_cast<cDelayChannel*>(channel))
+                        {
+                         delay = dynamic_cast<cDelayChannel*>(channel)->getDelay();
+                        }
+                        else if(dynamic_cast<cDatarateChannel*>(channel))
+                        {
+                         delay = dynamic_cast<cDatarateChannel*>(channel)->getDelay();
+                        }
+                        // 标准化模块对
+                        cModule* m1 = module;
+                        cModule* m2 = oModule;
+                        if (m2 < m1) std::swap(m1, m2);
+                        auto key = std::make_pair(m1, m2);
+
+                        // 如果已经存在，取最小值；否则插入
+                        auto it = minDelayMap.find(key);
+                        if (it != minDelayMap.end()) {
+                            if (delay < it->second) {
+                                it->second = delay;
+                            }
+                        } else {
+                            minDelayMap[key] = delay;
+                        }
+                    }
+                }
+        }
+    }
+
+     for (auto& entry : minDelayMap) 
+     {
+        uniqueConnections.insert(UndirectedConnection(entry.first.first, entry.first.second, entry.second));
+     }
+    //  FloydWarshall fw;
+     fw.buildGraph(minDelayMap);
+     auto allPairsShortestDelay = fw.getAllPairsShortestDelay();
+     for (auto& entry : allPairsShortestDelay) 
+     {
+        uniqueConnections.insert(UndirectedConnection(entry.first.first, entry.first.second, entry.second));
+     }
+    }
+
+
     // 在锁保护下操作共享资源
     // {
     //     std::lock_guard<std::mutex> lock(globalMutex);
@@ -299,18 +265,50 @@ void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
         
         // 获取FES中的所有事件
         std::vector<cEvent*> events;
-        int id=dynamic_cast<cMessage*>(yevent)->getArrivalModuleId();
-        std::vector<int> currentModuleIds;
-        currentModuleIds.push_back(id);
+        events.push_back(yevent);
+        cModule* module=dynamic_cast<cMessage*>(yevent)->getArrivalModule();
+        // int id=dynamic_cast<cMessage*>(yevent)->getArrivalModuleId();
+        std::vector<cModule*>currentModule;
+        currentModule.push_back(module);
+        bool shouldBreakWhile = false;
+        // std::vector<int> currentModuleIds;
+        // currentModuleIds.push_back(id);
         while (!getFES()->isEmpty()) {
             cEvent* event = getFES()->peekFirst();
             if (dynamic_cast<cMessage*>(event)) {
-                id=dynamic_cast<cMessage*>(event)->getArrivalModuleId();
-                bool exists = std::find(currentModuleIds.begin(), currentModuleIds.end(), id) != currentModuleIds.end();
-                if(!exists){
-                events.push_back(event);
-                getFES()->remove(event);
-                pendingTasks++;
+                module=dynamic_cast<cMessage*>(event)->getArrivalModule();
+                // id=dynamic_cast<cMessage*>(event)->getArrivalModuleId();
+                bool exists = std::find(currentModule.begin(), currentModule.end(), module) != currentModule.end();
+                if(!exists)
+                {
+                    currentModule.push_back(module);
+                    for (cEvent* currentevent : events) 
+                    {
+                        if(event->getArrivalTime()==currentevent->getArrivalTime())
+                        {
+                            continue;
+                        }
+                        cModule*rootnode=findRootNode(module);
+                        cModule*currentrootnode=findRootNode(dynamic_cast<cMessage*>(currentevent)->getArrivalModule());
+                        simtime_t T=fw.getShortestDelay(rootnode,currentrootnode);                      
+                        if(std::min((currentevent->getArrivalTime()).dbl(),(event->getArrivalTime()).dbl())+T.dbl()<std::max((currentevent->getArrivalTime()).dbl(),(event->getArrivalTime()).dbl()))
+                        {
+                            shouldBreakWhile = true; 
+                            // std::cout<<"发现危险事件，停止搜索"<<endl;
+                            break;
+                        }      
+                    }
+                    
+                    if (shouldBreakWhile)
+                    {
+                        break;
+                    }   
+                    else
+                    {
+                        events.push_back(event);
+                        getFES()->remove(event);
+                        pendingTasks++;
+                    }
                 }
                 else
                 {
@@ -326,7 +324,9 @@ void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
         //   std::cout<<getFES()->getLength()<<endl;
         // }
         // 将事件添加到任务队列
-        taskQueue.push(yevent);
+        // taskQueue.push(yevent);
+        // if(pendingTasks>1)
+        // std::cout<<"发现一组可并发执行事件，数量为："<<pendingTasks<<endl;
         for (cEvent* event : events) {
             taskQueue.push(event);
         }
@@ -369,18 +369,18 @@ void cParallelSimulation::workerThreadFunction()
         {
             // 执行事件
             executeEvent(event);
-            
+            // std::cout<<activeWorkers<<endl;
             // 更新状态
             // {
             //     std::lock_guard<std::mutex> lock(globalMutex);
                activeWorkers.fetch_sub(1, std::memory_order_relaxed);
-               pendingTasks.fetch_sub(1, std::memory_order_relaxed);
-             {
+            //    pendingTasks.fetch_sub(1, std::memory_order_relaxed);
+               int previous = pendingTasks.fetch_sub(1, std::memory_order_acq_rel);
+             if (previous == 1) {
+                // 需要加锁通知，因为条件变量通知需要在锁内
                 std::lock_guard<std::mutex> lock(globalMutex);
-                if (pendingTasks == 0) {
-                    workCondition.notify_all(); // 通知主线程
-                }
-             }
+                workCondition.notify_all();
+            }
         }
     }
 }
@@ -473,7 +473,14 @@ void cParallelSimulation::insertEvent(cEvent*event)
 
 }
 
-
+cModule* cParallelSimulation::findRootNode(cModule*module)
+{
+    while(module->getParentModule()!=getSimulation()->getSystemModule())
+    {
+        module=module->getParentModule();
+    }
+    return module;
+}
 
 
 }  // namespace omnetpp
