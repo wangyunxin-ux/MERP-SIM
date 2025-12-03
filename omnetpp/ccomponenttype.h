@@ -23,6 +23,7 @@
 #include "cgate.h"
 #include "cownedobject.h"
 #include "clistener.h"
+#include <shared_mutex>
 
 
 namespace omnetpp {
@@ -49,6 +50,8 @@ class cObjectFactory;
 class SIM_API cComponentType : public cNoncopyableOwnedObject
 {
     friend class cSimulation; // clearSharedParImpls()
+  private:
+  mutable std::shared_timed_mutex rw_mutex; 
   protected:
     std::string qualifiedName;
     bool availabilityTested = false;
