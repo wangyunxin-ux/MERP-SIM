@@ -60,6 +60,7 @@ using namespace omnetpp::internal;
 namespace omnetpp {
 thread_local simtime_t omnetpp::cSimulation::threadLocalSimTime = 0;
 thread_local int omnetpp::cSimulation::eventNumber=0;
+thread_local cComponent *cSimulation::contextComponent = nullptr;
 using std::ostream;
 
 #ifdef DEVELOPER_DEBUG
