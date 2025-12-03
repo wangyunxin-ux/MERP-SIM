@@ -82,7 +82,8 @@ class SIM_API cSimulation : public cNamedObject, noncopyable
     cEnvir *envir = nullptr;            // the environment that belongs to this simulation object
     cModule *systemModule = nullptr;    // pointer to system (root) module
     cSimpleModule *currentActivityModule = nullptr; // the module currently executing activity() (nullptr if handleMessage() or in main)
-    cComponent *contextComponent = nullptr;  // component in context (or nullptr)
+    // cComponent *contextComponent = nullptr;  // component in context (or nullptr)
+    static thread_local cComponent *contextComponent;
     ContextType contextType;            // the innermost context type
     cModuleType *networkType = nullptr; // network type
     cFutureEventSet *fes = nullptr;     // stores future events
