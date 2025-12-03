@@ -29,7 +29,7 @@
 #include "omnetpp/cgate.h"
 #include "omnetpp/cproperties.h"
 #include "omnetpp/cproperty.h"
-
+#include <shared_mutex>
 namespace omnetpp {
 
 namespace common { class PatternMatcher; };
@@ -68,7 +68,7 @@ class SIM_API cNedDeclaration : public NedTypeInfo
     mutable StringPropsMap gatePropsMap;
     mutable StringPropsMap submodulePropsMap;
     mutable StringPropsMap connectionPropsMap;
-
+    mutable std::shared_timed_mutex rw_mutex;
     // cached expressions: NED expressions (ExpressionElement) compiled into
     // cParImpl get cached here, indexed by exprNode->getId().
     typedef std::map<long, cParImpl *> SharedParImplMap;
