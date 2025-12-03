@@ -135,12 +135,14 @@ bool cComponentType::Less::operator()(cParImpl *a, cParImpl *b) const
 
 internal::cParImpl *cComponentType::getSharedParImpl(cParImpl *value) const
 {
+    std::shared_lock<std::shared_timed_mutex> lock(rw_mutex); 
     ParImplSet::const_iterator it = sharedParSet.find(value);
     return it == sharedParSet.end() ? nullptr : *it;
 }
 
 void cComponentType::putSharedParImpl(cParImpl *value)
 {
+    std::unique_lock<std::shared_timed_mutex> lock(rw_mutex); 
     ASSERT(sharedParSet.find(value) == sharedParSet.end());  // not yet in there
     value->setIsShared(true);
     sharedParSet.insert(value);
