@@ -72,6 +72,7 @@ StringPool::~StringPool()
 
 const char *StringPool::obtain(const char *s)
 {
+    std::unique_lock<std::shared_timed_mutex> write_lock(rw_mutex);
 #ifndef NDEBUG
     if (!opp_insidemain()) {
         fprintf(stderr, "ERROR: StringPool::get(\"%s\") invoked outside main() -- please do not use StringPool from global objects", s);
@@ -101,6 +102,7 @@ const char *StringPool::obtain(const char *s)
 
 const char *StringPool::peek(const char *s) const
 {
+    std::shared_lock<std::shared_timed_mutex> read_lock(rw_mutex);
 #ifndef NDEBUG
     if (!opp_insidemain()) {
         fprintf(stderr, "ERROR: StringPool::peek(\"%s\") invoked outside main() -- please do not use StringPool from global objects", s);
@@ -119,6 +121,7 @@ const char *StringPool::peek(const char *s) const
 
 void StringPool::release(const char *s)
 {
+    std::unique_lock<std::shared_timed_mutex> write_lock(rw_mutex);
 #ifndef NDEBUG
     if (!opp_insidemain()) {
         fprintf(stderr, "Warning: StringPool::release(): string \"%s\" released too late, after main() already exited\n", s);
@@ -140,6 +143,7 @@ void StringPool::release(const char *s)
     }
     if (it->first != s) {
         fprintf(stderr, "ERROR: StringPool::release(): wrong string pointer %p \"%s\", stringpool has a different copy of the same string\n", s, s);
+        throw;
         return;
     }
 

@@ -20,7 +20,8 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "commondefs.h"
-
+#include <shared_mutex>
+#include <mutex>
 namespace omnetpp {
 namespace common {
 
@@ -83,7 +84,7 @@ class COMMON_API StringPool
     };
     std::unordered_map<const char *,int,str_hash, str_eq> pool; // map<string,refcount>
     bool alive = true; // useful when stringpool is a global variable
-
+    mutable std::shared_timed_mutex rw_mutex;
   public:
     static const char * const EMPTY_STRING;
 
