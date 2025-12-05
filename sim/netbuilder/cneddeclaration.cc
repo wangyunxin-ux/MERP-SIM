@@ -28,7 +28,7 @@
 #include "cnedloader.h"
 
 namespace omnetpp {
-
+thread_local cNedDeclaration::SharedParImplMap cNedDeclaration::parimplMap{};
 using namespace omnetpp::common;
 
 cNedDeclaration::cNedDeclaration(NedResourceCache *resolver, const char *qname, bool isInnerType, NedElement *tree) :

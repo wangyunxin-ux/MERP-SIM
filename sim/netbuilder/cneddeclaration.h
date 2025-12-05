@@ -72,8 +72,8 @@ class SIM_API cNedDeclaration : public NedTypeInfo
     // cached expressions: NED expressions (ExpressionElement) compiled into
     // cParImpl get cached here, indexed by exprNode->getId().
     typedef std::map<long, cParImpl *> SharedParImplMap;
-    SharedParImplMap parimplMap;
-
+    // SharedParImplMap parimplMap;
+    static thread_local SharedParImplMap parimplMap;
     // wildcard-based parameter assignments
     std::vector<PatternData> patterns;  // contains patterns defined in super types as well
     bool patternsValid = false;  // whether patterns[] was already filled in
