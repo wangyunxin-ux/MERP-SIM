@@ -50,10 +50,10 @@ void printAllObjects()
 #endif
 
 // static class members
-cSoftOwner *cOwnedObject::owningContext = &globalOwningContext;
-long cOwnedObject::totalObjectCount = 0;
-long cOwnedObject::liveObjectCount = 0;
-
+// cSoftOwner *cOwnedObject::owningContext = &globalOwningContext;
+thread_local cSoftOwner *cOwnedObject::owningContext = &globalOwningContext;
+std::atomic_long  cOwnedObject::totalObjectCount(0);
+std::atomic_long  cOwnedObject::liveObjectCount(0);
 cSoftOwner globalOwningContext("globalOwningContext", false, (internal::Void*)nullptr);
 
 cOwnedObject::cOwnedObject()
