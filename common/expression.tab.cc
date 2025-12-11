@@ -2130,6 +2130,7 @@ yyreturnlab:
 
 AstNode *Expression::parseToAst(const char *text) const
 {
+   std::lock_guard<std::mutex> lock(parseMutex); 
     NONREENTRANT_PARSER();
 
     // reset the lexer

@@ -20,7 +20,8 @@
 #include "exprvalue.h"
 #include "exprnode.h"
 #include "pooledstring.h"
-
+#include <mutex>
+#include "../../include/omnetpp/cexception.h"
 namespace omnetpp {
 namespace common {
 
@@ -29,6 +30,8 @@ namespace common {
  */
 class COMMON_API Expression
 {
+protected:
+static std::mutex parseMutex; 
 public:
     typedef omnetpp::common::expression::ExprValue ExprValue;
     typedef omnetpp::common::expression::ExprNode ExprNode;

@@ -29,7 +29,7 @@ using namespace omnetpp::common::expression;
 
 namespace omnetpp {
 namespace common {
-
+std::mutex Expression::parseMutex;
 typedef Expression::AstNode AstNode;
 
 std::string Expression::AstNode::str() const
@@ -125,7 +125,7 @@ std::string Expression::str(int spaciousness) const
 }
 
 Expression& Expression::parse(const char *expr, AstTranslator *translator)
-{
+{ 
     setExpressionTree(parseAndTranslate(expr, translator));
     return *this;
 }
