@@ -46,11 +46,12 @@ Register_PerObjectConfigOption(CFGID_DISPLAY_STRING, "display-string", KIND_COMP
 Register_PerObjectConfigOption(CFGID_PARAM_RECORD_AS_SCALAR, "param-record-as-scalar", KIND_PARAMETER, CFG_BOOL, "false", "Applicable to module parameters: specifies whether the module parameter should be recorded into the output scalar file. Set it for parameters whose value you will need for result analysis.");
 
 cComponent::SignalNameMapping *cComponent::signalNameMapping = nullptr;
-int cComponent::lastSignalID = -1;
+std::atomic<int> cComponent::lastSignalID(-1); 
+std::recursive_mutex cComponent::signalMutex;
 
 static const int NOTIFICATION_STACK_SIZE = 64;
 cIListener **cComponent::notificationStack[NOTIFICATION_STACK_SIZE];
-int cComponent::notificationSP = 0;
+std::atomic<int> cComponent::notificationSP {0};
 
 bool cComponent::checkSignals;
 
@@ -241,6 +242,7 @@ void cComponent::addResultRecorders()
 
 void cComponent::emitStatisticInitialValues()
 {
+
     if (signalTable) {
         int n = signalTable->size();
         for (int i = 0; i < n; i++)
@@ -508,9 +510,11 @@ int cComponent::SignalListenerList::findListener(cIListener *l) const
 
 simsignal_t cComponent::registerSignal(const char *name)
 {
+    
     if (signalNameMapping == nullptr)
         signalNameMapping = new SignalNameMapping;
-
+    {
+    std::lock_guard<std::recursive_mutex> lock(signalMutex);
     std::map<std::string,simsignal_t>::iterator it = signalNameMapping->signalNameToID.find(name);
     if (it == signalNameMapping->signalNameToID.end()) {
         // assign ID, register name
@@ -525,6 +529,7 @@ simsignal_t cComponent::registerSignal(const char *name)
     }
     else {
         return it->second;
+    }
     }
 }
 
@@ -557,6 +562,7 @@ void cComponent::clearSignalRegistrations()
 
 cComponent::SignalListenerList *cComponent::findListenerList(simsignal_t signalID) const
 {
+
     // note: we could use std::binary_search() instead of linear search here,
     // but the number of signals that have listeners is likely to be small (<10),
     // so linear search is probably faster.
@@ -609,6 +615,7 @@ void cComponent::checkNotFiring(simsignal_t signalID, cIListener **listenerList)
 
 void cComponent::removeListenerList(simsignal_t signalID)
 {
+
     if (signalTable) {
         // find in signal table
         int i, n = signalTable->size();
@@ -631,6 +638,7 @@ void cComponent::removeListenerList(simsignal_t signalID)
 
 bool cComponent::hasListeners(simsignal_t signalID) const
 {
+
     // check local listeners
     if (signalTable) {
         int n = signalTable->size();
@@ -646,93 +654,115 @@ bool cComponent::hasListeners(simsignal_t signalID) const
 
 void cComponent::emit(simsignal_t signalID, bool b, cObject *details)
 {
+    std::lock_guard<std::recursive_mutex> lock(signalMutex);
     if (checkSignals)
         getComponentType()->checkSignal(signalID, SIMSIGNAL_BOOL);
     if (mayHaveListeners(signalID))
         fire(this, signalID, b, details);
+    
 }
 
 void cComponent::doEmit(simsignal_t signalID, intval_t i, cObject *details)
 {
+    std::lock_guard<std::recursive_mutex> lock(signalMutex);
     if (checkSignals)
         getComponentType()->checkSignal(signalID, SIMSIGNAL_INT);
     if (mayHaveListeners(signalID))
         fire(this, signalID, i, details);
+    
 }
 
 void cComponent::doEmit(simsignal_t signalID, uintval_t i, cObject *details)
 {
+    std::lock_guard<std::recursive_mutex> lock(signalMutex);
     if (checkSignals)
         getComponentType()->checkSignal(signalID, SIMSIGNAL_UINT);
     if (mayHaveListeners(signalID))
         fire(this, signalID, i, details);
+    
 }
 
 void cComponent::emit(simsignal_t signalID, double d, cObject *details)
 {
+    std::lock_guard<std::recursive_mutex> lock(signalMutex);
     if (checkSignals)
         getComponentType()->checkSignal(signalID, SIMSIGNAL_DOUBLE);
     if (mayHaveListeners(signalID))
         fire(this, signalID, d, details);
+    
+    
 }
 
 void cComponent::emit(simsignal_t signalID, const SimTime& t, cObject *details)
 {
+    std::lock_guard<std::recursive_mutex> lock(signalMutex);
     if (checkSignals)
         getComponentType()->checkSignal(signalID, SIMSIGNAL_SIMTIME);
     if (mayHaveListeners(signalID))
         fire(this, signalID, t, details);
+    
 }
 
 void cComponent::emit(simsignal_t signalID, const char *s, cObject *details)
 {
+    std::lock_guard<std::recursive_mutex> lock(signalMutex);
     if (s == nullptr)
         throw cRuntimeError(this, "emit(): Emitting nullptr as string (const char *) signal value is not allowed, signalID=%d", signalID);
     if (checkSignals)
         getComponentType()->checkSignal(signalID, SIMSIGNAL_STRING);
     if (mayHaveListeners(signalID))
         fire(this, signalID, s, details);
+    
 }
 
 void cComponent::emit(simsignal_t signalID, cObject *obj, cObject *details)
 {
+    std::lock_guard<std::recursive_mutex> lock(signalMutex);
     if (checkSignals)
         getComponentType()->checkSignal(signalID, SIMSIGNAL_OBJECT, obj);
     if (mayHaveListeners(signalID))
         fire(this, signalID, obj, details);
+    
 }
 
 template<typename T>
 void cComponent::fire(cComponent *source, simsignal_t signalID, T x, cObject *details)
 {
+    SignalListenerList *listenerList;
+    
     // notify local listeners if there are any
-    SignalListenerList *listenerList = findListenerList(signalID);
+    listenerList = findListenerList(signalID);
+    
     if (listenerList) {
         cIListener **listeners = listenerList->listeners;
         if (notificationSP >= NOTIFICATION_STACK_SIZE)
             throw cRuntimeError(this, "emit(): Recursive notification stack overflow, signalID=%d", signalID);
-
-        int oldNotificationSP = notificationSP;
+       
+        int oldNotificationSP = notificationSP.load(std::memory_order_relaxed);
         try {
-            notificationStack[notificationSP++] = listeners;  // lock against modification
+            notificationStack[notificationSP.fetch_add(1, std::memory_order_acquire)] = listeners;  // lock against modification
             for (int i = 0; listeners[i]; i++)
                 listeners[i]->receiveSignal(source, signalID, x, details);  // will crash if listener is already deleted
-            notificationSP--;
+            notificationSP.fetch_sub(1, std::memory_order_release);
         }
         catch (std::exception& e) {
             notificationSP = oldNotificationSP;
             throw;
         }
+        
     }
-
+    
+    
     // notify ancestors recursively
     cModule *parent = getParentModule();
     if (parent)
         parent->fire(source, signalID, x, details);
+   
 }
 
 void cComponent::fireFinish()
 {
+
     if (signalTable) {
         int n = signalTable->size();
         for (int i = 0; i < n; i++)
@@ -744,6 +774,7 @@ void cComponent::fireFinish()
 void cComponent::subscribe(simsignal_t signalID, cIListener *listener)
 {
     // check that the signal exits
+   
     if (signalID > lastSignalID)
         throw cRuntimeError("subscribe(): Not a valid signal: SignalID=%d", signalID);
 
@@ -755,11 +786,13 @@ void cComponent::subscribe(simsignal_t signalID, cIListener *listener)
     signalListenerCounts[signalID]++;
     listener->subscriptions.push_back(std::pair<cComponent*,simsignal_t>(this,signalID));
     listener->subscribedTo(this, signalID);
+    
 }
 
 void cComponent::unsubscribe(simsignal_t signalID, cIListener *listener)
 {
     // check that the signal exits
+    
     if (signalID > lastSignalID)
         throw cRuntimeError("unsubscribe(): Not a valid signal: SignalID=%d", signalID);
 
@@ -780,6 +813,7 @@ void cComponent::unsubscribe(simsignal_t signalID, cIListener *listener)
     ASSERT(contains(listener->subscriptions, subscription));
     remove(listener->subscriptions, subscription);
     listener->unsubscribedFrom(this, signalID);
+    
 }
 
 bool cComponent::isSubscribed(simsignal_t signalID, cIListener *listener) const
@@ -805,6 +839,7 @@ void cComponent::unsubscribe(const char *signalName, cIListener *listener)
 
 std::vector<simsignal_t> cComponent::getLocalListenedSignals() const
 {
+
     std::vector<simsignal_t> result;
     if (signalTable)
         for (auto & listenerList : *signalTable)
@@ -824,6 +859,7 @@ std::vector<cIListener *> cComponent::getLocalSignalListeners(simsignal_t signal
 
 void cComponent::releaseLocalListeners()
 {
+
     // note: this may NOT be called from our destructor (only subclasses' destructor),
     // because it would result in a "pure virtual method called" error
     if (signalTable) {

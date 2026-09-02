@@ -26,7 +26,7 @@
 #include "omnetpp/fileline.h"
 #include "envirdefs.h"
 #include "scenario.h"
-
+#include <shared_mutex>
 namespace omnetpp {
 
 namespace common { class PatternMatcher; };
@@ -50,7 +50,7 @@ class ENVIR_API SectionBasedConfiguration : public cConfigurationEx
     typedef omnetpp::common::PatternMatcher PatternMatcher;
     typedef std::set<std::string> StringSet;
     typedef std::map<std::string,std::string> StringMap;
-
+    mutable std::shared_timed_mutex rw_mutex;
     class Entry : public cConfiguration::KeyValue {
       public:
         opp_staticpooledstring baseDir;

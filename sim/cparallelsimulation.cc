@@ -61,6 +61,8 @@ cParallelSimulation::cParallelSimulation(const char *name, cEnvir *env) : cSimul
     concurrentEvents = 0;
     simulationRunning = false;
     activeWorkers = 0;
+    i=j=0;
+    al=RP;
 }
 
 cParallelSimulation::~cParallelSimulation()
@@ -153,7 +155,7 @@ void cParallelSimulation::callInitialize()
    // 创建线程池
     {
         std::unique_lock<std::mutex> lock(initMutex);
-        for (unsigned i = 0; i < 3; i++) {
+        for (unsigned i = 0; i < 2; i++) {
             workerThreads.emplace_back([this] {
                 // 通知线程已启动
                 {
@@ -169,7 +171,7 @@ void cParallelSimulation::callInitialize()
         
         // 等待所有线程启动完成
         initCondition.wait(lock, [this] {
-            return threadsReady == 3;
+            return threadsReady ==2;
         });
     }
     
@@ -188,7 +190,7 @@ void cParallelSimulation::executeEvent(cEvent *event)
     cSimulation::executeEvent(event);
     
     // 增加并发事件计数
-    concurrentEvents++;
+    // concurrentEvents++;
 }
 
 
@@ -198,8 +200,9 @@ void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
     if (workerThreads.empty()) {
         startSimulation();
     }
-    
-    if(uniqueConnections.empty())
+    // auto start = std::chrono::high_resolution_clock::now();
+
+    if(al==FW)
     {
      cSimulation* sim=getSimulation();
      cModule*systemModule=sim->getSystemModule();
@@ -241,62 +244,181 @@ void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
                 }
         }
     }
-
-     for (auto& entry : minDelayMap) 
-     {
-        uniqueConnections.insert(UndirectedConnection(entry.first.first, entry.first.second, entry.second));
-     }
-    //  FloydWarshall fw;
      fw.buildGraph(minDelayMap);
-     auto allPairsShortestDelay = fw.getAllPairsShortestDelay();
-     for (auto& entry : allPairsShortestDelay) 
-     {
-        uniqueConnections.insert(UndirectedConnection(entry.first.first, entry.first.second, entry.second));
-     }
+     al=FW_READY;
+    //  auto end = std::chrono::high_resolution_clock::now();
+    //  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    //  std::cout << "代码运行时间: " << duration.count() << " 微秒" << std::endl;
+    //  std::cout << "代码运行时间: " << duration.count() / 1000.0 << " 毫秒" << std::endl;
     }
 
 
-    // 在锁保护下操作共享资源
-    // {
-    //     std::lock_guard<std::mutex> lock(globalMutex);
-        
+    if(al==RP)
+        {
+            cSimulation* sim = getSimulation();
+            cModule* systemModule = sim->getSystemModule();
+            std::map<std::pair<cModule*, cModule*>, simtime_t> minDelayMap;
+            std::unordered_set<cModule*> gatedModules;
+            // 收集所有直接连接
+            for (cModule::SubmoduleIterator jt(systemModule); !jt.end(); ++jt)
+            {
+                cModule* module = *jt;
+                if(module->hasGates())
+                {
+                    // 记录有门的模块
+                    gatedModules.insert(module);
+
+                    for (cModule::GateIterator it(module); !it.end(); it++)
+                    {
+                        cGate* gate = *it;
+                        if(gate->getChannel() && gate->getNextGate())
+                        {
+                            cModule* oModule = gate->getNextGate()->getOwnerModule();
+                            cChannel* channel = gate->getChannel();
+                            simtime_t delay = 0;
+
+                            if(dynamic_cast<cDelayChannel*>(channel))
+                            {
+                                delay = dynamic_cast<cDelayChannel*>(channel)->getDelay();
+                            }
+                            else if(dynamic_cast<cDatarateChannel*>(channel))
+                            {
+                                delay = dynamic_cast<cDatarateChannel*>(channel)->getDelay();
+                            }
+
+                            // 标准化模块对
+                            cModule* m1 = module;
+                            cModule* m2 = oModule;
+                            if (m2 < m1) std::swap(m1, m2);
+                            auto key = std::make_pair(m1, m2);
+
+                            // 如果已经存在，取最小值；否则插入
+                            auto it = minDelayMap.find(key);
+                            if (it != minDelayMap.end())
+                            {
+                                if (delay < it->second)
+                                {
+                                    it->second = delay;
+                                }
+                            }
+                            else
+                            {
+                                minDelayMap[key] = delay;
+                            }
+                        }
+                    }
+                }
+            }
+            estimator.build(minDelayMap, gatedModules);
+            al=RP_READY;
+            // auto end = std::chrono::high_resolution_clock::now();
+            // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+            // std::cout << "代码运行时间: " << duration.count() << " 微秒" << std::endl;
+            // std::cout << "代码运行时间: " << duration.count() / 1000.0 << " 毫秒" << std::endl;
+        }
+
+    if(al==D)
+    {
+     cSimulation* sim=getSimulation();
+     cModule*systemModule=sim->getSystemModule();
+     for (cModule::SubmoduleIterator jt(systemModule); !jt.end(); ++jt)
+    {
+        cModule* module = *jt;
+        if(module->hasGates()) 
+        {
+                for (cModule::GateIterator it(module); !it.end(); it++) {
+                    cGate* gate = *it;
+                    if(gate->getChannel() && gate->getNextGate()) {
+                        cModule* oModule = gate->getNextGate()->getOwnerModule();
+                        cChannel* channel = gate->getChannel();
+                        simtime_t delay=0;
+                        if(dynamic_cast<cDelayChannel*>(channel))
+                        {
+                         delay = dynamic_cast<cDelayChannel*>(channel)->getDelay();
+                        }
+                        else if(dynamic_cast<cDatarateChannel*>(channel))
+                        {
+                         delay = dynamic_cast<cDatarateChannel*>(channel)->getDelay();
+                        }
+                        // 标准化模块对
+                        cModule* m1 = module;
+                        cModule* m2 = oModule;
+                        if (m2 < m1) std::swap(m1, m2);
+                        auto key = std::make_pair(m1, m2);
+
+                        // 如果已经存在，取最小值；否则插入
+                        auto it = minDelayMap.find(key);
+                        if (it != minDelayMap.end()) {
+                            if (delay < it->second) {
+                                it->second = delay;
+                            }
+                        } else {
+                            minDelayMap[key] = delay;
+                        }
+                    }
+                }
+        }
+    }
+     d.buildGraph(minDelayMap);
+     al=D_READY;
+    //  auto end = std::chrono::high_resolution_clock::now();
+    //  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    //  std::cout << "代码运行时间: " << duration.count() << " 微秒" << std::endl;
+    //  std::cout << "代码运行时间: " << duration.count() / 1000.0 << " 毫秒" << std::endl;
+    }
+     
+
         // 重置状态
         pendingTasks = 1; // yevent
         
         // 获取FES中的所有事件
         std::vector<cEvent*> events;
         events.push_back(yevent);
-        cModule* module=dynamic_cast<cMessage*>(yevent)->getArrivalModule();
+        cModule* module;
         // int id=dynamic_cast<cMessage*>(yevent)->getArrivalModuleId();
-        std::vector<cModule*>currentModule;
-        currentModule.push_back(module);
+        // std::vector<cModule*>currentModule;
+        // currentModule.push_back(module);
         bool shouldBreakWhile = false;
         // std::vector<int> currentModuleIds;
         // currentModuleIds.push_back(id);
-        while (!getFES()->isEmpty()) {
+        while (!getFES()->isEmpty()) 
+        {
             cEvent* event = getFES()->peekFirst();
             if (dynamic_cast<cMessage*>(event)) {
                 module=dynamic_cast<cMessage*>(event)->getArrivalModule();
+                if(!module)
+                   break;
+                if(!module->hasGates())
+                   break;
+                // if(module->hasGates())
+                // {
                 // id=dynamic_cast<cMessage*>(event)->getArrivalModuleId();
-                bool exists = std::find(currentModule.begin(), currentModule.end(), module) != currentModule.end();
-                if(!exists)
-                {
-                    currentModule.push_back(module);
+                // bool exists = std::find(currentModule.begin(), currentModule.end(), module) != currentModule.end();
+                // f
+                    // currentModule.push_back(module);
                     for (cEvent* currentevent : events) 
                     {
-                        if(event->getArrivalTime()==currentevent->getArrivalTime())
-                        {
-                            continue;
-                        }
                         cModule*rootnode=findRootNode(module);
                         cModule*currentrootnode=findRootNode(dynamic_cast<cMessage*>(currentevent)->getArrivalModule());
-                        simtime_t T=fw.getShortestDelay(rootnode,currentrootnode);                      
+                        if(rootnode == currentrootnode)
+                        {
+                            shouldBreakWhile=true;
+                            break;   
+                        }
+                        simtime_t T;
+                        if(al==RP_READY)
+                        T=estimator.getLowerBoundDelay(rootnode, currentrootnode);
+                        else if(al==FW_READY)
+                        T=fw.getShortestDelay(rootnode,currentrootnode);
+                        else if(al==D_READY)
+                        T=d.getShortestDelay(rootnode,currentrootnode);
+                        // std::cout<<T.dbl()<<endl;
                         if(std::min((currentevent->getArrivalTime()).dbl(),(event->getArrivalTime()).dbl())+T.dbl()<std::max((currentevent->getArrivalTime()).dbl(),(event->getArrivalTime()).dbl()))
                         {
-                            shouldBreakWhile = true; 
-                            // std::cout<<"发现危险事件，停止搜索"<<endl;
+                            shouldBreakWhile=true;
                             break;
-                        }      
+                        }
+                        
                     }
                     
                     if (shouldBreakWhile)
@@ -309,39 +431,46 @@ void cParallelSimulation::distributeAndExecuteEvents(cEvent *yevent)
                         getFES()->remove(event);
                         pendingTasks++;
                     }
-                }
-                else
-                {
-                    break;
-                } // 在锁内增加
-                // std::cout<<pendingTasks<<endl;
-            } else {
+            } 
+            else 
+            {
                 break;
             }
         }
-        // if(yevent->getArrivalTime().dbl()>10000)
-        // {
-        //   std::cout<<getFES()->getLength()<<endl;
-        // }
-        // 将事件添加到任务队列
-        // taskQueue.push(yevent);
-        // if(pendingTasks>1)
-        // std::cout<<"发现一组可并发执行事件，数量为："<<pendingTasks<<endl;
+         recordPendingTaskCount(pendingTasks);
+         if(pendingTasks>1){
+          concurrentEvents= concurrentEvents+pendingTasks;   
+          pcount=pcount+1;    // 并发执行事件计数
+        //   std::cout<<"发现一组可并发执行事件，数量为："<<pendingTasks<<endl;
+         }
+         if(pendingTasks>maxpevent)
+         maxpevent=pendingTasks;
+         if(pendingTasks<minpevent)
+         minpevent=pendingTasks;
         for (cEvent* event : events) {
             taskQueue.push(event);
         }
     // }
-    // std::cout<<taskQueue.size()<<endl;
+    //  if(taskQueue.size()>5)
+    //  std::cout<<taskQueue.size()<<endl;
     // 唤醒所有工作线程
     workCondition.notify_all();
-    
+    // auto laststartTime=startTime;
+    // startTime = high_resolution_clock::now();
+    // auto duration1 = duration_cast<milliseconds>(startTime-laststartTime);
+    // std::cout<<"s"<<duration1.count()<<endl;
     // 等待所有事件完成
+    // auto start = std::chrono::high_resolution_clock::now();
     {
         std::unique_lock<std::mutex> lock(globalMutex);
         workCondition.wait(lock, [this] {
             return pendingTasks == 0;
         });
     }
+    // auto end = std::chrono::high_resolution_clock::now();
+    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    //  std::cout << "代码运行时间: " << duration.count() << " 微秒" << std::endl;
+    //  std::cout << "代码运行时间: " << duration.count() / 1000.0 << " 毫秒" << std::endl;
     setGVT(getCurrentSimTime());
 }
 void cParallelSimulation::workerThreadFunction()
@@ -373,7 +502,8 @@ void cParallelSimulation::workerThreadFunction()
             // 更新状态
             // {
             //     std::lock_guard<std::mutex> lock(globalMutex);
-               activeWorkers.fetch_sub(1, std::memory_order_relaxed);
+            
+              activeWorkers.fetch_sub(1, std::memory_order_relaxed);
             //    pendingTasks.fetch_sub(1, std::memory_order_relaxed);
                int previous = pendingTasks.fetch_sub(1, std::memory_order_acq_rel);
              if (previous == 1) {
@@ -418,6 +548,19 @@ void cParallelSimulation::callFinish()
     workerThreads.clear();
     
     threadPoolState = ThreadPoolState::STOPPED;
+    std::cout<<concurrentEvents<<endl;
+    std::cout<<"min="<<minpevent<<""<<"max="<<maxpevent<<endl;
+    std::cout<<"并行执行批次:"<<pcount<<endl;
+
+    std::cout << "\n=== Pending Task Statistics ===" << std::endl;
+    std::cout << "Value | Count" << std::endl;
+    std::cout << "--------------" << std::endl;
+    for (const auto& entry : pendingTaskStats) 
+    {
+        std::cout << entry.first << "     | " << entry.second << std::endl;
+    }
+    std::cout << std::endl;
+    // std::cout<<i<<"  "<<j<<endl;
     
     // 调用基类实现
     cSimulation::callFinish();
@@ -480,6 +623,10 @@ cModule* cParallelSimulation::findRootNode(cModule*module)
         module=module->getParentModule();
     }
     return module;
+}
+void cParallelSimulation::recordPendingTaskCount(int count) 
+{
+    pendingTaskStats[count]++;
 }
 
 

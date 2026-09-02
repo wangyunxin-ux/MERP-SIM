@@ -28,7 +28,7 @@
 #include "cnedloader.h"
 
 namespace omnetpp {
-thread_local cNedDeclaration::SharedParImplMap cNedDeclaration::parimplMap{};
+
 using namespace omnetpp::common;
 
 cNedDeclaration::cNedDeclaration(NedResourceCache *resolver, const char *qname, bool isInnerType, NedElement *tree) :
@@ -335,14 +335,13 @@ void cNedDeclaration::updateDisplayProperty(PropertyElement *propNode, cProperty
 
 internal::cParImpl *cNedDeclaration::getSharedParImplFor(NedElement *node)
 {
-    std::shared_lock<std::shared_timed_mutex> lock(rw_mutex); 
+
     auto it = parimplMap.find(node->getId());
     return it == parimplMap.end() ? nullptr : it->second;
 }
 
 void cNedDeclaration::putSharedParImplFor(NedElement *node, cParImpl *value)
 {
-    std::unique_lock<std::shared_timed_mutex> lock(rw_mutex); 
     auto it = parimplMap.find(node->getId());
     ASSERT(it == parimplMap.end());
     parimplMap[node->getId()] = value;

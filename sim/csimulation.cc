@@ -58,7 +58,7 @@ using namespace omnetpp::common;
 using namespace omnetpp::internal;
 
 namespace omnetpp {
-thread_local simtime_t omnetpp::cSimulation::threadLocalSimTime = 0;
+thread_local simtime_t omnetpp::cSimulation::threadLocalSimTime = SIMTIME_ZERO;
 thread_local int omnetpp::cSimulation::eventNumber=0;
 thread_local cComponent *cSimulation::contextComponent = nullptr;
 using std::ostream;

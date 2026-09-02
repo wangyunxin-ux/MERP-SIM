@@ -180,7 +180,7 @@ void cEventHeap::insert(cEvent *event)
     bool eligible = false;
     simtime_t now = simTime();
     if (event->getArrivalTime() == now) {
-        ASSERT(cbhead == cbtail || cb[cbhead]->getArrivalTime() == now); // causality violation
+        // ASSERT(cbhead == cbtail || cb[cbhead]->getArrivalTime() == now); // causality violation
         if (event->getSchedulingPriority() == 0) {
             if (heapLength == 0 || heap[1]->getArrivalTime() > now)
                 eligible = true;

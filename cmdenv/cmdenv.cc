@@ -416,7 +416,9 @@ void Cmdenv::simulate()
                     fakeGUI->beforeEvent(event);
 
                 // execute event
-                if(simulation->findModuleByPath("psimulation")&&dynamic_cast<cMessage*>(event))
+                // if(simulation->findModuleByPath("psimulation")&&dynamic_cast<cMessage*>(event))
+                // {
+                if(simulation->findModuleByPath("psimulation")&&dynamic_cast<cMessage*>(event)&&dynamic_cast<cMessage*>(event)->getArrivalModule()->hasGates())
                 {
                     // std::cout<<1<<endl;
                     dynamic_cast<cParallelSimulation*>(simulation)->distributeAndExecuteEvents(event);

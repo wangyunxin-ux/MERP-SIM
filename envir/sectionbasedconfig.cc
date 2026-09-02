@@ -852,6 +852,7 @@ static int selectNext(const SectionChainList& sectionChains)
 
 void SectionBasedConfiguration::addEntry(const Entry& entry)
 {
+    std::unique_lock<std::shared_timed_mutex> lock(rw_mutex); 
     entries.push_back(entry);
     const std::string& key = entry.key;
     const char *lastDot = strrchr(key.c_str(), '.');
@@ -1213,6 +1214,7 @@ const char *SectionBasedConfiguration::getParameterValue(const char *moduleFullP
 
 const cConfiguration::KeyValue& SectionBasedConfiguration::getParameterEntry(const char *moduleFullPath, const char *paramName, bool hasDefaultValue) const
 {
+    std::shared_lock<std::shared_timed_mutex> lock(rw_mutex); 
     // look up which bin; paramName serves as suffix (ie. bin name)
     std::map<std::string, SuffixBin>::const_iterator it = suffixBins.find(paramName);
     const SuffixBin *bin = it == suffixBins.end() ? &wildcardSuffixBin : &it->second;
@@ -1286,6 +1288,7 @@ bool SectionBasedConfiguration::isEssentialOption(const char *key) const
 
 const char *SectionBasedConfiguration::getPerObjectConfigValue(const char *objectFullPath, const char *keySuffix) const
 {
+    std::unique_lock<std::shared_timed_mutex> lock(rw_mutex);
     // note: if there's no such entry, getPerObjectConfigEntry() will return a NullEntry&, whose getValue() returns nullptr
     const KeyValue& entry = getPerObjectConfigEntry(objectFullPath, keySuffix);
     return entry.getValue();
@@ -1318,6 +1321,7 @@ static const char *partAfterLastDot(const char *s)
 
 std::vector<const char *> SectionBasedConfiguration::getMatchingPerObjectConfigKeySuffixes(const char *objectFullPath, const char *keySuffixPattern) const
 {
+    std::shared_lock<std::shared_timed_mutex> lock(rw_mutex); 
     std::vector<const char *> result;
 
     // only concrete objects or "**" is accepted, because we are not prepared
@@ -1356,6 +1360,7 @@ std::vector<const char *> SectionBasedConfiguration::getMatchingPerObjectConfigK
 
 void SectionBasedConfiguration::dump() const
 {
+    std::shared_lock<std::shared_timed_mutex> lock(rw_mutex); 
     printf("Config:\n");
     for (const auto & it : config)
         printf("  %s = %s\n", it.first.c_str(), it.second.value.c_str());

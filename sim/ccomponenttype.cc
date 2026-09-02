@@ -135,14 +135,14 @@ bool cComponentType::Less::operator()(cParImpl *a, cParImpl *b) const
 
 internal::cParImpl *cComponentType::getSharedParImpl(cParImpl *value) const
 {
-    std::shared_lock<std::shared_timed_mutex> lock(rw_mutex); 
+    
     ParImplSet::const_iterator it = sharedParSet.find(value);
     return it == sharedParSet.end() ? nullptr : *it;
 }
 
 void cComponentType::putSharedParImpl(cParImpl *value)
 {
-    std::unique_lock<std::shared_timed_mutex> lock(rw_mutex); 
+    // std::unique_lock<std::shared_timed_mutex> lock(rw_mutex); 
     ASSERT(sharedParSet.find(value) == sharedParSet.end());  // not yet in there
     value->setIsShared(true);
     sharedParSet.insert(value);
@@ -160,6 +160,7 @@ bool cComponentType::isAvailable()
 
 void cComponentType::checkSignal(simsignal_t signalID, SimsignalType type, cObject *obj)
 {
+
     // check that this signal is allowed
     std::map<simsignal_t, SignalDesc>::const_iterator it = signalsSeen.find(signalID);
     if (it == signalsSeen.end()) {
@@ -374,6 +375,7 @@ cModule *cModuleType::instantiateModuleClass(const char *className)
 
 cModule *cModuleType::createScheduleInit(const char *name, cModule *parentModule, int index)
 {
+    std::unique_lock<std::recursive_mutex> lock(createmutex); 
     if (!parentModule)
         throw cRuntimeError("createScheduleInit(): Parent module pointer cannot be nullptr "
                             "when creating module named '%s' of type %s", name, getFullName());

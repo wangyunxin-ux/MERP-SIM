@@ -143,7 +143,11 @@ void cNamedObject::parsimUnpack(cCommBuffer *buffer)
     opp_string tmp;
     buffer->unpack(tmp);
     setName(tmp.buffer());
-    buffer->unpack(flags);
+    unsigned int tempFlags;
+    // 解包到临时变量
+    buffer->unpack(tempFlags);
+    // 将值赋给原子变量
+    flags = tempFlags;
 #endif
 }
 // void cNamedObject::setFlag(int flag, bool value) 
