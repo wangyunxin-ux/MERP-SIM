@@ -117,11 +117,11 @@ class SIM_API cOwnedObject : public cNamedObject
 
     // list in which objects are accumulated if there is no simple module in context
     // (see also setOwningContext() and cSimulation::setContextModule())
-    static cSoftOwner *owningContext;
-
+    // static cSoftOwner *owningContext;
+    static thread_local cSoftOwner *owningContext;
     // global variables for statistics
-    static long totalObjectCount;
-    static long liveObjectCount;
+    static std::atomic_long totalObjectCount;  
+    static std::atomic_long liveObjectCount;
 
   private:
     cOwnedObject(const char *name, bool namepooling, internal::Void *dummy);

@@ -27,7 +27,8 @@
 #include "clistener.h"
 #include "clog.h"
 #include "distrib.h"
-
+#include <mutex>
+#include <shared_mutex>
 namespace omnetpp {
 
 class cComponentType;
@@ -88,6 +89,7 @@ class SIM_API cComponent : public cSoftOwner //implies noncopyable
 
     mutable cDisplayString *displayString; // created on demand
     opp_pooledstring displayName = nullptr;  // optional display name
+    static std::recursive_mutex signalMutex;
 
   public:
     struct SignalListenerList {  // public for inspectors
@@ -118,14 +120,14 @@ class SIM_API cComponent : public cSoftOwner //implies noncopyable
         std::map<std::string,simsignal_t> signalNameToID;
         std::map<simsignal_t,std::string> signalIDToName;
     } *signalNameMapping;  // must be dynamically allocated on first access so that registerSignal() can be invoked from static initialization code
-    static int lastSignalID;
+    static std::atomic<int> lastSignalID;
 
     // for hasListeners()/mayHaveListeners()
     static std::vector<int> signalListenerCounts;  // index: signalID, value: number of listeners anywhere
 
     // stack of listener lists being notified, to detect concurrent modification
     static cIListener **notificationStack[];
-    static int notificationSP;
+    static std::atomic<int> notificationSP;
 
     // whether only signals declared in NED via @signal are allowed to be emitted
     static bool checkSignals;
