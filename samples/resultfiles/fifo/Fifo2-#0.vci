@@ -1,0 +1,45 @@
+file 16830 1754472871                                           
+version 2
+run Fifo2-0-20211218-16:50:49-61913
+attr configname Fifo2
+attr datetime 20211218-16:50:49
+attr datetimef 20211218-165049
+attr experiment Fifo2
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsd ""
+attr iterationvarsf ""
+attr measurement ""
+attr network SingleQueue
+attr processid 61913
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+config cmdenv-redirect-output true
+config sim-time-limit 15s
+config description "high job arrival rate"
+config network SingleQueue
+config **.source.interarrivalTime exponential(0.1s)
+config **.fifo.serviceTime 0.1s
+config sim-time-limit 100h
+config cpu-time-limit 300s
+
+vector 0 SingleQueue.fifo qlen:vector ETV
+attr interpolationmode sample-hold
+attr recordingmode vector
+attr title "queue length"
+0	1097 5968 0 571 0 14.979707835223 260 0 11 1132 7282
+vector 1 SingleQueue.fifo queueingTime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "queueing time"
+attr unit s
+1	7065 4883 2 571 0 14.979707835223 142 0 1.022415978952 55.774855878842 35.66282964428
+vector 2 SingleQueue.sink lifetime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "lifetime of arrived jobs"
+attr unit s
+2	11948 4882 6 572 0.1 14.979707835223 141 0.1 1.122415978952 69.526578992939 48.036848653613

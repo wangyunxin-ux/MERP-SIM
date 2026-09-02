@@ -1,0 +1,57 @@
+file 20874 1754472871                                           
+version 2
+run TandemQueueExperiment-1-20211218-16:50:49-61922
+attr configname TandemQueueExperiment
+attr datetime 20211218-16:50:49
+attr datetimef 20211218-165049
+attr experiment TandemQueueExperiment
+attr inifile omnetpp.ini
+attr iterationvars $serviceTimeMean=1.5s
+attr iterationvarsd serviceTimeMean=1.5s
+attr iterationvarsf serviceTimeMean=1.5s-
+attr measurement $serviceTimeMean=1.5s
+attr network TandemQueues
+attr processid 61922
+attr repetition 1
+attr replication #1
+attr resultdir results
+attr runnumber 1
+attr seedset 1
+itervar serviceTimeMean 1.5s
+config cmdenv-redirect-output true
+config network TandemQueues
+config **.interarrivalTime exponential(2s)
+config **.serviceTime truncnormal(1.5s,1s)
+config repeat 2
+config sim-time-limit 200s
+config sim-time-limit 100h
+config cpu-time-limit 300s
+
+vector 0 TandemQueues.fifo1 qlen:vector ETV
+attr interpolationmode sample-hold
+attr recordingmode vector
+attr title "queue length"
+0	1508 4554 0 621 0 199.732808944778 189 0 7 574 2346
+vector 1 TandemQueues.fifo2 qlen:vector ETV
+attr interpolationmode sample-hold
+attr recordingmode vector
+attr title "queue length"
+1	6062 3860 0 622 0 199.732808944778 160 0 5 252 592
+vector 2 TandemQueues.fifo1 queueingTime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "queueing time"
+attr unit s
+2	9922 3732 2 621 0 199.732808944778 105 0 13.602220594184 499.91746560439 3562.481863166
+vector 3 TandemQueues.fifo2 queueingTime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "queueing time"
+attr unit s
+3	13654 3450 4 619 0.86467855151 199.463489374928 101 0 7.392759093355 221.18079618665 874.67156321782
+vector 4 TandemQueues.sink lifetime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "lifetime of arrived jobs"
+attr unit s
+4	17104 3770 24 620 4.68695176766 199.463489374928 100 1.10140844155 19.691675836792 1024.0433530858 12247.364950257

@@ -1,0 +1,37 @@
+# Object files
+*.o
+*.obj
+
+# Libraries
+*.so
+*.so.*
+*.a
+*.dll
+*.dylib
+
+# Executables / generated binaries
+*.exe
+
+# Build directories
+build/
+out/
+cmake-build-*/
+
+# OMNeT++ generated files
+*.oppfeatures
+*.nedfolders
+
+# IDE
+.metadata/
+.project
+.cproject
+.settings/
+
+# VSCode
+.vscode/
+
+# Temporary files
+*.tmp
+*.log
+*~
+.DS_Store

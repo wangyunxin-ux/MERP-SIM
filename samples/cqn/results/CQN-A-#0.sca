@@ -1,0 +1,271 @@
+version 3
+run CQN-A-0-20251229-13:31:50-4028476
+attr configname CQN-A
+attr datetime 20251229-13:31:50
+attr datetimef 20251229-133150
+attr experiment CQN-A
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsd ""
+attr iterationvarsf ""
+attr measurement ""
+attr network ClosedQueueingNetA
+attr processid 4028476
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+config description "ClosedQueueingNetA (flattened)"
+config network ClosedQueueingNetA
+config *.numTandems 3
+config *.numQueuesPerTandem 5
+config *.queue[*].numInitialJobs 2
+config *.queue[*].serviceTime exponential(10s)
+config *.sDelay 1s
+config *.qDelay 1s
+config num-rngs 3
+config sim-time-limit 10000s
+config *.tandemQueue[0]**.priority 0
+config *.tandemQueue[1]**.priority 1
+config *.tandemQueue[2]**.priority 2
+config *.tandemQueue[0]**.rng-0 0
+config *.tandemQueue[1]**.rng-0 1
+config *.tandemQueue[2]**.rng-0 2
+config seed-0-mt 3287
+config seed-1-mt 4578
+config seed-2-mt 9123
+
+par ClosedQueueingNetA.switch[0].out[0].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[0].out[0].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[0].out[0].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[0].out[1].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[0].out[1].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[0].out[1].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[0].out[2].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[0].out[2].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[0].out[2].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[1].out[0].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[1].out[0].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[1].out[0].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[1].out[1].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[1].out[1].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[1].out[1].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[1].out[2].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[1].out[2].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[1].out[2].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[2].out[0].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[2].out[0].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[2].out[0].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[2].out[1].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[2].out[1].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[2].out[1].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[2].out[2].channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.switch[2].out[2].channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.switch[2].out[2].channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[0].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[0].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[0].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[1].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[1].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[1].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[2].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[2].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[2].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[3].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[3].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[3].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[5].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[5].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[5].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[6].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[6].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[6].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[7].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[7].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[7].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[8].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[8].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[8].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[10].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[10].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[10].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[11].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[11].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[11].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[12].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[12].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[12].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[13].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[13].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[13].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[4].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[4].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[4].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[9].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[9].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[9].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.queue[14].out.channel typename "\"ned.DelayChannel\""
+par ClosedQueueingNetA.queue[14].out.channel disabled false
+attr mutable ""
+par ClosedQueueingNetA.queue[14].out.channel delay 1s
+attr mutable ""
+attr unit s
+par ClosedQueueingNetA.switch[0] typename "\"Switch\""
+par ClosedQueueingNetA.switch[0] priority 0
+par ClosedQueueingNetA.switch[1] typename "\"Switch\""
+par ClosedQueueingNetA.switch[1] priority 0
+par ClosedQueueingNetA.switch[2] typename "\"Switch\""
+par ClosedQueueingNetA.switch[2] priority 0
+par ClosedQueueingNetA.queue[0] typename "\"Queue\""
+par ClosedQueueingNetA.queue[0] numInitialJobs 2
+par ClosedQueueingNetA.queue[0] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[0] priority 0
+par ClosedQueueingNetA.queue[1] typename "\"Queue\""
+par ClosedQueueingNetA.queue[1] numInitialJobs 2
+par ClosedQueueingNetA.queue[1] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[1] priority 0
+par ClosedQueueingNetA.queue[2] typename "\"Queue\""
+par ClosedQueueingNetA.queue[2] numInitialJobs 2
+par ClosedQueueingNetA.queue[2] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[2] priority 0
+par ClosedQueueingNetA.queue[3] typename "\"Queue\""
+par ClosedQueueingNetA.queue[3] numInitialJobs 2
+par ClosedQueueingNetA.queue[3] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[3] priority 0
+par ClosedQueueingNetA.queue[4] typename "\"Queue\""
+par ClosedQueueingNetA.queue[4] numInitialJobs 2
+par ClosedQueueingNetA.queue[4] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[4] priority 0
+par ClosedQueueingNetA.queue[5] typename "\"Queue\""
+par ClosedQueueingNetA.queue[5] numInitialJobs 2
+par ClosedQueueingNetA.queue[5] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[5] priority 0
+par ClosedQueueingNetA.queue[6] typename "\"Queue\""
+par ClosedQueueingNetA.queue[6] numInitialJobs 2
+par ClosedQueueingNetA.queue[6] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[6] priority 0
+par ClosedQueueingNetA.queue[7] typename "\"Queue\""
+par ClosedQueueingNetA.queue[7] numInitialJobs 2
+par ClosedQueueingNetA.queue[7] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[7] priority 0
+par ClosedQueueingNetA.queue[8] typename "\"Queue\""
+par ClosedQueueingNetA.queue[8] numInitialJobs 2
+par ClosedQueueingNetA.queue[8] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[8] priority 0
+par ClosedQueueingNetA.queue[9] typename "\"Queue\""
+par ClosedQueueingNetA.queue[9] numInitialJobs 2
+par ClosedQueueingNetA.queue[9] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[9] priority 0
+par ClosedQueueingNetA.queue[10] typename "\"Queue\""
+par ClosedQueueingNetA.queue[10] numInitialJobs 2
+par ClosedQueueingNetA.queue[10] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[10] priority 0
+par ClosedQueueingNetA.queue[11] typename "\"Queue\""
+par ClosedQueueingNetA.queue[11] numInitialJobs 2
+par ClosedQueueingNetA.queue[11] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[11] priority 0
+par ClosedQueueingNetA.queue[12] typename "\"Queue\""
+par ClosedQueueingNetA.queue[12] numInitialJobs 2
+par ClosedQueueingNetA.queue[12] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[12] priority 0
+par ClosedQueueingNetA.queue[13] typename "\"Queue\""
+par ClosedQueueingNetA.queue[13] numInitialJobs 2
+par ClosedQueueingNetA.queue[13] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[13] priority 0
+par ClosedQueueingNetA.queue[14] typename "\"Queue\""
+par ClosedQueueingNetA.queue[14] numInitialJobs 2
+par ClosedQueueingNetA.queue[14] serviceTime exponential(10s)
+attr unit s
+par ClosedQueueingNetA.queue[14] priority 0
+par ClosedQueueingNetA typename "\"ClosedQueueingNetA\""
+par ClosedQueueingNetA numTandems 3
+par ClosedQueueingNetA numQueuesPerTandem 5
+par ClosedQueueingNetA sDelay 1s
+attr unit s
+par ClosedQueueingNetA qDelay 1s
+attr unit s
+

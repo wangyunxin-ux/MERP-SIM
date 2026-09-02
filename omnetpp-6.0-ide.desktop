@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Exec=/home/wangyunxin2/workspace/omnetpp-6.0/bin/opp_ide
+Icon=/home/wangyunxin2/workspace/omnetpp-6.0/images/logo/logo128.png
+Name=OMNeT++ 6.0 IDE
+Categories=Development
+

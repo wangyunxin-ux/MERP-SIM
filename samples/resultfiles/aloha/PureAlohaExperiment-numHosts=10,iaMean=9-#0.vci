@@ -1,0 +1,117 @@
+file 1457762 1754472871                                         
+version 2
+run PureAlohaExperiment-12-20211207-20:09:43-303980
+attr configname PureAlohaExperiment
+attr datetime 20211207-20:09:43
+attr datetimef 20211207-200943
+attr experiment PureAlohaExperiment
+attr inifile omnetpp.ini
+attr iterationvars "$numHosts=10, $iaMean=9"
+attr iterationvarsd numHosts=10/iaMean=9
+attr iterationvarsf numHosts=10,iaMean=9-
+attr measurement "$numHosts=10, $iaMean=9"
+attr network Aloha
+attr processid 303980
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 12
+attr seedset 12
+itervar iaMean 9
+itervar numHosts 10
+config cmdenv-redirect-output true
+config description "Channel utilization in the function of packet generation frequency"
+config repeat 2
+config sim-time-limit 90min
+config Aloha.numHosts 10
+config Aloha.host[*].iaTime exponential(9s)
+config network Aloha
+config Aloha.numHosts 20
+config Aloha.slotTime 0s
+config Aloha.txRate 9.6kbps
+config Aloha.host[*].pkLenBits 952b
+config **.x "uniform(0m, 1000m)"
+config **.y "uniform(0m, 1000m)"
+config **.animationHoldTimeOnCollision 0s
+config **.idleAnimationSpeed 1
+config **.transmissionEdgeAnimationSpeed 1e-6
+config **.midTransmissionAnimationSpeed 1e-1
+
+vector 0 Aloha.server serverChannelState:vector(sum) ETV
+attr enum IDLE=0,TRANSMISSION=1,COLLISION=2
+attr recordingmode vector(sum)
+attr source channelState
+attr title "Channel state, sum"
+0	3167 343543 0 23425 0 5399.122740079734 11437 0 6550 37476779 163613361219
+vector 1 Aloha.server serverChannelState:vector(sum(mean+1)) ETV
+attr enum IDLE=0,TRANSMISSION=1,COLLISION=2
+attr recordingmode vector(sum(mean+1))
+attr source channelState
+attr title "Channel state, sum(mean+1)"
+1	346710 470011 0 23425 0 5399.122740079734 11437 0 17989.942359083 102877425.76083 1234076270446.7
+vector 2 Aloha.server serverChannelState:vector ETV
+attr enum IDLE=0,TRANSMISSION=1,COLLISION=2
+attr recordingmode vector
+attr source channelState
+attr title "Channel state"
+2	816721 311141 0 23425 0 5399.122740079734 11436 0 2 6550 7660
+vector 3 Aloha.host[0] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+3	1127862 33488 0 23357 0 5385.060416074716 1231 0 1 615 615
+vector 4 Aloha.host[1] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+4	1161350 32647 0 23405 0 5397.02983110125 1201 0 1 600 600
+vector 5 Aloha.host[2] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+5	1193997 33447 0 23424 0 5399.122738511564 1229 0 1 614 614
+vector 6 Aloha.host[3] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+6	1227444 30133 0 23409 0 5397.825598781264 1111 0 1 555 555
+vector 7 Aloha.host[4] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+7	1257577 32609 0 23413 0 5398.53186185614 1201 0 1 600 600
+vector 8 Aloha.host[5] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+8	1290186 33250 0 23423 0 5399.104315817684 1221 0 1 610 610
+vector 9 Aloha.host[6] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+9	1323436 32634 0 23365 0 5386.531702050203 1199 0 1 599 599
+vector 10 Aloha.host[7] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+10	1356070 34260 0 23385 0 5388.587849650417 1215 0 1 607 607
+vector 11 Aloha.host[8] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+11	1390330 33514 0 23369 0 5386.888461012669 1191 0 1 595 595
+vector 12 Aloha.host[9] radioState:vector ETV
+attr enum IDLE=0,TRANSMIT=1
+attr recordingmode vector
+attr source state
+attr title "Radio state"
+12	1423844 33918 0 23417 0 5398.64284862232 1201 0 1 600 600

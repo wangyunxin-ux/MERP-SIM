@@ -1,0 +1,57 @@
+file 17359 1754472871                                           
+version 2
+run TandemQueueExperiment-2-20211218-16:50:49-61923
+attr configname TandemQueueExperiment
+attr datetime 20211218-16:50:49
+attr datetimef 20211218-165049
+attr experiment TandemQueueExperiment
+attr inifile omnetpp.ini
+attr iterationvars $serviceTimeMean=2.5s
+attr iterationvarsd serviceTimeMean=2.5s
+attr iterationvarsf serviceTimeMean=2.5s-
+attr measurement $serviceTimeMean=2.5s
+attr network TandemQueues
+attr processid 61923
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 2
+attr seedset 2
+itervar serviceTimeMean 2.5s
+config cmdenv-redirect-output true
+config network TandemQueues
+config **.interarrivalTime exponential(2s)
+config **.serviceTime truncnormal(2.5s,1s)
+config repeat 2
+config sim-time-limit 200s
+config sim-time-limit 100h
+config cpu-time-limit 300s
+
+vector 0 TandemQueues.fifo1 qlen:vector ETV
+attr interpolationmode sample-hold
+attr recordingmode vector
+attr title "queue length"
+0	1508 4270 0 497 0 199.914511011142 174 0 23 1833 26443
+vector 1 TandemQueues.fifo2 qlen:vector ETV
+attr interpolationmode sample-hold
+attr recordingmode vector
+attr title "queue length"
+1	5778 3151 0 498 0 199.914511011142 130 0 3 171 321
+vector 2 TandemQueues.fifo1 queueingTime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "queueing time"
+attr unit s
+2	8929 2915 2 497 0 199.914511011142 78 0 44.25055354514 1596.5136110631 43677.604858457
+vector 3 TandemQueues.fifo2 queueingTime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "queueing time"
+attr unit s
+3	11844 2660 6 495 3.131323452819 199.896087483328 76 0 7.443516815305 210.18936506453 899.84898119733
+vector 4 TandemQueues.sink lifetime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "lifetime of arrived jobs"
+attr unit s
+4	14504 2855 8 496 4.56711606702 199.896087483328 75 4.56711606702 49.370537775461 2052.2103028382 67824.799824551

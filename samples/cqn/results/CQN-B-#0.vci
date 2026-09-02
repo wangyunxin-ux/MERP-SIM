@@ -1,0 +1,340 @@
+file 15746 1766986480                                           
+version 3
+run CQN-B-0-20251229-13:33:53-4043665
+attr configname CQN-B
+attr datetime 20251229-13:33:53
+attr datetimef 20251229-133353
+attr experiment CQN-B
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsd ""
+attr iterationvarsf ""
+attr measurement ""
+attr network ClosedQueueingNetB
+attr processid 4043665
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+config description "ClosedQueueingNetB (boxed tandem queues)"
+config network ClosedQueueingNetB
+config *.sDelay 100s
+config *.numTandems 3
+config *.tandemQueue[*].numQueues 50
+config *.tandemQueue[*].queue[*].numInitialJobs 2
+config *.tandemQueue[*].queue[*].serviceTime exponential(10s)
+config *.tandemQueue[*].qDelay 1s
+config num-rngs 3
+config sim-time-limit 10000s
+config *.tandemQueue[0]**.priority 0
+config *.tandemQueue[1]**.priority 1
+config *.tandemQueue[2]**.priority 2
+config *.tandemQueue[0]**.rng-0 0
+config *.tandemQueue[1]**.rng-0 1
+config *.tandemQueue[2]**.rng-0 2
+config seed-0-mt 3287
+config seed-1-mt 4578
+config seed-2-mt 9123
+
+vector 0 ClosedQueueingNetB.tandemQueue[0].queue[0] queueLength ETV
+vector 1 ClosedQueueingNetB.tandemQueue[0].queue[1] queueLength ETV
+vector 2 ClosedQueueingNetB.tandemQueue[0].queue[2] queueLength ETV
+vector 3 ClosedQueueingNetB.tandemQueue[0].queue[3] queueLength ETV
+vector 4 ClosedQueueingNetB.tandemQueue[0].queue[4] queueLength ETV
+vector 5 ClosedQueueingNetB.tandemQueue[0].queue[5] queueLength ETV
+vector 6 ClosedQueueingNetB.tandemQueue[0].queue[6] queueLength ETV
+vector 7 ClosedQueueingNetB.tandemQueue[0].queue[7] queueLength ETV
+vector 8 ClosedQueueingNetB.tandemQueue[0].queue[8] queueLength ETV
+vector 9 ClosedQueueingNetB.tandemQueue[0].queue[9] queueLength ETV
+vector 10 ClosedQueueingNetB.tandemQueue[0].queue[10] queueLength ETV
+vector 11 ClosedQueueingNetB.tandemQueue[0].queue[11] queueLength ETV
+vector 12 ClosedQueueingNetB.tandemQueue[0].queue[12] queueLength ETV
+vector 13 ClosedQueueingNetB.tandemQueue[0].queue[13] queueLength ETV
+vector 14 ClosedQueueingNetB.tandemQueue[0].queue[14] queueLength ETV
+vector 15 ClosedQueueingNetB.tandemQueue[0].queue[15] queueLength ETV
+vector 16 ClosedQueueingNetB.tandemQueue[0].queue[16] queueLength ETV
+vector 17 ClosedQueueingNetB.tandemQueue[0].queue[17] queueLength ETV
+vector 18 ClosedQueueingNetB.tandemQueue[0].queue[18] queueLength ETV
+vector 19 ClosedQueueingNetB.tandemQueue[0].queue[19] queueLength ETV
+vector 20 ClosedQueueingNetB.tandemQueue[0].queue[20] queueLength ETV
+vector 21 ClosedQueueingNetB.tandemQueue[0].queue[21] queueLength ETV
+vector 22 ClosedQueueingNetB.tandemQueue[0].queue[22] queueLength ETV
+vector 23 ClosedQueueingNetB.tandemQueue[0].queue[23] queueLength ETV
+vector 24 ClosedQueueingNetB.tandemQueue[0].queue[24] queueLength ETV
+vector 25 ClosedQueueingNetB.tandemQueue[0].queue[25] queueLength ETV
+vector 26 ClosedQueueingNetB.tandemQueue[0].queue[26] queueLength ETV
+vector 27 ClosedQueueingNetB.tandemQueue[0].queue[27] queueLength ETV
+vector 28 ClosedQueueingNetB.tandemQueue[0].queue[28] queueLength ETV
+vector 29 ClosedQueueingNetB.tandemQueue[0].queue[29] queueLength ETV
+vector 30 ClosedQueueingNetB.tandemQueue[0].queue[30] queueLength ETV
+vector 31 ClosedQueueingNetB.tandemQueue[0].queue[31] queueLength ETV
+vector 32 ClosedQueueingNetB.tandemQueue[0].queue[32] queueLength ETV
+vector 33 ClosedQueueingNetB.tandemQueue[0].queue[33] queueLength ETV
+vector 34 ClosedQueueingNetB.tandemQueue[0].queue[34] queueLength ETV
+vector 35 ClosedQueueingNetB.tandemQueue[0].queue[35] queueLength ETV
+vector 36 ClosedQueueingNetB.tandemQueue[0].queue[36] queueLength ETV
+vector 37 ClosedQueueingNetB.tandemQueue[0].queue[37] queueLength ETV
+vector 38 ClosedQueueingNetB.tandemQueue[0].queue[38] queueLength ETV
+vector 39 ClosedQueueingNetB.tandemQueue[0].queue[39] queueLength ETV
+vector 40 ClosedQueueingNetB.tandemQueue[0].queue[40] queueLength ETV
+vector 41 ClosedQueueingNetB.tandemQueue[0].queue[41] queueLength ETV
+vector 42 ClosedQueueingNetB.tandemQueue[0].queue[42] queueLength ETV
+vector 43 ClosedQueueingNetB.tandemQueue[0].queue[43] queueLength ETV
+vector 44 ClosedQueueingNetB.tandemQueue[0].queue[44] queueLength ETV
+vector 45 ClosedQueueingNetB.tandemQueue[0].queue[45] queueLength ETV
+vector 46 ClosedQueueingNetB.tandemQueue[0].queue[46] queueLength ETV
+vector 47 ClosedQueueingNetB.tandemQueue[0].queue[47] queueLength ETV
+vector 48 ClosedQueueingNetB.tandemQueue[0].queue[48] queueLength ETV
+vector 49 ClosedQueueingNetB.tandemQueue[0].queue[49] queueLength ETV
+vector 50 ClosedQueueingNetB.tandemQueue[1].queue[0] queueLength ETV
+vector 51 ClosedQueueingNetB.tandemQueue[1].queue[1] queueLength ETV
+vector 52 ClosedQueueingNetB.tandemQueue[1].queue[2] queueLength ETV
+vector 53 ClosedQueueingNetB.tandemQueue[1].queue[3] queueLength ETV
+vector 54 ClosedQueueingNetB.tandemQueue[1].queue[4] queueLength ETV
+vector 55 ClosedQueueingNetB.tandemQueue[1].queue[5] queueLength ETV
+vector 56 ClosedQueueingNetB.tandemQueue[1].queue[6] queueLength ETV
+vector 57 ClosedQueueingNetB.tandemQueue[1].queue[7] queueLength ETV
+vector 58 ClosedQueueingNetB.tandemQueue[1].queue[8] queueLength ETV
+vector 59 ClosedQueueingNetB.tandemQueue[1].queue[9] queueLength ETV
+vector 60 ClosedQueueingNetB.tandemQueue[1].queue[10] queueLength ETV
+vector 61 ClosedQueueingNetB.tandemQueue[1].queue[11] queueLength ETV
+vector 62 ClosedQueueingNetB.tandemQueue[1].queue[12] queueLength ETV
+vector 63 ClosedQueueingNetB.tandemQueue[1].queue[13] queueLength ETV
+vector 64 ClosedQueueingNetB.tandemQueue[1].queue[14] queueLength ETV
+vector 65 ClosedQueueingNetB.tandemQueue[1].queue[15] queueLength ETV
+vector 66 ClosedQueueingNetB.tandemQueue[1].queue[16] queueLength ETV
+vector 67 ClosedQueueingNetB.tandemQueue[1].queue[17] queueLength ETV
+vector 68 ClosedQueueingNetB.tandemQueue[1].queue[18] queueLength ETV
+vector 69 ClosedQueueingNetB.tandemQueue[1].queue[19] queueLength ETV
+vector 70 ClosedQueueingNetB.tandemQueue[1].queue[20] queueLength ETV
+vector 71 ClosedQueueingNetB.tandemQueue[1].queue[21] queueLength ETV
+vector 72 ClosedQueueingNetB.tandemQueue[1].queue[22] queueLength ETV
+vector 73 ClosedQueueingNetB.tandemQueue[1].queue[23] queueLength ETV
+vector 74 ClosedQueueingNetB.tandemQueue[1].queue[24] queueLength ETV
+vector 75 ClosedQueueingNetB.tandemQueue[1].queue[25] queueLength ETV
+vector 76 ClosedQueueingNetB.tandemQueue[1].queue[26] queueLength ETV
+vector 77 ClosedQueueingNetB.tandemQueue[1].queue[27] queueLength ETV
+vector 78 ClosedQueueingNetB.tandemQueue[1].queue[28] queueLength ETV
+vector 79 ClosedQueueingNetB.tandemQueue[1].queue[29] queueLength ETV
+vector 80 ClosedQueueingNetB.tandemQueue[1].queue[30] queueLength ETV
+vector 81 ClosedQueueingNetB.tandemQueue[1].queue[31] queueLength ETV
+vector 82 ClosedQueueingNetB.tandemQueue[1].queue[32] queueLength ETV
+vector 83 ClosedQueueingNetB.tandemQueue[1].queue[33] queueLength ETV
+vector 84 ClosedQueueingNetB.tandemQueue[1].queue[34] queueLength ETV
+vector 85 ClosedQueueingNetB.tandemQueue[1].queue[35] queueLength ETV
+vector 86 ClosedQueueingNetB.tandemQueue[1].queue[36] queueLength ETV
+vector 87 ClosedQueueingNetB.tandemQueue[1].queue[37] queueLength ETV
+vector 88 ClosedQueueingNetB.tandemQueue[1].queue[38] queueLength ETV
+vector 89 ClosedQueueingNetB.tandemQueue[1].queue[39] queueLength ETV
+vector 90 ClosedQueueingNetB.tandemQueue[1].queue[40] queueLength ETV
+vector 91 ClosedQueueingNetB.tandemQueue[1].queue[41] queueLength ETV
+vector 92 ClosedQueueingNetB.tandemQueue[1].queue[42] queueLength ETV
+vector 93 ClosedQueueingNetB.tandemQueue[1].queue[43] queueLength ETV
+vector 94 ClosedQueueingNetB.tandemQueue[1].queue[44] queueLength ETV
+vector 95 ClosedQueueingNetB.tandemQueue[1].queue[45] queueLength ETV
+vector 96 ClosedQueueingNetB.tandemQueue[1].queue[46] queueLength ETV
+vector 97 ClosedQueueingNetB.tandemQueue[1].queue[47] queueLength ETV
+vector 98 ClosedQueueingNetB.tandemQueue[1].queue[48] queueLength ETV
+vector 99 ClosedQueueingNetB.tandemQueue[1].queue[49] queueLength ETV
+vector 100 ClosedQueueingNetB.tandemQueue[2].queue[0] queueLength ETV
+vector 101 ClosedQueueingNetB.tandemQueue[2].queue[1] queueLength ETV
+vector 102 ClosedQueueingNetB.tandemQueue[2].queue[2] queueLength ETV
+vector 103 ClosedQueueingNetB.tandemQueue[2].queue[3] queueLength ETV
+vector 104 ClosedQueueingNetB.tandemQueue[2].queue[4] queueLength ETV
+vector 105 ClosedQueueingNetB.tandemQueue[2].queue[5] queueLength ETV
+vector 106 ClosedQueueingNetB.tandemQueue[2].queue[6] queueLength ETV
+vector 107 ClosedQueueingNetB.tandemQueue[2].queue[7] queueLength ETV
+vector 108 ClosedQueueingNetB.tandemQueue[2].queue[8] queueLength ETV
+vector 109 ClosedQueueingNetB.tandemQueue[2].queue[9] queueLength ETV
+vector 110 ClosedQueueingNetB.tandemQueue[2].queue[10] queueLength ETV
+vector 111 ClosedQueueingNetB.tandemQueue[2].queue[11] queueLength ETV
+vector 112 ClosedQueueingNetB.tandemQueue[2].queue[12] queueLength ETV
+vector 113 ClosedQueueingNetB.tandemQueue[2].queue[13] queueLength ETV
+vector 114 ClosedQueueingNetB.tandemQueue[2].queue[14] queueLength ETV
+vector 115 ClosedQueueingNetB.tandemQueue[2].queue[15] queueLength ETV
+vector 116 ClosedQueueingNetB.tandemQueue[2].queue[16] queueLength ETV
+vector 117 ClosedQueueingNetB.tandemQueue[2].queue[17] queueLength ETV
+vector 118 ClosedQueueingNetB.tandemQueue[2].queue[18] queueLength ETV
+vector 119 ClosedQueueingNetB.tandemQueue[2].queue[19] queueLength ETV
+vector 120 ClosedQueueingNetB.tandemQueue[2].queue[20] queueLength ETV
+vector 121 ClosedQueueingNetB.tandemQueue[2].queue[21] queueLength ETV
+vector 122 ClosedQueueingNetB.tandemQueue[2].queue[22] queueLength ETV
+vector 123 ClosedQueueingNetB.tandemQueue[2].queue[23] queueLength ETV
+vector 124 ClosedQueueingNetB.tandemQueue[2].queue[24] queueLength ETV
+vector 125 ClosedQueueingNetB.tandemQueue[2].queue[25] queueLength ETV
+vector 126 ClosedQueueingNetB.tandemQueue[2].queue[26] queueLength ETV
+vector 127 ClosedQueueingNetB.tandemQueue[2].queue[27] queueLength ETV
+vector 128 ClosedQueueingNetB.tandemQueue[2].queue[28] queueLength ETV
+vector 129 ClosedQueueingNetB.tandemQueue[2].queue[29] queueLength ETV
+vector 130 ClosedQueueingNetB.tandemQueue[2].queue[30] queueLength ETV
+vector 131 ClosedQueueingNetB.tandemQueue[2].queue[31] queueLength ETV
+vector 132 ClosedQueueingNetB.tandemQueue[2].queue[32] queueLength ETV
+vector 133 ClosedQueueingNetB.tandemQueue[2].queue[33] queueLength ETV
+vector 134 ClosedQueueingNetB.tandemQueue[2].queue[34] queueLength ETV
+vector 135 ClosedQueueingNetB.tandemQueue[2].queue[35] queueLength ETV
+vector 136 ClosedQueueingNetB.tandemQueue[2].queue[36] queueLength ETV
+vector 137 ClosedQueueingNetB.tandemQueue[2].queue[37] queueLength ETV
+vector 138 ClosedQueueingNetB.tandemQueue[2].queue[38] queueLength ETV
+vector 139 ClosedQueueingNetB.tandemQueue[2].queue[39] queueLength ETV
+vector 140 ClosedQueueingNetB.tandemQueue[2].queue[40] queueLength ETV
+vector 141 ClosedQueueingNetB.tandemQueue[2].queue[41] queueLength ETV
+vector 142 ClosedQueueingNetB.tandemQueue[2].queue[42] queueLength ETV
+vector 143 ClosedQueueingNetB.tandemQueue[2].queue[43] queueLength ETV
+vector 144 ClosedQueueingNetB.tandemQueue[2].queue[44] queueLength ETV
+vector 145 ClosedQueueingNetB.tandemQueue[2].queue[45] queueLength ETV
+vector 146 ClosedQueueingNetB.tandemQueue[2].queue[46] queueLength ETV
+vector 147 ClosedQueueingNetB.tandemQueue[2].queue[47] queueLength ETV
+vector 148 ClosedQueueingNetB.tandemQueue[2].queue[48] queueLength ETV
+vector 149 ClosedQueueingNetB.tandemQueue[2].queue[49] queueLength ETV
+0	11575 24 0 0 0 0 3 1 2 4 6
+1	11599 24 0 0 0 0 3 1 2 4 6
+2	11623 24 0 0 0 0 3 1 2 4 6
+3	11647 24 0 0 0 0 3 1 2 4 6
+4	11671 24 0 0 0 0 3 1 2 4 6
+5	11695 24 0 0 0 0 3 1 2 4 6
+6	11719 24 0 0 0 0 3 1 2 4 6
+7	11743 24 0 0 0 0 3 1 2 4 6
+8	11767 24 0 0 0 0 3 1 2 4 6
+9	11791 24 0 0 0 0 3 1 2 4 6
+10	11815 27 0 0 0 0 3 1 2 4 6
+11	11842 27 0 0 0 0 3 1 2 4 6
+12	11869 27 0 0 0 0 3 1 2 4 6
+13	11896 27 0 0 0 0 3 1 2 4 6
+14	11923 27 0 0 0 0 3 1 2 4 6
+15	11950 27 0 0 0 0 3 1 2 4 6
+16	11977 27 0 0 0 0 3 1 2 4 6
+17	12004 27 0 0 0 0 3 1 2 4 6
+18	12031 27 0 0 0 0 3 1 2 4 6
+19	12058 27 0 0 0 0 3 1 2 4 6
+20	12085 27 0 0 0 0 3 1 2 4 6
+21	12112 27 0 0 0 0 3 1 2 4 6
+22	12139 27 0 0 0 0 3 1 2 4 6
+23	12166 27 0 0 0 0 3 1 2 4 6
+24	12193 27 0 0 0 0 3 1 2 4 6
+25	12220 27 0 0 0 0 3 1 2 4 6
+26	12247 27 0 0 0 0 3 1 2 4 6
+27	12274 27 0 0 0 0 3 1 2 4 6
+28	12301 27 0 0 0 0 3 1 2 4 6
+29	12328 27 0 0 0 0 3 1 2 4 6
+30	12355 27 0 0 0 0 3 1 2 4 6
+31	12382 27 0 0 0 0 3 1 2 4 6
+32	12409 27 0 0 0 0 3 1 2 4 6
+33	12436 27 0 0 0 0 3 1 2 4 6
+34	12463 27 0 0 0 0 3 1 2 4 6
+35	12490 27 0 0 0 0 3 1 2 4 6
+36	12517 27 0 0 0 0 3 1 2 4 6
+37	12544 27 0 0 0 0 3 1 2 4 6
+38	12571 27 0 0 0 0 3 1 2 4 6
+39	12598 27 0 0 0 0 3 1 2 4 6
+40	12625 27 0 0 0 0 3 1 2 4 6
+41	12652 27 0 0 0 0 3 1 2 4 6
+42	12679 27 0 0 0 0 3 1 2 4 6
+43	12706 27 0 0 0 0 3 1 2 4 6
+44	12733 27 0 0 0 0 3 1 2 4 6
+45	12760 27 0 0 0 0 3 1 2 4 6
+46	12787 27 0 0 0 0 3 1 2 4 6
+47	12814 27 0 0 0 0 3 1 2 4 6
+48	12841 27 0 0 0 0 3 1 2 4 6
+49	12868 27 0 0 0 0 3 1 2 4 6
+50	12895 27 0 0 0 0 3 1 2 4 6
+51	12922 27 0 0 0 0 3 1 2 4 6
+52	12949 27 0 0 0 0 3 1 2 4 6
+53	12976 27 0 0 0 0 3 1 2 4 6
+54	13003 27 0 0 0 0 3 1 2 4 6
+55	13030 27 0 0 0 0 3 1 2 4 6
+56	13057 27 0 0 0 0 3 1 2 4 6
+57	13084 27 0 0 0 0 3 1 2 4 6
+58	13111 27 0 0 0 0 3 1 2 4 6
+59	13138 27 0 0 0 0 3 1 2 4 6
+60	13165 27 0 0 0 0 3 1 2 4 6
+61	13192 27 0 0 0 0 3 1 2 4 6
+62	13219 27 0 0 0 0 3 1 2 4 6
+63	13246 27 0 0 0 0 3 1 2 4 6
+64	13273 27 0 0 0 0 3 1 2 4 6
+65	13300 27 0 0 0 0 3 1 2 4 6
+66	13327 27 0 0 0 0 3 1 2 4 6
+67	13354 27 0 0 0 0 3 1 2 4 6
+68	13381 27 0 0 0 0 3 1 2 4 6
+69	13408 27 0 0 0 0 3 1 2 4 6
+70	13435 27 0 0 0 0 3 1 2 4 6
+71	13462 27 0 0 0 0 3 1 2 4 6
+72	13489 27 0 0 0 0 3 1 2 4 6
+73	13516 27 0 0 0 0 3 1 2 4 6
+74	13543 27 0 0 0 0 3 1 2 4 6
+75	13570 27 0 0 0 0 3 1 2 4 6
+76	13597 27 0 0 0 0 3 1 2 4 6
+77	13624 27 0 0 0 0 3 1 2 4 6
+78	13651 27 0 0 0 0 3 1 2 4 6
+79	13678 27 0 0 0 0 3 1 2 4 6
+80	13705 27 0 0 0 0 3 1 2 4 6
+81	13732 27 0 0 0 0 3 1 2 4 6
+82	13759 27 0 0 0 0 3 1 2 4 6
+83	13786 27 0 0 0 0 3 1 2 4 6
+84	13813 27 0 0 0 0 3 1 2 4 6
+85	13840 27 0 0 0 0 3 1 2 4 6
+86	13867 27 0 0 0 0 3 1 2 4 6
+87	13894 27 0 0 0 0 3 1 2 4 6
+88	13921 27 0 0 0 0 3 1 2 4 6
+89	13948 27 0 0 0 0 3 1 2 4 6
+90	13975 27 0 0 0 0 3 1 2 4 6
+91	14002 27 0 0 0 0 3 1 2 4 6
+92	14029 27 0 0 0 0 3 1 2 4 6
+93	14056 27 0 0 0 0 3 1 2 4 6
+94	14083 27 0 0 0 0 3 1 2 4 6
+95	14110 27 0 0 0 0 3 1 2 4 6
+96	14137 27 0 0 0 0 3 1 2 4 6
+97	14164 27 0 0 0 0 3 1 2 4 6
+98	14191 27 0 0 0 0 3 1 2 4 6
+99	14218 27 0 0 0 0 3 1 2 4 6
+100	14245 30 0 0 0 0 3 1 2 4 6
+101	14275 30 0 0 0 0 3 1 2 4 6
+102	14305 30 0 0 0 0 3 1 2 4 6
+103	14335 30 0 0 0 0 3 1 2 4 6
+104	14365 30 0 0 0 0 3 1 2 4 6
+105	14395 30 0 0 0 0 3 1 2 4 6
+106	14425 30 0 0 0 0 3 1 2 4 6
+107	14455 30 0 0 0 0 3 1 2 4 6
+108	14485 30 0 0 0 0 3 1 2 4 6
+109	14515 30 0 0 0 0 3 1 2 4 6
+110	14545 30 0 0 0 0 3 1 2 4 6
+111	14575 30 0 0 0 0 3 1 2 4 6
+112	14605 30 0 0 0 0 3 1 2 4 6
+113	14635 30 0 0 0 0 3 1 2 4 6
+114	14665 30 0 0 0 0 3 1 2 4 6
+115	14695 30 0 0 0 0 3 1 2 4 6
+116	14725 30 0 0 0 0 3 1 2 4 6
+117	14755 30 0 0 0 0 3 1 2 4 6
+118	14785 30 0 0 0 0 3 1 2 4 6
+119	14815 30 0 0 0 0 3 1 2 4 6
+120	14845 30 0 0 0 0 3 1 2 4 6
+121	14875 30 0 0 0 0 3 1 2 4 6
+122	14905 30 0 0 0 0 3 1 2 4 6
+123	14935 30 0 0 0 0 3 1 2 4 6
+124	14965 30 0 0 0 0 3 1 2 4 6
+125	14995 30 0 0 0 0 3 1 2 4 6
+126	15025 30 0 0 0 0 3 1 2 4 6
+127	15055 30 0 0 0 0 3 1 2 4 6
+128	15085 30 0 0 0 0 3 1 2 4 6
+129	15115 30 0 0 0 0 3 1 2 4 6
+130	15145 30 0 0 0 0 3 1 2 4 6
+131	15175 30 0 0 0 0 3 1 2 4 6
+132	15205 30 0 0 0 0 3 1 2 4 6
+133	15235 30 0 0 0 0 3 1 2 4 6
+134	15265 30 0 0 0 0 3 1 2 4 6
+135	15295 30 0 0 0 0 3 1 2 4 6
+136	15325 30 0 0 0 0 3 1 2 4 6
+137	15355 30 0 0 0 0 3 1 2 4 6
+138	15385 30 0 0 0 0 3 1 2 4 6
+139	15415 30 0 0 0 0 3 1 2 4 6
+140	15445 30 0 0 0 0 3 1 2 4 6
+141	15475 30 0 0 0 0 3 1 2 4 6
+142	15505 30 0 0 0 0 3 1 2 4 6
+143	15535 30 0 0 0 0 3 1 2 4 6
+144	15565 30 0 0 0 0 3 1 2 4 6
+145	15595 30 0 0 0 0 3 1 2 4 6
+146	15625 30 0 0 0 0 3 1 2 4 6
+147	15655 30 0 0 0 0 3 1 2 4 6
+148	15685 30 0 0 0 0 3 1 2 4 6
+149	15715 30 0 0 0 0 3 1 2 4 6
+

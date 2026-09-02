@@ -1,0 +1,57 @@
+file 16796 1754472871                                           
+version 2
+run TandemQueueExperiment-3-20211218-16:50:49-61924
+attr configname TandemQueueExperiment
+attr datetime 20211218-16:50:49
+attr datetimef 20211218-165049
+attr experiment TandemQueueExperiment
+attr inifile omnetpp.ini
+attr iterationvars $serviceTimeMean=2.5s
+attr iterationvarsd serviceTimeMean=2.5s
+attr iterationvarsf serviceTimeMean=2.5s-
+attr measurement $serviceTimeMean=2.5s
+attr network TandemQueues
+attr processid 61924
+attr repetition 1
+attr replication #1
+attr resultdir results
+attr runnumber 3
+attr seedset 3
+itervar serviceTimeMean 2.5s
+config cmdenv-redirect-output true
+config network TandemQueues
+config **.interarrivalTime exponential(2s)
+config **.serviceTime truncnormal(2.5s,1s)
+config repeat 2
+config sim-time-limit 200s
+config sim-time-limit 100h
+config cpu-time-limit 300s
+
+vector 0 TandemQueues.fifo1 qlen:vector ETV
+attr interpolationmode sample-hold
+attr recordingmode vector
+attr title "queue length"
+0	1508 3985 0 481 0 199.562722553803 164 0 14 1272 12498
+vector 1 TandemQueues.fifo2 qlen:vector ETV
+attr interpolationmode sample-hold
+attr recordingmode vector
+attr title "queue length"
+1	5493 2976 0 475 0 196.44670662661 123 0 5 231 741
+vector 2 TandemQueues.fifo1 queueingTime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "queueing time"
+attr unit s
+2	8469 2856 2 481 0 199.562722553803 77 0 35.786391396751 1390.8374215703 33777.46559144
+vector 3 TandemQueues.fifo2 queueingTime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "queueing time"
+attr unit s
+3	11325 2628 6 482 2.400437129511 199.562722553803 76 0 12.537107216372 294.07156481728 2347.1171537463
+vector 4 TandemQueues.sink lifetime:vector ETV
+attr interpolationmode none
+attr recordingmode vector
+attr title "lifetime of arrived jobs"
+attr unit s
+4	13953 2843 8 478 3.816197769908 197.160454299011 75 3.816197769908 50.568504929553 2023.0253938191 69812.12704014
