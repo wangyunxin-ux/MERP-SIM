@@ -1,0 +1,2099 @@
+\appendixchapter{NED Reference}
+\label{cha:ned-ref}
+
+\section{Syntax}
+\label{sec:ned-ref:syntax}
+
+\subsection{NED File Name Extension}
+\label{sec:ned-ref:ned-file-name-extension}
+
+NED files have the \texttt{.ned} file name suffix. This is mandatory, and
+cannot be overridden.
+
+\subsection{NED File Encoding}
+\label{sec:ned-ref:ned-file-encoding}
+
+NED files are ASCII, but non-ASCII characters are permitted in comments
+and string literals. This allows for using encodings that are a superset
+of ASCII, for example ISO 8859-1 and UTF-8.
+
+\begin{note}
+    There is no standard way to specify or determine the encoding of a NED file.
+    It is up to the user to configure the desired encoding in text editors
+    and other tools that edit or process NED files.
+\end{note}
+
+String literals (e.g. in parameter values) will be passed to the C++ code
+as \ttt{const char *} without any conversion; it is up to the simulation model
+to interpret them using the desired encoding.
+
+Line ending may be either CR or CRLF, regardless of the platform.
+
+
+\subsection{Reserved Words}
+\label{sec:ned-ref:reserved-words}
+
+The following words are reserved, and cannot be used for identifiers:
+
+\ttt{allowunconnected bool channel channelinterface connections const
+default double extends false for gates if import index inf inout input int like
+module moduleinterface nan network null nullptr object output package parameters
+parent property simple sizeof string submodules this true typename types
+undefined volatile xml xmldoc}
+
+
+\subsection{Identifiers}
+\label{sec:ned-ref:identifiers}
+
+Identifiers must be composed of letters of the English alphabet (a-z, A-Z),
+numbers (0-9) and underscore ``\_''. Identifiers may only begin with a
+letter or underscore.
+
+The recommended way to compose identifiers from multiple words is to
+capitalize the beginning of each word (\textit{camel case}).
+
+
+\subsection{Case Sensitivity}
+\label{sec:ned-ref:case-sensitivity}
+
+Keywords and identifiers in the NED language are case sensitive. For example,
+\ttt{TCP} and \ttt{Tcp} are two different names.
+
+
+\subsection{Literals}
+\label{sec:ned-ref:literals}
+
+\subsubsection{String Literals}
+\label{sec:ned-ref:string-literals}
+
+String literals use double quotes. The following C-style backslash escapes
+are recognized: \ttt{{\textbackslash}b}, \ttt{{\textbackslash}f},
+\ttt{{\textbackslash}n}, \ttt{{\textbackslash}r}, \ttt{{\textbackslash}t},
+\ttt{{\textbackslash}{\textbackslash}}, \ttt{{\textbackslash}"}, and
+\ttt{{\textbackslash}xhh} where \textit{h} is a hexadecimal digit.
+
+\subsubsection{Numeric Constants}
+\label{sec:ned-ref:numeric-constants}
+
+Numeric constants are accepted in the usual decimal, hexadecimal (\ttt{0x} prefix)
+and scientific notations. Octal numbers are not accepted (numbers that start
+with the \ttt{0} digit are interpreted as decimal.)
+
+\fkeyword{nan}, \fkeyword{inf} and \ttt{-}\fkeyword{inf} mean the floating-point
+not-a-number, positive infinity and negative infinity values, respectively.
+
+\subsubsection{Quantity Constants}
+\label{sec:ned-ref:quantity-constants}
+
+A quantity constant has the form \textit{(<numeric-constant> <unit>)+}, for
+example \ttt{12.5mW} or \ttt{3h 15min 37.2s}. Whitespace is optional in front
+of a unit, but must be present after a unit if it is followed by a number.
+
+When multiple measurement units are present, they have to be convertible
+into each other (i.e. refer to the same physical quantity).
+
+Section \ref{sec:ned-ref:units} lists the units recognized by {\opp}.
+Other units can be used as well; the only downside being that {\opp} will
+not be able to perform conversions on them.
+
+\subsubsection{Null Object References}
+\label{sec:ned-ref:nullptr}
+
+The keywords \fkeyword{null} and \fkeyword{nullptr} are synonymous, and
+denote an object reference that doesn't refer to any valid object.
+
+\subsubsection{Undefined}
+\label{sec:ned-ref:undefined}
+
+The keyword \fkeyword{undefined} denotes the ``missing value'' value, similar
+to \ttt{(void)0} in C/C++. \fkeyword{undefined} has its own type, and
+cannot be cast to any other type.
+
+
+\subsection{Comments}
+\label{sec:ned-ref:comments}
+
+Comments can be placed at the end of lines. Comments begin with a double
+slash \ttt{//}, and continue until the end of the line.
+
+
+\subsection{Grammar}
+\label{sec:ned-ref:grammar}
+
+The grammar of the NED language can be found in Appendix
+\ref{cha:ned-language-grammar}.
+
+\section{Built-in Definitions}
+\label{sec:ned-ref:built-in-defs}
+
+The NED language has the following built-in definitions, all in the \ttt{ned}
+package: channels \ttt{IdealChannel}, \ttt{DelayChannel}, and \ttt{DatarateChannel};
+module interfaces \ttt{IBidirectionalChannel}, and \ttt{IUnidirectionalChannel}.
+The latter two are reserved for future use.
+
+The bodies of \ttt{@statistic} properties have been omitted for brevity from
+the following listing.
+
+\begin{note}
+One can print the full definitions by running \ttt{opp\_run -h neddecls}.
+\end{note}
+
+% @BEGINFILE tools/neddecls.txt
+\begin{ned}
+package ned;
+@namespace("omnetpp");
+
+channel IdealChannel
+{
+    @class(cIdealChannel);
+}
+
+channel DelayChannel
+{
+    @class(cDelayChannel);
+    @signal[messageSent](type=omnetpp::cMessage);
+    @signal[messageDiscarded](type=omnetpp::cMessage);
+    @statistic[messages](source="constant1(messageSent)";record=count?;interpolationmode=none);
+    @statistic[messagesDiscarded](source="constant1(messageDiscarded)";record=count?;interpolationmode=none);
+    bool disabled @mutable = default(false);
+    double delay @mutable = default(0s) @unit(s); // propagation delay
+}
+
+channel DatarateChannel
+{
+    @class(cDatarateChannel);
+    @signal[channelBusy](type=long);
+    @signal[messageSent](type=omnetpp::cMessage);
+    @signal[messageDiscarded](type=omnetpp::cMessage);
+    @statistic[busy](source=channelBusy;record=vector?;interpolationmode=sample-hold);
+    @statistic[utilization](source="timeavg(channelBusy)";record=last?);
+    @statistic[packets](source="constant1(messageSent)";record=count?;interpolationmode=none);
+    @statistic[packetBytes](source="packetBytes(messageSent)";record=sum?;unit=B;interpolationmode=none);
+    @statistic[packetsDiscarded](source="constant1(messageDiscarded)";record=count?;interpolationmode=none);
+    @statistic[throughput](source="sumPerDuration(packetBits(messageSent))";record=last?;unit=bps);
+    bool disabled @mutable = default(false);
+    double delay @mutable = default(0s) @unit(s); // propagation delay
+    double datarate @mutable = default(0bps) @unit(bps); // bits per second; 0=infinite
+    double ber @mutable = default(0); // bit error rate (BER)
+    double per @mutable = default(0); // packet error rate (PER)
+}
+
+moduleinterface IBidirectionalChannel
+{
+    gates:
+        inout a;
+        inout b;
+}
+
+moduleinterface IUnidirectionalChannel
+{
+    gates:
+        input i;
+        output o;
+}
+\end{ned}
+% @ENDFILE
+
+
+\section{Packages}
+\label{sec:ned-ref:packages}
+
+NED supports hierarchical namespaces called \textit{packages}. The model
+is similar to Java packages, with minor changes.
+
+
+\subsection{Package Declaration}
+\label{sec:ned-ref:package-declaration}
+
+A NED file may contain a package declaration. The package declaration
+uses the \fkeyword{package} keyword, and specifies the package for the
+definitions in the NED file. If there is no package declaration, the file's
+contents are in the \textit{default package}.
+
+Component type names must be unique within their package.
+
+
+\subsection{Directory Structure, package.ned}
+\label{sec:ned-ref:directory-structure}
+
+Like in Java, the directory of a NED file must match the package
+declaration. However, it is possible to omit directories at the top which do
+not contain any NED files (like the typical \ttt{/org/\textit{<projectname>}}
+directories in Java).
+
+The top of a directory tree containing NED files is named a \textit{NED source
+folder}.
+
+\begin{note}
+The {\opp} runtime recognizes a \ttt{NEDPATH} environment variable, which
+contains a list of NED source folders, and is similar to the Java \ttt{CLASSPATH}
+variable. \ttt{NEDPATH} also has a command-line option equivalent.
+\end{note}
+
+The \ffilename{package.ned} file at the top level of a NED source folder plays a
+special role.
+
+If there is no toplevel \ttt{package.ned} or it contains no package declaration,
+the declared package of a NED file in the folder \ttt{\textit{<srcfolder>}/x/y/z}
+\textit{must} be \ttt{x.y.z}.
+If there is a toplevel \ttt{package.ned} and it declares the package as
+\ttt{a.b}, then any NED file in the folder \ttt{\textit{<srcfolder>}/x/y/z}
+\textit{must} have the declared package \ttt{a.b.x.y.z}.
+
+\begin{note}
+    \ffilename{package.ned} files are allowed in other folders as well.
+    They may contain properties and/or documentation for their package,
+    but cannot be used to define the package they are in.
+\end{note}
+
+
+
+
+\section{Components}
+\label{sec:ned-ref:components}
+
+Simple modules, compound modules, networks, channels, module interfaces
+and channel interfaces are called \textit{components}.
+
+
+\subsection{Simple Modules}
+\label{sec:ned-ref:simple-modules}
+
+Simple module types are declared with the \fkeyword{simple} keyword;
+see the NED Grammar (Appendix \ref{cha:ned-language-grammar}) for the
+syntax.
+
+Simple modules may have properties (\ref{sec:ned-ref:properties}),
+parameters (\ref{sec:ned-ref:parameters})
+and gates (\ref{sec:ned-ref:gates}).
+
+A simple module type may not have inner types (\ref{sec:ned-ref:inner-types}).
+
+A simple module type may extend another simple module type, and
+may implement one or more module interfaces (\ref{sec:ned-ref:module-interfaces}).
+Inheritance rules are described in section \ref{sec:ned-ref:inheritance},
+and interface implementation rules in section \ref{sec:ned-ref:implementing-an-interface}.
+
+Every simple module type has an associated C++ class, which must be
+subclassed from \cclass{cSimpleModule}. The way of associating the
+NED type with the C++ class is described in section
+\ref{sec:ned-ref:resolving-cpp-class}.
+
+
+
+\subsection{Compound Modules}
+\label{sec:ned-ref:compound-modules}
+
+Compound module types are declared with the \fkeyword{module} keyword;
+see the NED Grammar (Appendix \ref{cha:ned-language-grammar}) for the
+syntax.
+
+A compound module may have properties (\ref{sec:ned-ref:properties}),
+parameters (\ref{sec:ned-ref:parameters}),
+and gates (\ref{sec:ned-ref:gates}); its internal structure is defined by
+its submodules (\ref{sec:ned-ref:submodules}) and
+connections (\ref{sec:ned-ref:connections});
+and it may also have inner types (\ref{sec:ned-ref:inner-types})
+that can be used for its submodules and connections.
+
+A compound module type may extend another compound module type, and
+may implement one or more module interfaces (\ref{sec:ned-ref:module-interfaces}).
+Inheritance rules are described in section \ref{sec:ned-ref:inheritance},
+and interface implementation rules in section \ref{sec:ned-ref:implementing-an-interface}.
+
+
+
+\subsection{Networks}
+\label{sec:ned-ref:networks}
+
+\subsubsection{The network Keyword}
+\label{sec:ned-ref:network-keyword}
+
+A network declared with the \fkeyword{network} keyword is equivalent to a compound
+module (\fkeyword{module} keyword) with the \fprop{@isNetwork(true)} property.
+
+\begin{note}
+    A simple module can only be designated to be a network by spelling out the
+    \fprop{@isNetwork} property; the \fkeyword{network} keyword cannot
+    be used for that purpose.
+\end{note}
+
+\subsubsection{The @isNetwork Property}
+\label{sec:ned-ref:isnetwork-property}
+
+The \fprop{@isNetwork} property is only recognized for simple modules and
+compound modules. The value may be empty, true or false:
+
+\begin{ned}
+@isNetwork;
+@isNetwork();
+@isNetwork(true);
+@isNetwork(false);
+\end{ned}
+
+The empty value corresponds to \fprop{@isNetwork(true)}.
+
+The \fprop{@isNetwork} property is not inherited; that is, a subclass
+of a module with \fprop{@isNetwork} set does not automatically become a network.
+The \fprop{@isNetwork} property needs to be explicitly added to the subclass
+to make it a network.
+
+\begin{rationale}
+    Subclassing may introduce changes to a module that make it unfit to be used
+    as a network.
+\end{rationale}
+
+
+
+\subsection{Channels}
+\label{sec:ned-ref:channels}
+
+Channel types are declared with the \fkeyword{channel} keyword;
+see the NED Grammar (Appendix \ref{cha:ned-language-grammar}) for the
+syntax.
+
+Channel types may have properties (\ref{sec:ned-ref:properties})
+and parameters (\ref{sec:ned-ref:parameters}).
+
+A channel type may not have inner types (\ref{sec:ned-ref:inner-types}).
+
+A channel type may extend another channel type, and
+may implement one or more channel interfaces (\ref{sec:ned-ref:channel-interfaces}).
+Inheritance rules are described in section \ref{sec:ned-ref:inheritance},
+and interface implementation rules in section \ref{sec:ned-ref:implementing-an-interface}.
+
+Every channel type has an associated C++ class, which must be
+subclassed from \cclass{cChannel}. The way of associating the
+NED type with the C++ class is described in section
+\ref{sec:ned-ref:resolving-cpp-class}.
+
+The \ttt{@defaultname} property of a channel type determines the default name
+of the channel object when used in a connection.
+
+
+\subsection{Module Interfaces}
+\label{sec:ned-ref:module-interfaces}
+
+Module interface types are declared with the \fkeyword{moduleinterface} keyword;
+see the NED Grammar (Appendix \ref{cha:ned-language-grammar}) for the
+syntax.
+
+Module interfaces may have properties (\ref{sec:ned-ref:properties}),
+parameters (\ref{sec:ned-ref:parameters}), and
+gates (\ref{sec:ned-ref:gates}). However, parameters are not allowed
+to have a value assigned, not even a default value.
+
+A module interface type may not have inner types (\ref{sec:ned-ref:inner-types}).
+
+A module interface type may extend one or more other module interface types.
+Inheritance rules are described in section \ref{sec:ned-ref:inheritance}.
+
+
+
+\subsection{Channel Interfaces}
+\label{sec:ned-ref:channel-interfaces}
+
+Channel interface types are declared with the \fkeyword{channelinterface} keyword;
+see the NED Grammar (Appendix \ref{cha:ned-language-grammar}) for the
+syntax.
+
+Channel interfaces may have properties (\ref{sec:ned-ref:properties}) and
+parameters (\ref{sec:ned-ref:parameters}). However, parameters are not
+allowed to have a value assigned, not even a default value.
+
+A channel interface type may not have inner types (\ref{sec:ned-ref:inner-types}).
+
+A channel interface type may extend one or more other channel interface types.
+Inheritance rules are described in section \ref{sec:ned-ref:inheritance}.
+
+
+
+\subsection{Resolving the C++ Implementation Class}
+\label{sec:ned-ref:resolving-cpp-class}
+
+The procedure for determining the C++ implementation class for simple modules
+and for channels are identical. It goes as follows (we are going to say
+\textit{component} instead of \textit{``simple module or channel''}):
+
+If the component extends another component and has no \fprop{@class}
+property, the C++ implementation class is inherited from the base type.
+
+If the component contains a \fprop{@class} property, the C++ class name
+will be composed of the \textit{current namespace} (see below) and the
+value of the \fprop{@class} property. The \fprop{@class} property should
+contain a single value.
+
+\begin{note}
+    The \fprop{@class} property may itself contain a namespace declaration (ie.
+    may contain ``\ttt{::}'').
+\end{note}
+
+If the component contains no \fprop{@class} property and has no base
+class, the C++ class name will be composed of the \textit{current namespace} and the
+unqualified name of the component.
+
+\begin{important}
+    Subclassing in NED does not imply subclassing the C++ implementation. If one
+    intends to subclass a simple module or channel in NED as well as in C++, the
+    \fprop{@class} property needs to be explicitly specified in the derived type,
+    otherwise it will continue to use the C++ class from its super type.
+\end{important}
+
+Compound modules will be instantiated with the built-in \cclass{cModule} class,
+unless the module contains the \fprop{@class} property. When \fprop{@class} is present,
+the resolution rules are the same as with simple modules.
+
+
+\subsubsection{Current Namespace}
+\label{ch:ned-ref:current-namespace}
+
+The \textit{current namespace} is the value of the first \fprop{@namespace}
+property found while searching the following order:
+
+\begin{enumerate}
+  \item the current NED file
+  \item the \ttt{package.ned} file in the current package or the first ancestor
+        package searching upwards
+\end{enumerate}
+
+\begin{note}
+    Note that namespaces coming from multiple \fprop{@namespace} properties
+    in different scopes do not nest, but rather, the nearest one wins.
+\end{note}
+
+The \fprop{@namespace} property should contain a single value.
+
+
+
+\subsection{Properties}
+\label{sec:ned-ref:properties}
+
+Properties are a means of adding metadata annotations to NED files, component types,
+parameters, gates, submodules, and connections.
+
+\subsubsection{Identifying a Property}
+\label{sec:ned-ref:identifying-a-property}
+
+Properties are identified by name. It is possible to have several properties
+on the same object with the same name, as long as they have unique indices.
+An index is an identifier in square brackets after the property name.
+
+The following example shows a property without index, one with the index \ttt{index1},
+and a third with the index \ttt{index2}.
+
+\begin{ned}
+@prop();
+@prop[index1]();
+@prop[index2]();
+\end{ned}
+
+
+\subsubsection{Property Value}
+\label{sec:ned-ref:property-value}
+
+The value of the property is specified inside parentheses. The property value consists of
+\textit{key=valuelist} pairs, separated by semicolons; \textit{valuelist} elements
+are separated with commas. Example:
+
+\begin{ned}
+@prop(key1=value11,value12,value13;key2=value21,value22)
+\end{ned}
+
+Keys must be unique.
+
+If the key+equal sign part (\ttt{key=}) is missing, the valuelist belongs
+to the \textit{default key}. Examples:
+
+\begin{ned}
+@prop1(value1,value2)
+@prop2(value1,value2;key1=value11,value12,value13)
+\end{ned}
+
+Most of the properties use the default key with one value. Examples:
+
+\begin{ned}
+@namespace(inet);
+@class(Foo);
+@unit(s);
+\end{ned}
+
+Property values have a liberal syntax (see Appendix \ref{cha:ned-language-grammar}).
+Values that do not fit the grammar (notably, those containing a comma or
+a semicolon) need to be surrounded with double quotes.
+
+When interpreting a property value, one layer of quotes is removed
+automatically, that is, \ttt{foo} and \ttt{"foo"} are the same.
+Within quotes, escaping works in the same way as within string literals
+(see \ref{sec:ned-ref:literals}).
+
+Example:
+
+\begin{ned}
+@prop(marks=the ! mark, "the , mark", "the ; mark", other marks); // 4 items
+\end{ned}
+
+
+\subsubsection{Placement}
+\label{sec:ned-ref:property-placement}
+
+Properties may be added to NED files, component types, parameters,
+gates, submodules and connections. For the exact syntax, see
+Appendix \ref{cha:ned-language-grammar}.
+
+When a component type extends another component type(s), properties
+are merged. This is described in section \ref{sec:ned-ref:inheritance}.
+
+
+\subsubsection{Property Declarations}
+\label{sec:ned-ref:property-declarations}
+
+The \fkeyword{property} keyword is reserved for future use. It is
+envisioned that accepted property names and property keys would need
+to be pre-declared, so that the NED infrastructure can warn the user
+about mistyped or unrecognized names.
+
+
+\subsection{Parameters}
+\label{sec:ned-ref:parameters}
+
+Parameters can be defined and assigned in the \fkeyword{parameters} section
+of component types. In addition, parameters can also be assigned in the
+\fkeyword{parameters} sections of submodule bodies and connection bodies,
+but those places do not allow adding new parameters.
+
+The \fkeyword{parameters} keyword is optional, and can be omitted
+without change in the meaning.
+
+The \fkeyword{parameters} section may also hold pattern assignments
+(\ref{sec:ned-ref:pattern-assignments}) and properties
+(\ref{sec:ned-ref:properties}).
+
+A parameter is identified by a name, and has a data type. A parameter
+may have value or default value, and may also have properties
+(see \ref{sec:ned-ref:properties}).
+
+Accepted parameter data types are \fkeyword{double}, \fkeyword{int},
+\fkeyword{string}, \fkeyword{bool}, \fkeyword{xml}, and \fkeyword{object}.
+Any of the above types can be declared \fkeyword{volatile} as well
+(\ttt{volatile int}, \ttt{volatile string}, etc.)
+
+The presence of a data type keyword determines whether the given line defines
+a new parameter or refers to an existing parameter. One can assign a value or
+default value to an existing parameter, and/or modify its properties or add
+new properties.
+
+Examples:
+
+\begin{ned}
+int a;           // defines new parameter
+int b @foo;      // new parameter with property
+int c = default(5); // new parameter with default value
+int d = 5;       // new parameter with value assigned
+int e @foo = 5;  // new parameter with property and value
+f = 10;          // assignment to existing (e.g.inherited) parameter
+g = default(10); // overrides default value of existing parameter
+h;               // legal, but does nothing
+i @foo(1);       // adds a property to existing parameter
+j @foo(1) = 10;  // adds a property and value to existing parameter
+\end{ned}
+
+Parameter values are NED expressions. Expressions are described in section
+\ref{sec:ned-ref:expressions}.
+
+For \fkeyword{volatile} parameters, the value expression is evaluated every
+time the parameter value is accessed. Non-\fkeyword{volatile} parameters
+are evaluated only once.
+
+\begin{note}
+    The \fkeyword{const} keyword is reserved for future use within expressions
+    to define constant subexpressions, i.e. to denote a part within
+    an expression that should only be evaluated once. Constant subexpressions
+    are not supported yet.
+\end{note}
+
+The following properties are recognized for parameters: \fprop{@unit},
+\fprop{@prompt}, \fprop{@mutable}.
+
+
+\subsubsection{The @prompt Property}
+\label{sec:ned-ref:prompt-property}
+
+The \fprop{@prompt} property defines a prompt string for the parameter. The
+prompt string is used when/if a simulation runtime user interface
+interactively prompts the user for the parameter's value.
+
+The \fprop{@prompt} property is expected to contain one string value for the
+default key.
+
+
+\subsubsection{The @unit Property}
+\label{sec:ned-ref:unit-property}
+
+A parameter may have a \fprop{@unit} property to associate it with a measurement
+unit. The \fprop{@unit} property should contain one string value for the default
+key. Examples:
+
+\begin{ned}
+@unit(s)
+@unit(second)
+\end{ned}
+
+When present, values assigned to the parameter must be in the
+same or in a compatible (that is, convertible) unit.
+Examples:
+
+\begin{ned}
+  double a @unit(s) = 5s;   // OK
+  double a @unit(s) = 10ms; // OK; will be converted to seconds
+  double a @unit(s) = 5;    // error: should be 5s
+  double a @unit(s) = 5kg;  // error: incompatible unit
+\end{ned}
+
+\fprop{@unit} behavior for non-numeric parameters (boolean, string, XML)
+is unspecified (may be ignored or may be an error).
+
+The \fprop{@unit} property of a parameter may not be modified via inheritance.
+
+Example:
+\begin{ned}
+simple A {
+    double p @unit(s);
+}
+simple B extends A {
+    p @unit(mW);  // illegal: cannot override @unit
+}
+\end{ned}
+
+
+\subsubsection{The @mutable Property}
+\label{sec:ned-ref:mutable-property}
+
+When a parameter is annotated with \fprop{@mutable}, the parameter's value is
+allowed to be changed at runtime, i.e. after its module has been set up.
+Parameters without the \fprop{@mutable} property cannot be changed at runtime.
+
+
+\subsection{Pattern Assignments}
+\label{sec:ned-ref:pattern-assignments}
+
+Pattern assignments allow one to set more than one parameter using
+wildcards, and to assign parameters deeper down in a submodule tree.
+Pattern assignments may occur in the \fkeyword{parameters}
+section of component types, submodules and connections.
+
+The syntax of a pattern assignment is \textit{<pattern> = <value>}.
+
+A pattern consists of two or more pattern elements, separated by dots.
+The pattern element syntax is defined so that it can accommodate names of
+parameters, submodules (optionally with index), gates (optionally with the
+\ttt{\$i}/\ttt{\$o} suffix and/or index) and connections, and their
+wildcard forms. (The default name of connection channel objects is
+\fkeyword{channel}.)
+
+Wildcard forms may use:
+\begin{enumerate}
+  \item Asterisks: They match zero or more characters except dots.
+  \item Numeric ranges, \ttt{\{}\textit{<start>}..\textit{<end>}\ttt{\}}
+    e.g. \ttt{\{5..120\}} or \ttt{\{..10\}}. They match numbers embedded
+    in identifiers, that is, a sequence of decimal digit characters interpreted as a
+    nonnegative integer that is within the specified \textit{start..end}
+    range (both limits are inclusive). Both \textit{start} and \textit{end}
+    are optional.
+  \item Numeric index ranges,\ttt{[}\textit{<start>}..\textit{<end>}\ttt{]}.
+    e.g. \ttt{[5..120]} or \ttt{[..10]}. They are intended for selecting
+    submodule and gate index ranges. They match a nonnegative integer
+    enclosed in square brackets that is within the specified
+    \textit{start..end} range (both limits are inclusive).
+    Both \textit{start} and \textit{end} are optional.
+  \item Double asterisks: They match zero or more characters (including dots),
+    and can be used to match more than one parameter path elements.
+\end{enumerate}
+
+See the NED language grammar (Appendix \ref{cha:ned-language-grammar})
+for a more formal definition of the pattern syntax.
+
+Examples:
+\begin{ned}
+host1.tcp.mss = 512B;
+host*.tcp.mss = 512B; // matches host, host1, host2, hostileHost, ...
+host{9..11}.tcp.mss = 512B; // matches host9/host10/host11, but nothing else
+host[9..11].tcp.mss = 512B; // matches host[9]/host[10]/host[11], but nothing else
+**.mss = 512B; // matches foo.mss, host[1].transport.tcp[0].mss, ...
+\end{ned}
+
+
+
+\subsection{Gates}
+\label{sec:ned-ref:gates}
+
+Gates can be defined in the \fkeyword{gates} section of component types.
+The size of a gate vector (see below) may be specified at the place of
+defining the gate, via inheritance in a derived type, and also in the
+\fkeyword{gates} block of a submodule body. A submodule body does not allow
+defining new gates.
+
+A gate is identified by a name, and is characterized by a type
+(\fkeyword{input}, \fkeyword{output}, \fkeyword{inout}) and optionally a
+vector size. Gates may also have properties (see
+\ref{sec:ned-ref:properties}).
+
+Gates may be scalar or vector. The vector size is specified with a numeric
+expression inside square brackets. The vector size may also be left
+unspecified by writing an empty pair of square brackets.
+
+An already specified gate vector size may not be overridden in subclasses or
+in a submodule.
+
+The presence of a gate type keyword determines whether the given line defines
+a new gate or refers to an existing gate. One can specify the gate vector
+size for an existing gate vector, and/or modify its properties, or add new
+properties.
+
+Examples:
+
+\begin{ned}
+gates:
+  input a;         // defines new gate
+  input b @foo;    // new gate with property
+  input c[];       // new gate vector with unspecified size
+  input d[8];      // new gate vector with size=8
+  e[10];           // set gate size for existing (e.g.inherited) gate vector
+  f @foo(bar);     // add property to existing gate
+  g[10] @foo(bar); // set gate size and add property to existing gate
+\end{ned}
+
+Gate vector sizes are NED expressions. Expressions are described in section
+\ref{sec:ned-ref:expressions}.
+
+See the Connections section (\ref{sec:ned-ref:connections}) for more
+information on gates.
+
+\subsubsection{Recognized Gate Properties}
+\label{sec:ned-ref:recognized-gate-properties}
+
+The following properties are recognized for gates: \fprop{@directIn}
+and \fprop{@loose}. They have the same effect: When either of them is
+present on a gate, the gate is not required to be connected in the
+connections section of a compound module (see \ref{sec:ned-ref:connections}).
+
+\fprop{@directIn} should be used when the gate is an \fkeyword{input} gate that is
+intended for being used as a target for the \ffunc{sendDirect()} method;
+\fprop{@loose} should be used in any other case when the gate is not
+required to be connected for some reason.
+
+\begin{note}
+    The reason \fprop{@directIn} gates are not \textit{required} to remain
+    unconnected is that it is often useful to wrap such modules in a compound
+    module, where the compound module also has a \fprop{@directIn} input gate
+    that is internally connected to the submodule's corresponding gate.
+\end{note}
+
+Example:
+
+\begin{ned}
+gates:
+    input radioIn @directIn;
+\end{ned}
+
+
+
+\subsection{Submodules}
+\label{sec:ned-ref:submodules}
+
+Submodules are defined in the \fkeyword{submodules} section of the compound
+module.
+
+The type of the submodule may be specified statically or parametrically.
+
+Submodules may be scalar or vector. The size of submodule vectors must be
+specified as a numeric expression inside square brackets.
+
+Submodules may also be conditional.
+
+A submodule definition may or may not have a body (a curly brace
+delimited block). An empty submodule body is equivalent to a
+missing one.
+
+Syntax examples:
+\begin{ned}
+submodules:
+    ip : IP;         // scalar submodule without body
+    tcp : TCP {}     // scalar submodule with empty body
+    app[10] : App;   // submodule vector
+\end{ned}
+
+
+\subsubsection{Submodule Type}
+\label{sec:ned-ref:submodule-type}
+
+The simple or compound module type (\ref{sec:ned-ref:simple-modules},
+\ref{sec:ned-ref:compound-modules}) that will be instantiated as the
+submodule may be specified either statically (with a concrete module type
+name) or parametrically.
+
+
+\subsubsection{Static Submodule Type}
+\label{sec:ned-ref:static-submodule-type}
+
+Submodules with a statically defined type are those that contain a concrete
+NED module type name. Example:
+
+\begin{ned}
+tcp : TCP;
+\end{ned}
+
+See section \ref{sec:ned-ref:type-name-resolution} for the type resolution
+rules.
+
+
+\subsubsection{Parametric Submodule Type}
+\label{sec:ned-ref:parametric-submodule-type}
+
+Parametric submodule type means that the NED type name is given in a string
+expression. The string expression may be specified locally in the submodule
+declaration, or elsewhere using typename patterns (see later).
+
+Parametric submodule types are syntactically denoted by the presence of an
+expression in a pair of angle brackets and the \fkeyword{like} keyword
+followed by a module interface type \ref{sec:ned-ref:module-interfaces}
+that a module type must implement in order to be eligible to be chosen.
+The angle brackets may be empty, contain a string expression, or contain a
+default string expression (\ttt{default(...)} syntax).
+
+Examples:
+
+\begin{ned}
+tcp : <tcpType> like ITCP;        // type comes from parent module parameter
+tcp : <"TCP_"+suffix> like ITCP;  // expression using parent module parameter
+
+tcp : <> like ITCP;               // type must be specified elsewhere
+
+tcp : <default("TCP")> like ITCP; // type may be specified elsewhere;
+                                  // if not, the default is "TCP"
+tcp : <default("TCP_"+suffix)> like ITCP;
+                                  // type may be specified elsewhere;
+                                  // if not, the default is an expression
+\end{ned}
+
+See the NED Grammar (Appendix \ref{cha:ned-language-grammar}) for the
+formal syntax, and section \ref{sec:ned-ref:parameteric-type-resolution}
+for the type resolution rules.
+
+
+\subsubsection{Conditional Submodules}
+\label{sec:ned-ref:conditional-submodules}
+
+Submodules may be made conditional using the \fkeyword{if} keyword. The
+condition expression must evaluate to a boolean; if the result is
+\ttt{false}, the submodule is not created, and trying to connect its gates
+or reference its parameters will be an error.
+
+An example:
+
+\begin{ned}
+submodules:
+  tcp : TCP if withTCP { ... }
+\end{ned}
+
+
+\subsubsection{Parameters, Gates}
+\label{sec:ned-ref:parameters-gates}
+
+A submodule body may contain parameters (\ref{sec:ned-ref:parameters})
+and gates (\ref{sec:ned-ref:module-interfaces}).
+
+A submodule body cannot define new parameters or gates. It is only
+allowed to assign existing parameters, and to set the vector
+size of existing gate vectors.
+
+It is also allowed to add or modify submodule properties and
+parameter/gate properties.
+
+
+
+\subsection{Connections}
+\label{sec:ned-ref:connections}
+
+Connections are defined in the \fkeyword{connections} section of the compound module.
+
+Connections may not span multiple hierarchy levels, that is, a connection
+may be created between two submodules, a submodule and the compound module,
+or between two gates of the compound module.
+
+Normally, all gates must be connected, including submodule gates and the gates
+of the compound module. When the \fkeyword{allowunconnected} modifier is present
+after \fkeyword{connections}, gates will be allowed to be left unconnected.
+
+\begin{note}
+    The \fprop{@directIn} and \fprop{@loose} gate properties are alternatives to the
+    \ttt{connections allow\-unconnected} syntax; see \ref{sec:ned-ref:gates}.
+\end{note}
+
+Connections may be conditional, and may be created using loops (see
+\ref{sec:ned-ref:connection-groups}).
+
+
+\subsubsection{Connection Syntax}
+\label{sec:ned-ref:connection-syntax}
+
+The connection syntax uses arrows (\ttt{-{}->}, \ttt{<-{}-}) to connect
+\fkeyword{input} and \fkeyword{output} gates, and double arrows
+(\ttt{<-{}->}) to connect \fkeyword{inout} gates. The latter is
+also said to be a bidirectional connection.
+
+Arrows point from the source gate (a submodule output gate or a compound
+module input gate) to the destination gate (a submodule input gate or a
+compound module output gate). Connections may be written either left to right
+or right to left, that is, \ttt{a-{}->b} is equivalent to \ttt{b<-{}-a}.
+
+Gates are specified as \textit{<modulespec>.<gatespec>} (to connect a submodule),
+or as \textit{<gatespec>} (to connect the compound module). \textit{<modulespec>}
+is either a submodule name (for scalar submodules), or a submodule name plus
+an index in square brackets (for submodule vectors). For scalar gates,
+\textit{<gatespec>} is the gate name; for gate vectors it is either
+the gate name plus a numeric index expression in square brackets,
+or \textit{<gatename>}\ttt{++}.
+
+The \textit{<gatename>}\ttt{++} notation causes the first unconnected gate index
+to be used. If all gates of the given gate vector are connected, the behavior
+is different for submodules and for the enclosing compound module.
+For submodules, the gate vector expands by one. For the compound module,
+it is an error to use \ttt{++} on a gate vector with no unconnected gates.
+
+Syntax examples:
+
+\begin{ned}
+connections:
+   a.out --> b.in;   // unidirectional between two submodules
+   c.in[2] <-- in;   // parent-to-child; gate vector with index
+   d.g++ <--> e.g++; // bidirectional, auto-expanding gate vectors
+\end{ned}
+
+\begin{rationale}
+    The reason it is not supported to expand the gate vector of the compound
+    module is that the module structure is built in top-down order: new gates
+    would be left unconnected on the outside, as there is no way in NED to
+    "go back" and connect them afterwards.
+\end{rationale}
+
+When the \ttt{++} operator is used with \ttt{\$i} or \ttt{\$o}
+(e.g. \ttt{g\$i++} or \ttt{g\$o++}, see later), it will actually add
+a gate pair (input+output) to maintain equal gate size for the two
+directions.
+
+The syntax to associate a channel (see \ref{sec:ned-ref:channels})
+with the connection is to use two arrows with a channel specification
+in between (see later). The same syntax is used to add properties such as
+\fprop{@display} to the connection.
+
+%% TODO examples
+
+%% TODO examples with a channel
+
+
+\subsubsection{Inout Gates}
+\label{sec:ned-ref:inout-gates}
+
+An inout gate is represented as a gate pair: an input gate and an output gate.
+The two sub-gates may also be referenced and connected individually, by adding
+the \ttt{\$i} and \ttt{\$o} suffix to the name of the inout gate.
+
+A bidirectional connection (which uses a double arrow to connect two inout gates),
+is also a shorthand for two uni-directional connections; that is,
+
+\begin{ned}
+a.g <--> b.g;
+\end{ned}
+
+is equivalent to
+\begin{ned}
+a.g$o --> b.g$i;
+a.g$i <-- b.g$o;
+\end{ned}
+
+In inout gate vectors, gates are always in pairs, that is,
+\ttt{sizeof(g\$i)==sizeof(g\$o)} always holds. It is maintained even
+when \ttt{g\$i++} or \ttt{g\$o++} is used: the \ttt{++} operator will
+add a gate pair, not just an input or an output gate.
+
+
+\subsubsection{Specifying Channels}
+\label{sec:ned-ref:specifying-channels}
+
+A channel specification associates a channel object with the connection.
+A channel object is an instance of a channel type (see \ref{sec:ned-ref:channels}).
+
+\begin{note}
+As bidirectional connections are a shorthand for a pair of uni-directional
+connections, they will actually create \textit{two} channel objects, one
+for each direction.
+\end{note}
+
+The channel type to be instantiated may be implicit, or may be specified
+statically or parametrically.
+
+A connection may have a body (a curly brace delimited block) for setting
+properties and/or parameters of the channel.
+
+A connection syntax allows one to specify a name for the channel object.
+When not specified, the channel name will be taken from the \ttt{@defaultname}
+property of the channel type; when there is no such property, it will be
+\ttt{"channel"}. Custom connection names can be useful for easier addressing of
+channel objects when assigning parameters using patterns.
+
+See subsequent sections for details.
+
+
+\subsubsection{Implicit Channel Type}
+\label{sec:ned-ref:implicit-channel-type}
+
+If the connection syntax does not say anything about the channel type, it
+is implicitly determined from the set of connection parameters used.
+
+Syntax examples for connections with implicit channel types:
+
+\begin{ned}
+a.g <--> b.g; // no parameters
+a.g <--> {delay = 1ms;} <--> b.g;  // assigns delay
+a.g <--> {datarate = 100Mbps; delay = 50ns;} <--> b.g; // assigns delay and datarate
+\end{ned}
+
+For such connections, the actual NED type to be used will depend on the
+parameters set in the connection:
+
+\begin{enumerate}
+  \item When no parameters are set, \ttt{ned.IdealChannel} is chosen.
+  \item When only \ttt{ned.DelayChannel} parameters are used (\ttt{delay}
+        and \ttt{disabled}), \ttt{ned.DelayChannel} is chosen.
+  \item When only \ttt{ned.DatarateChannel} parameters are used
+        (\ttt{datarate}, \ttt{delay}, \ttt{ber}, \ttt{per}, \ttt{disabled}),
+        the chosen channel type will be \ttt{ned.DatarateChannel}.
+\end{enumerate}
+
+Connections with implicit channel types may not use any other parameter.
+
+\subsubsection{Static Channel Type}
+\label{sec:ned-ref:static-channel-type}
+
+Connections with a statically defined channel type are those that
+contain a concrete NED channel type name.
+
+Examples:
+
+\begin{ned}
+a.g <--> FastEthernet <--> b.g;
+a.g <--> FastEthernet {per = 1e-6;} <--> b.g;
+\end{ned}
+
+See section \ref{sec:ned-ref:type-name-resolution} for the type resolution
+rules.
+
+
+\subsubsection{Parametric Channel Type}
+\label{sec:ned-ref:parametric-channel-type}
+
+Parametric channel types are similar to parametric submodule types,
+described in section \ref{sec:ned-ref:submodules}.
+
+Parametric channel type means that the NED type name is given in a string
+expression. The string expression may be specified locally in the connection
+declaration, or elsewhere using typename patterns (see later).
+
+Parametric channel types are syntactically denoted by the presence of an
+expression in a pair of angle brackets and the \fkeyword{like} keyword
+followed by a channel interface type \ref{sec:ned-ref:channel-interfaces}
+that a channel type must implement in order to be eligible to be chosen.
+The angle brackets may be empty, contain a string expression, or contain a
+default string expression (\ttt{default(...)} syntax).
+
+Examples:
+
+\begin{ned}
+a.g++ <--> <channelType> like IMyChannel <--> b.g++;
+                                  // type comes from parent module parameter
+a.g++ <--> <"Ch_"+suffix> like IMyChannel <--> b.g++;
+                                  // expression using parent module parameter
+a.g++ <--> <> like IMyChannel <--> b.g++;
+                                  // type must be specified elsewhere
+a.g++ <--> <default("MyChannel")> like IMyChannel <--> b.g++;
+                                  // type may be specified elsewhere;
+                                  // if not, the default is "MyChannel"
+a.g++ <--> <default("Ch_"+suffix)> like IMyChannel <--> b.g++;
+                                  // type may be specified elsewhere;
+                                  // if not, the default is an expression
+\end{ned}
+
+See the NED Grammar (Appendix \ref{cha:ned-language-grammar}) for the
+formal syntax, and section \ref{sec:ned-ref:parameteric-type-resolution}
+for the type resolution rules.
+
+
+\subsubsection{Channel Parameters and Properties}
+\label{sec:ned-ref:channel-parameters-and-properties}
+
+A channel definition may or may not have a body (a curly brace
+delimited block). An empty channel body (\ttt{\{ \}}) is equivalent
+to a missing one.
+
+A channel body may contain parameters (\ref{sec:ned-ref:parameters}).
+
+A channel body cannot define new parameters. It is only
+allowed to assign existing parameters.
+
+It is also allowed to add or modify properties and parameter properties.
+
+
+\subsection{Conditional and Loop Connections, Connection Groups}
+\label{sec:ned-ref:connection-groups}
+
+The connections section may contain any number of connections and
+connection groups. A connection group is one or more connections
+grouped with curly braces.
+
+Both connections and connection groups may be conditional (\fkeyword{if}
+keyword) or may be multiple (\fkeyword{for} keyword).
+
+Any number of \fkeyword{for} and \fkeyword{if} clauses may be added to
+a connection or connection loop; they are interpreted as if they were
+nested in the given order. Loop variables of a \fkeyword{for} may be
+referenced from subsequent conditions and loops as well as in module and
+gate index expressions in the connections.
+
+See the NED Grammar (\ref{cha:ned-language-grammar}) for the exact syntax.
+
+Example connections:
+
+\begin{ned}
+a.out --> b.in;
+c.out --> d.in if p>0;
+e.out[i] --> f[i].in for i=0..sizeof(f)-1, if i%2==0;
+\end{ned}
+
+Example connection groups:
+
+\begin{ned}
+if p>0 {
+    a.out --> b.in;
+    a.in <-- b.out;
+}
+for i=0..sizeof(c)-1, if i%2==0 {
+    c[i].out --> out[i];
+    c[i].in <-- in[i];
+}
+for i=0..sizeof(d)-1, for j=0..sizeof(d)-1, if i!=j {
+    d[i].out[j] --> d[j].in[i];
+}
+for i=0..sizeof(e)-1, for j=0..sizeof(e)-1 {
+    e[i].out[j] --> e[j].in[i] if i!=j;
+}
+\end{ned}
+
+
+
+\subsection{Inner Types}
+\label{sec:ned-ref:inner-types}
+
+Inner types can be defined in the \fkeyword{types} section of compound
+modules, with the same syntax as toplevel (i.e. non-inner) types.
+
+Inner types may not contain further inner types, that is, type nesting
+is limited to two levels.
+
+Inner types are only visible inside the enclosing component type
+and its subclasses.
+
+
+
+\subsection{Name Uniqueness}
+\label{sec:ned-ref:name-uniqueness}
+
+Identifier names within a component must be unique. That is, the following
+items in a component are considered to be in the same name space and must
+not have colliding names:
+
+\begin{itemize}
+  \item parameters
+  \item gates
+  \item submodules
+  \item inner types
+  \item the above items of super type(s)
+\end{itemize}
+
+For example, a gate and a submodule cannot have the same name.
+
+
+\subsection{Parameter Assignment Order}
+\label{sec:ned-ref:param-assignment-order}
+
+A module or channel parameter may be assigned in \fkeyword{parameters}
+blocks (see \ref{sec:ned-ref:parameters}) at various places in NED: in
+the module or channel type that defines it; in the type's subclasses; in
+the submodule or connection that instantiates the type. The parameter may
+also be assigned using pattern assignments (see
+\ref{sec:ned-ref:pattern-assignments}) in any compound module that uses
+the given module or channel type directly or indirectly.
+
+Patterns are matched against the relative path of the parameter, which is
+the relative path of its submodule or connection, with a dot and the
+parameter name appended. The relative path is composed of a list of
+submodule names (name plus index) separated by dots; a connection is
+identified by the full name of its source gate plus the name of the channel
+object (which is currently always \ttt{channel}) separated by a dot.
+
+\begin{note}
+As bidirectional connections are a shorthand for two unidirectional
+connections, the source gate name is qualified with \ttt{\$i} or
+\ttt{\$o} in the relative path.
+\end{note}
+
+Note that the \fkeyword{parameters} keyword itself is optional,
+and is usually not written out in submodules and connections.
+
+This section describes the module and channel parameter assignments procedure.
+
+The general rules are the following:
+
+\begin{enumerate}
+  \item A (non-default) parameter assignment may not be overridden later;
+    that is, if there are assignments in multiple places, the assignment
+    ``closest'' to the parameter declaration will be effective; others
+    will be flagged as errors.
+  \item A default value is only used if a non-default value is not present
+    for the given parameter. A non-default value may also come from a source
+    external to NED, namely the simulation configuration (\ffilename{omnetpp.ini}).
+  \item Unlike non-default values, a default value \textit{may} be overridden;
+    that is, if there are default value assignments in multiple places,
+    the assignment ``farthest'' from the parameter declaration will win.
+  \item Among pattern assignments within the same \fkeyword{parameters}
+    block, the first match will win. Pattern assignments with default and
+    non-default values are considered to be two disjoint sets, only one of
+    which are searched at a time.
+\end{enumerate}
+
+This yields the following conceptual search order for non-default parameter
+assignments:
+
+\begin{enumerate}
+  \item First, the NED type that contains the parameter declaration is checked;
+  \item Then its subclasses are checked;
+  \item Then the submodule or connection that instantiates the type is checked;
+  \item Then the compound module that contains the submodule or connection is
+    checked for matching pattern assignments;
+  \item Then, assuming the compound module is part of a network, the search
+    for matching pattern assignments continues up on the module tree until the root
+    (the module that represents the network). At each level (compound module),
+    first the specific submodule definition is checked, then the (parent) compound module.
+    If a compound module is subclassed before instantiated, the base type is checked
+    first.
+\end{enumerate}
+
+When no (non-default) assignment is found, the same places are searched in the
+\textit{reverse order} for default value assignments. If no default value is
+found, an error may be raised or the user may be interactively prompted.
+
+To illustrate the above rules, consider the following example where we
+want to assign parameter \textit{p}:
+
+\begin{ned}
+simple A { double p; }
+simple A2 extends A {...}
+module B { submodules: a2: A2 {...} }
+module B2 extends B {...}
+network C { submodules: b2: B2 {...} }
+\end{ned}
+
+Here, the search order is: \textit{A, A2, a2, B, B2, b2, C}. NED
+conceptually searches the \fkeyword{parameters} blocks in that order for a
+(non-default) value, and then in reverse order for a default value.
+
+The full search order and the form of assignment expected on each level:
+
+\begin{enumerate}
+  \item \ttt{A  \{ p = ...; \}}
+  \item \ttt{A2 \{ p = ...; \}}
+  \item \ttt{a2 \{ p = ...; \}}
+  \item \ttt{B  \{ a2.p = ...; \}}
+  \item \ttt{B2 \{ a2.p = ...; \}}
+  \item \ttt{b2 \{ a2.p = ...; \}}
+  \item \ttt{C  \{ b2.a2.p = ...; \}}
+  \item \ttt{C  \{ b2.a2.p = default(...); \}}
+  \item \ttt{b2 \{ a2.p = default(...); \}}
+  \item \ttt{B2 \{ a2.p = default(...); \}}
+  \item \ttt{B  \{ a2.p = default(...); \}}
+  \item \ttt{a2 \{ p = default(...); \}}
+  \item \ttt{A2 \{ p = default(...); \}}
+  \item \ttt{A  \{ p = default(...); \}}
+\end{enumerate}
+
+If only a default value is found or not even that, external configuration
+has a say. The configuration may contain an assignment for \ttt{C.b2.a2.p};
+it may apply the default if there is one; it may ask the user interactively
+to enter a value; or if there is no default, it may raise an error
+\textit{``no value for parameter''}.
+
+
+
+\subsection{Type Name Resolution}
+\label{sec:ned-ref:type-name-resolution}
+
+Names from other NED files can be referred to either by fully qualified
+name (``\ttt{inet.network\-layer.ip.RoutingTable}''), or by short name
+(``\ttt{RoutingTable}'') if the name is visible.
+
+Visible names are:
+
+\begin{itemize}
+  \item inner types of the same type or its super types;
+  \item anything from the same package;
+  \item imported names.
+\end{itemize}
+
+\subsubsection{Imports}
+\label{sec:ned-ref:imports}
+
+Imports have a similar syntax to Java, but they are more flexible with wildcards.
+All of the following are legal:
+
+\begin{ned}
+import inet.networklayer.ipv4.RoutingTable;
+import inet.networklayer.ipv4.*;
+import inet.networklayer.ipv4.Ro*Ta*;
+import inet.*.ipv4.*;
+import inet.**.RoutingTable;
+\end{ned}
+
+One asterisk stands for any character sequence not containing dots; and a
+double asterisk stands for any character sequence (which may contain dots).
+No other wildcards are recognized.
+
+An import not containing a wildcard must match an existing NED type.
+However, it is legal for an import that does contain wildcards
+not to match any NED type (although that might generate a warning.)
+
+Inner types may not be referenced outside their enclosing types and
+their subclasses.
+
+\subsubsection{Base Types and Submodules}
+\label{sec:ned-ref:base-types-and-submodules}
+
+Fully qualified names and simple names are accepted. Simple names
+are looked up among the inner types of the enclosing type (compound
+module), then using imports, then in the same package.
+
+\subsubsection{Network Name in the Ini File}
+\label{sec:ned-ref:network-name-in-ini-file}
+
+The network name in the ini file may be given as a fully qualified name
+or as a simple (unqualified) name.
+
+Simple (unqualified) names are tried with the same package as the
+ini file is in (provided it is in a NED directory).
+
+
+\subsection{Resolution of Parametric Types}
+\label{sec:ned-ref:parameteric-type-resolution}
+
+This section describes the type resolution for submodules and connections
+that are defined using the \fkeyword{like} keyword.
+
+Type resolution is done in two steps. In the first step, the type name
+string expression is found and evaluated. Then in the second step, the
+resulting type name string is resolved to an actual NED type.
+
+\tbf{Step 1.} The lookup of the type name string expression is similar to
+that of a parameter value lookup (\ref{sec:ned-ref:param-assignment-order}).
+
+The expression may be specified locally (between the angle brackets), or
+using typename pattern assignments in any compound module that
+contains the submodule or connection directly or indirectly. A
+typename pattern is a pattern that ends in \ttt{.typename}.
+
+Patterns are matched against the relative path of the submodule or
+connection, with \ttt{.typename} appended. The relative path is
+composed of a list of submodule names (name plus index) separated
+by dots; a connection is identified by the full name of its source
+gate plus the name of the channel object (which is currently always
+\ttt{channel}) separated by a dot.
+
+\begin{note}
+As bidirectional connections are a shorthand for two unidirectional
+connections, the source gate name is qualified with \ttt{\$i} or
+\ttt{\$o} in the relative path.
+\end{note}
+
+An example that uses typename pattern assignment:
+
+\begin{ned}
+module Host {
+    submodules:
+        tcp: <> like ITCP;;
+        ...
+    connections:
+        tcp.ipOut --> <> like IMyChannel --> ip.tcpIn;
+}
+
+network Network {
+    parameters:
+        host[*].tcp.typename = "TCP_lwIP";
+        host[*].tcp.ipOut.channel.typename = "DebugChannel";
+    submodules:
+        host[10] : Host;
+        ...
+}
+\end{ned}
+
+The general rules are the following:
+
+\begin{enumerate}
+  \item A (non-default) parameter assignment may not be overridden later;
+    that is, if there are assignments in multiple places, the assignment
+    ``closest'' to the submodule or connection definition will be effective;
+    others will be flagged as errors.
+  \item A default value is only used if a non-default value is not present.
+    A non-default value may also come from a source external to NED, namely
+    the simulation configuration (\ffilename{omnetpp.ini}).
+  \item Unlike non-default values, a default value \textit{may} be overridden;
+    that is, if there are default value assignments in multiple places,
+    the assignment ``farthest'' from the submodule or connection definition will win.
+  \item Among pattern assignments within the same \fkeyword{parameters}
+    block, the first match will win. Patterns assignments with default and
+    non-default values are considered to be two disjoint sets, only one of
+    which are searched at a time.
+\end{enumerate}
+
+This yields the following conceptual search order for typename assignments:
+
+\begin{enumerate}
+   \item First, the submodule or connection definition is checked (angle brackets);
+   \item Then the compound module that contains the submodule or connection is
+     checked for matching pattern assignments;
+   \item Then, assuming the compound module is part of a network, the search
+     for matching pattern assignments continues up on the module tree until the root
+     (the module that represents the network). At each level (compound module),
+     first the specific submodule definition is checked, then the (parent) compound module.
+     If a compound module is subclassed before instantiated, the base type is checked
+     first.
+\end{enumerate}
+
+When no (non-default) assignment is found, the same places are searched in the
+\textit{reverse order} for default value assignments. If no default value is
+found, an error may be raised or the user may be interactively prompted.
+
+To illustrate the above rules, consider the following example:
+
+\begin{ned}
+module A { submodules: h: <> like IFoo; }
+module A2 extends A {...}
+module B { submodules: a2: A2 {...} }
+module B2 extends B {...}
+network C { submodules: b2: B2 {...} }
+\end{ned}
+
+Here, the search order is: \textit{h, A, A2, a2, B, B2, b2, C}. NED
+conceptually searches the \fkeyword{parameters} blocks in that order for a
+(non-default) value, and then in reverse order for a default value.
+
+The full search order and the form of assignment expected on each level:
+
+\begin{enumerate}
+  \item \ttt{h: <...> like IFoo;}
+  \item \ttt{A  \{ h.typename = ...; \}}
+  \item \ttt{A2 \{ h.typename = ...; \}}
+  \item \ttt{a2 \{ h.typename = ...; \}}
+  \item \ttt{B  \{ a2.h.typename = ...; \}}
+  \item \ttt{B2 \{ a2.h.typename = ...; \}}
+  \item \ttt{b2 \{ a2.h.typename = ...; \}}
+  \item \ttt{C  \{ b2.a2.h.typename = ...; \}}
+  \item \ttt{C  \{ b2.a2.h.typename = default(...); \}}
+  \item \ttt{b2 \{ a2.h.typename = default(...); \}}
+  \item \ttt{B2 \{ a2.h.typename = default(...); \}}
+  \item \ttt{B  \{ a2.h.typename = default(...); \}}
+  \item \ttt{a2 \{ h.typename = default(...); \}}
+  \item \ttt{A2 \{ h.typename = default(...); \}}
+  \item \ttt{A  \{ h.typename = default(...); \}}
+  \item \ttt{h: <default(...)> like IFoo;}
+\end{enumerate}
+
+If only a default value is found or not even that, external configuration
+has a say. The configuration may contain an assignment for
+\ttt{C.b2.a2.h.typename}; it may apply the default value if there is one;
+it may ask the user interactively to enter a value; or if there is no
+default value, it may raise an error \textit{``cannot determine submodule
+type''}.
+
+
+\tbf{Step 2.} The type name string is expected to hold the simple name or
+fully qualified name of the desired NED type. Resolving the type name
+string to an actual NED type differs from normal type name lookups in that
+it ignores the imports in the file altogether. Instead, a list of NED types
+that have the given simple name or fully qualified name \textit{and}
+implement the given interface is collected. The result must be exactly one
+module or channel type.
+
+
+\subsection{Implementing an Interface}
+\label{sec:ned-ref:implementing-an-interface}
+
+A module type may implement one or more module interfaces, and a channel type
+may implement one or more channel interfaces, using the \fkeyword{like}
+keyword.
+
+The module or channel type is required to have \textit{at least} those
+parameters and gates that the interface has.
+
+Regarding component properties, parameter properties and gate properties
+defined in the interface: the module or channel type is required to have at
+least the properties of the interface, with at least the same values.
+The component may have additional properties, and properties may add more
+keys and values.
+
+\begin{note}
+  Implementing an interface does not cause the properties, parameters and
+  gates to be interited by the module or channel type; they have to be added
+  explicitly.
+\end{note}
+
+\begin{note}
+  A module or channel type may have extra properties, parameters and gates
+  in addition to those in the interface.
+\end{note}
+
+
+
+\subsection{Inheritance}
+\label{sec:ned-ref:inheritance}
+
+Component inheritance is governed by the following rules:
+
+\begin{itemize}
+  \item A simple module may only extend a simple module.
+  \item A compound module may only extend a compound module or a simple module.
+  \item A channel may only extend a channel.
+  \item A module interface may only extend a module interface (or several module
+        interfaces).
+  \item A channel interface may only extend a channel interface (or several
+        channel interfaces).
+\end{itemize}
+
+A network is a shorthand for a compound module with the \fprop{@isNetwork}
+property set, so the same rules apply to it as to compound modules.
+
+Inheritance may:
+\begin{itemize}
+    \item add new properties, parameters, gates, inner types, submodules,
+          connections, as long as names do not conflict with inherited names
+    \item modify inherited properties, and properties of inherited parameters and
+          gates
+    \item it may not modify inherited submodules, connections and inner types
+\end{itemize}
+
+Other inheritance rules:
+\begin{itemize}
+    \item  for inner types:
+       new inner types can be added, but inherited ones cannot be changed
+    \item  for properties:
+       contents will be merged (rules like for display strings: values on
+       same key and same position will overwrite old ones)
+    \item for parameters:
+       type cannot be redefined;
+       value may be redefined in subclasses or at place of usage
+    \item  for gates:
+       type cannot be redefined;
+       vector size may be specified in subclasses or at place of usage if it was unspecified
+    \item  for gate/parameter properties:
+       extra properties can be added;
+       existing properties can be overridden/extended as for standalone properties
+    \item  for submodules:
+       new submodules may be added, but inherited ones cannot be modified
+    \item  for connections:
+       new connections may be added, but inherited ones cannot be modified
+\end{itemize}
+
+The following sections will elaborate on the above rules.
+
+\subsubsection{Property Inheritance}
+\label{sec:ned-ref:property-inheritance}
+
+Generally, properties may be modified via inheritance. Inheritance may:
+
+\begin{itemize}
+    \item add new keys
+    \item add/overwrite values for existing keys
+    \item remove a value from an existing key by using hyphen as a special value
+\end{itemize}
+
+
+\subsubsection{Parameter Inheritance}
+\label{sec:ned-ref:parameter-inheritance}
+
+Default values for parameters may be overridden in subclasses.
+
+\subsubsection{Gate Inheritance}
+\label{sec:ned-ref:gate-inheritance}
+
+Gate vector size may not be overridden in subclasses.
+
+
+\subsection{Network Build Order}
+\label{sec:ned-ref:build-order}
+
+When a network is instantiated for simulation, the module tree is built in
+a top-down preorder fashion. This means that starting from an empty system
+module, all submodules are created, their parameters and vector sizes are
+assigned, and they get fully connected before proceeding to go into the
+submodules to build their internals.
+
+This implies that inside a compound module definition (including in
+submodules and connections), one can refer to the compound module's
+parameters and gate sizes, because they are already built at the time of
+usage.
+
+The same rules apply to compound or simple modules created dynamically during
+runtime.
+
+
+\section{Expressions}
+\label{sec:ned-ref:expressions}
+
+NED language expressions\index{ned!expressions} have a C-like syntax, with
+some variations on operator names (see \ttt{\textasciicircum}, \ttt{\#}, \ttt{\#\#}).
+Expressions may refer to module parameters, loop variables (inside connection
+\fkeyword{for} loops), gate vector and module vector sizes, and other attributes
+of the model. Expressions can use built-in and user-defined functions as well.
+There is a JSON-like notation for defining arrays and (dictionary-like) objects.
+
+\begin{note}
+New NED functions can be defined in C++; see section \ref{sec:sim-lib:defining-ned-functions}.
+\end{note}
+
+\subsection{Constants}
+\label{sec:ned-ref:constants}
+
+See section \ref{sec:ned-ref:literals}.
+
+\subsection{Array and Object Values}
+\label{sec:ned-ref:arrays-and-objects}
+
+A bracketed list of zero or more comma-separated expressions denotes an \textit{array} value.
+Example: \ttt{[9.81,false,"Hello"]}.
+
+A list of zero or more comma-separated key-value pairs enclosed in a pair of curly braces
+denotes an \textit{object} value. A key and a value are separated by a colon. A key may be
+a name or a string literal. A value may be an arbitrary expression, including a
+list or an object. The open brace may be preceded by an (optionally namespace-qualified)
+\textit{class name}.
+Example 1: \ttt{\{name:"John", age: 31\}}.
+Example 2: \ttt{Filter \{dest:"10.0.0.1", port:1200\}}.
+
+\textit{Array} and \textit{object} values may be assigned to parameters of type \fkeyword{object}.
+Note that \fkeyword{null} / \fkeyword{nullptr} are also of type \textit{object}.
+
+\textit{Array} values are represented with the C++ class \cclass{cValueArray},
+and by default, \textit{object} values with the C++ class \cclass{cValueMap}.
+If the \textit{object} notation includes a \textit{class name}, then the named C++ class
+will be used instead of \cclass{cValueMap}, and filled in using the key-value list
+with the help of the class descriptor (\cclass{cClassDescriptor}) of the class,
+interpreting keys as field names.
+
+
+\subsection{Operators}
+\label{sec:ned-ref:operators}
+\index{ned!expressions!operators}
+
+The following operators are supported (in order of decreasing precedence):
+
+\begin{longtable}{|l|l|}
+\hline
+\tabheadcol
+\tbf{Operator}                   & \tbf{Meaning} \\\hline
+%%
+\ttt{-}, \ttt{!}, \ensuremath{\sim} & unary minus, negation, bitwise complement \\\hline
+%%
+\ttt{{\textasciicircum}}         & power-of \\\hline
+%%
+\ttt{*}, \ttt{/}, \ttt{\%}       & multiply, divide, integer modulo \\\hline
+%%
+\ttt{+}, \ttt{-}                 & add, subtract, string concatenation \\\hline
+%%
+\ttt{<<}, \ttt{>>}               & bitwise shift \\\hline
+%%
+\ttt{\&}                         & bitwise and \\\hline
+%%
+\ttt{\#}                         & bitwise xor \\\hline
+%%
+\ttt{|}                          & bitwise or \\\hline
+%%
+\ttt{=\ensuremath{\sim}}         & string match \\\hline
+%%
+\ttt{<=>}                        & three-way comparison, a.k.a. ``spaceship operator'' \\\hline
+%%
+\ttt{>}, \ttt{>=}                & greater than, greater than or equal to\\
+\ttt{<}, \ttt{<=}                & less than, less than or equal to \\\hline
+%%
+\ttt{==}                         & equal \\
+\ttt{!=}                         & not equal \\\hline
+%%
+\ttt{\&\&}                       & logical operator and \\\hline
+%%
+\ttt{\#\#}                       & logical operator xor \\\hline
+%%
+\ttt{||}                         & logical operator or  \\\hline
+%%
+\ttt{?:}                         & the C/C++ ``inline if'' \\\hline
+\end{longtable}
+
+The spaceship operator is defined as follows. The result of \ttt{a <=> b} is negative
+if \ttt{a<b}, zero if \ttt{a==b}, and positive if \ttt{a>b}. If either \ttt{a} or \ttt{b} is
+\ttt{nan} (not-a-number), the result is \ttt{nan} as well.
+
+The string match operator works the following way. \ttt{x =\ensuremath{\sim}
+pattern} returns \ttt{true} if the string \ttt{x} matches the string
+\ttt{pattern}, and \ttt{false} otherwise. Pattern syntax and rules: case
+sensitive, full-string match, where an asterisk \ttt{*} matches zero or more of
+any character except dot; a double asterisk \ttt{**} matches zero or more
+characters (including dot); a pair of curly braces containing a numeric range
+matches an embedded whole number in that range; a pair of square brackets
+containing a numeric range matches a number in that range enclosed in square
+brackets. A numeric range has the syntax of \textit{<start>..<end>}, where both
+\textit{<start>} and \textit{<end>} are integers, and are optional.
+
+The interpretation of other operators is similar to that in C/C++.
+
+
+\subsubsection{Conversions}
+\label{sec:ned-ref:conversions}
+
+Values may have the same types as NED parameters: boolean, integer, double, string, XML element, and object.
+An integer or double value may have an associated measurement unit (\ttt{s}, \ttt{mW}, etc.)
+
+Double-to-integer conversions require explicit cast using the \ttt{int()} function,
+there is no implicit conversion.
+
+Integer-to-double conversion is implicit. However, a runtime error will be raised
+if there is precision loss during the conversion, i.e. the integer is so large
+that it cannot be precisely represented in a double. That error can be suppressed
+by using an explicit cast (\ttt{double()}).
+
+There is no implicit conversion between boolean and numeric types, so \ttt{0}
+is not a synonym for \fkeyword{false}, and nonzero numbers are not a synonym
+for \fkeyword{true}.
+
+There is also no conversion between string and numeric types, so e.g. \ttt{"foo"+5}
+is illegal. There are functions for converting a number to string and vice versa.
+
+Bitwise operators expect integer arguments.
+
+\begin{note}
+Integers are represented with 64-bit signed integers (\ttt{int64\_t} in C++).
+\end{note}
+
+
+\subsubsection{Unit Handling}
+\label{sec:ned-ref:unit-handling}
+
+Operations involving numbers with units work in the following way:
+
+Addition, subtraction, and numeric comparisons require their arguments to
+have the same unit or compatible units; in the latter case a unit conversion
+is performed before the operation. Incompatible units cause an error.
+
+%%TODO example
+
+Modulo, power-of and the bitwise operations require their arguments to be
+dimensionless, otherwise the result would depend on the choice of the unit.
+
+\begin{note}
+If one needs a floating-point modulo operator that handles units as well,
+the \ttt{fmod()} function can be used.
+\end{note}
+
+Multiplying two numbers with units is not supported.
+
+For division, dividing two numbers with units is only supported if the two
+units are convertible (i.e. the result will be dimensionless). Dividing
+a dimensionless number with a number with unit is not supported.
+
+Operations involving quantities with logarithmic units (dB, dBW, etc.)
+are not supported, except for comparisons. (The reason is that such
+operations would be easy to misinterpret. For example, it is not obvious
+whether \ttt{10dB+10dB} (3.16+3.16) should evaluate to 20dB (=10.0)
+or to 16.02dB (=2*3.16=6.32), considering that such quantities would
+often be hidden behind parameter names where the unit is not obvious.)
+
+\subsection{Referencing Parameters and Loop Variables}
+\label{sec:ned-ref:referencing-parameters-and-loop-variables}
+
+Identifiers in expressions occurring \textit{anywhere} in component definitions
+are interpreted as referring to parameters of the given component. For example,
+identifiers inside submodule bodies refer to the parameters of the \textit{compound}
+module.
+
+Expressions may also refer to parameters of submodules defined earlier
+in the NED file, using the \ttt{submoduleName.paramName} or the
+\ttt{submoduleName[index].paramName} syntax. To refer to parameters
+of the local module/channel inside a submodule or channel body, use the
+\fkeyword{this} qualifier: \ttt{this.destAddress}. To make a reference
+to a parameter of the compound module from within a submodule or channel
+body explicit, use the \fkeyword{parent} qualifier: \ttt{parent.destAddress}.
+\footnote{The \fkeyword{parent} qualifier is available from {\opp} 5.7.}
+
+Exception: if an identifier occurs in a connection \fkeyword{for} loop and names
+a previously defined loop variable, then it is understood as referring to
+the loop variable.
+
+
+\subsection{The \fkeyword{typename} Operator}
+\label{sec:ned-ref:typename-operator}
+
+The \fkeyword{typename} operator returns the NED type name as a string.
+If it occurs inside a component definition but outside a submodule or channel
+block, it returns the type name of the component being defined. If it occurs
+inside a submodule or channel block, it returns the type name of that submodule
+or channel.
+
+The \fkeyword{typename} may also occur in the \fkeyword{if} condition of a
+(scalar) submodule or connection. In such cases, it evaluates to the \textit{would-be}
+type name of the submodule or condition. This allows for conditional
+instantiation of parametric-type submodules, controlled from a
+\fkeyword{typename} assignment. (For example, by using the \ttt{if typename!=""}
+condition, one allows the submodule to be omitted by configuring \ttt{typename=""}
+for it.
+
+\fkeyword{typename} is not allowed in a submodule vector's \fkeyword{if} condition.
+The reason is that the condition applies to the vector as a whole, while type
+is per-element.
+
+
+\subsection{The \fkeyword{index} Operator}
+\label{sec:ned-ref:index-operator}
+
+The \fkeyword{index} operator is only allowed in a vector submodule's body,
+and yields the index of the submodule instance.
+
+
+\subsection{The \fkeyword{exists()} Operator}
+\label{sec:ned-ref:exists-operator}
+
+The \fkeyword{exists()} operator takes one identifier as argument, and it
+is only accepted in compound module definitions. The identifier must name
+a previously defined submodule, which will typically be a conditional submodule.
+The operator returns \fkeyword{true} if given submodule exists (has been created),
+and \fkeyword{false} otherwise.
+
+
+\subsection{The \fkeyword{sizeof()} Operator}
+\label{sec:ned-ref:sizeof-operator}
+
+The \fkeyword{sizeof()} operator expects one argument, and it is only accepted
+in compound module definitions.
+
+The \ttt{sizeof(identifier)} syntax occurring \textit{anywhere} in a compound
+module yields the size of the named submodule or gate vector of the
+compound module.
+
+Inside submodule bodies, the size of a gate vector of the same submodule
+can be referred to with the \fkeyword{this} qualifier: \ttt{sizeof(this.out)}.
+
+To refer to the size of a submodule's gate vector defined earlier in the
+NED file, use the \ttt{sizeof(submoduleName.gateVectorName)} or
+\ttt{sizeof(submoduleName[index].gate\-Vector\-Name)} syntax.
+
+
+\subsection{The \fkeyword{expr()} Operator}
+\label{sec:ned-ref:expr-operator}
+
+The \fkeyword{expr()} operator allows a mathematical formula or other expression
+to be passed to a component as an object. \fkeyword{expr()} expects an
+expression as argument, and returns an object which encapsulates the expression
+in a parsed form. In the intended use case, the returned \textit{expression
+object} is assigned to a module parameter, and is later utilized by user code (a
+component implementation) by binding its free variables and evaluating it.
+Identifiers in the expression are \textit{not} interpreted as parameter references
+as in NED, but as free variables.
+
+
+\subsection{Functions}
+\label{sec:ned-ref:functions}
+\index{ned!functions}
+
+The functions available in NED are listed in Appendix
+\ref{cha:ned-functions}.
+
+Selected functions are documented below.
+
+\subsubsection{The \fkeyword{xmldoc()} Function}
+\label{sec:ned-ref:xmldoc-function}
+
+The \fkeyword{xmldoc()} NED function can be used to assign \fkeyword{xml} parameters,
+that is, point them to XML files or to specific elements inside XML files.
+
+\fkeyword{xmldoc()} accepts a file name as well as an optional second string argument
+that contains an XPath-like expression.
+
+%% TODO fname mihez kepest relative
+
+The XPath expression is used to select an element within the document.
+If the expression matches several elements, the first element
+(in preorder depth-first traversal) will be selected. (This is
+unlike XPath, which selects all matching nodes.)
+
+The expression syntax is the following:
+\begin{itemize}
+  \item An expression consists of \textit{path components} (or "steps")
+        separated by "\ttt{/}" or "\ttt{//}".
+  \item A path component can be an element tag name, "\ttt{*}", "\ttt{.}"
+        or "\ttt{..}".
+  \item "\ttt{/}" means child element (just as in \ttt{/usr/bin/gcc});
+        "\ttt{//}" means an element any number of levels under the current element.
+  \item "\ttt{.}", "\ttt{..}" and "\ttt{*}" mean the current element,
+        the parent element, and an element with any tag name, respectively.
+  \item Element tag names and "\ttt{*}" can have an optional predicate
+        in the form "\ttt{[position]}" or "\ttt{[@attribute='value']}".
+        Positions start from zero.
+  \item Predicates of the form "\ttt{[@attribute=\textit{\$param}]}" are also
+        accepted, where \ttt{\textit{\$param}} can be one of:
+        \ttt{\$MODULE\_\-FULLPATH},
+        \ttt{\$MODULE\_\-FULLNAME},
+        \ttt{\$MODULE\_\-NAME},
+        \ttt{\$MODULE\_\-INDEX},
+        \ttt{\$MODULE\_\-ID},
+        \ttt{\$PARENT\-MODULE\_\-FULLPATH},
+        \ttt{\$PARENT\-MODULE\_\-FULLNAME},
+        \ttt{\$PARENT\-MODULE\_\-NAME},
+        \ttt{\$PARENT\-MODULE\_\-INDEX},
+        \ttt{\$PARENT\-MODULE\_\-ID},
+        \ttt{\$GRAND\-PARENT\-MODULE\_\-FULLPATH},
+        \ttt{\$GRAND\-PARENT\-MODULE\_\-FULLNAME},
+        \ttt{\$GRAND\-PARENT\-MODULE\_\-NAME},
+        \ttt{\$GRAND\-PARENT\-MODULE\_\-INDEX},
+        \ttt{\$GRAND\-PARENT\-MODULE\_\-ID}.
+\end{itemize}
+
+\subsubsection{The \fkeyword{xml()} Function}
+\label{sec:ned-ref:xml-function}
+
+The \fkeyword{xml()} NED function can be used to parse a string as an
+XML document, and assign the result to an \fkeyword{xml} parameter.
+
+\fkeyword{xml()} accepts the string to be parsed as well as an optional
+second string argument that contains an XPath-like expression.
+
+The XPath expression is used in the same manner as with the
+\fkeyword{xmldoc()} function.
+
+
+\subsection{Units of Measurement}
+\label{sec:ned-ref:units}
+
+The following measurements units are recognized in constants. Other units can
+be used as well, but there are no conversions available for them (i.e.
+\ttt{parsec} and \ttt{kiloparsec} will be treated as two completely unrelated
+units.)
+
+\begin{longtable}{|c|c|r|}
+  \hline
+  \tabheadcol
+  \tbf{Unit} & \tbf{Name} & \tbf{Value} \\\hline
+% @BEGINFILE tools/units.txt
+d & day & 86400s \\\hline
+  h & hour & 3600s \\\hline
+  min & minute & 60s \\\hline
+  s & second & \\\hline
+  ms & millisecond & 0.001s \\\hline
+  us & microsecond & 1e-6s \\\hline
+  ns & nanosecond & 1e-9s \\\hline
+  ps & picosecond & 1e-12s \\\hline
+  fs & femtosecond & 1e-15s \\\hline
+  as & attosecond & 1e-18s \\\hline
+  bps & bit/sec & \\\hline
+  kbps & kilobit/sec & 1000bps \\\hline
+  Mbps & megabit/sec & 1e6bps \\\hline
+  Gbps & gigabit/sec & 1e9bps \\\hline
+  Tbps & terabit/sec & 1e12bps \\\hline
+  B & byte & 8b \\\hline
+  KiB & kibibyte & 1024B \\\hline
+  MiB & mebibyte & 1.04858e6B \\\hline
+  GiB & gibibyte & 1.07374e9B \\\hline
+  TiB & tebibyte & 1.09951e12B \\\hline
+  kB & kilobyte & 1000B \\\hline
+  MB & megabyte & 1e6B \\\hline
+  GB & gigabyte & 1e9B \\\hline
+  TB & terabyte & 1e12B \\\hline
+  b & bit & \\\hline
+  Kib & kibibit & 1024b \\\hline
+  Mib & mebibit & 1.04858e6b \\\hline
+  Gib & gibibit & 1.07374e9b \\\hline
+  Tib & tebibit & 1.09951e12b \\\hline
+  kb & kilobit & 1000b \\\hline
+  Mb & megabit & 1e6b \\\hline
+  Gb & gigabit & 1e9b \\\hline
+  Tb & terabit & 1e12b \\\hline
+  rad & radian & \\\hline
+  deg & degree & 0.0174533rad \\\hline
+  m & meter & \\\hline
+  cm & centimeter & 0.01m \\\hline
+  mm & millimeter & 0.001m \\\hline
+  um & micrometer & 1e-6m \\\hline
+  nm & nanometer & 1e-9m \\\hline
+  km & kilometer & 1000m \\\hline
+  W & watt & \\\hline
+  mW & milliwatt & 0.001W \\\hline
+  uW & microwatt & 1e-6W \\\hline
+  nW & nanowatt & 1e-9W \\\hline
+  pW & picowatt & 1e-12W \\\hline
+  fW & femtowatt & 1e-15W \\\hline
+  kW & kilowatt & 1000W \\\hline
+  MW & megawatt & 1e6W \\\hline
+  GW & gigawatt & 1e9W \\\hline
+  Hz & hertz & \\\hline
+  kHz & kilohertz & 1000Hz \\\hline
+  MHz & megahertz & 1e6Hz \\\hline
+  GHz & gigahertz & 1e9Hz \\\hline
+  THz & terahertz & 1e12Hz \\\hline
+  kg & kilogram & \\\hline
+  g & gram & 0.001kg \\\hline
+  K & kelvin & \\\hline
+  J & joule & \\\hline
+  kJ & kilojoule & 1000J \\\hline
+  MJ & megajoule & 1e6J \\\hline
+  Ws & watt-second & 1J \\\hline
+  Wh & watt-hour & 3600J \\\hline
+  kWh & kilowatt-hour & 3.6e6J \\\hline
+  MWh & megawatt-hour & 3.6e9J \\\hline
+  V & volt & \\\hline
+  kV & kilovolt & 1000V \\\hline
+  mV & millivolt & 0.001V \\\hline
+  A & ampere & \\\hline
+  mA & milliampere & 0.001A \\\hline
+  uA & microampere & 1e-6A \\\hline
+  Ohm & ohm & \\\hline
+  mOhm & milliohm & 0.001Ohm \\\hline
+  kOhm & kiloohm & 1000Ohm \\\hline
+  MOhm & megaohm & 1e6Ohm \\\hline
+  mps & meter/sec & \\\hline
+  kmps & kilometer/sec & 1000mps \\\hline
+  kmph & kilometer/hour & (1/3.6)mps \\\hline
+  C & coulomb & 1As \\\hline
+  As & ampere-second & \\\hline
+  mAs & milliampere-second & 0.001As \\\hline
+  Ah & ampere-hour & 3600As \\\hline
+  mAh & milliampere-hour & 3.6As \\\hline
+  ratio & ratio & \\\hline
+  pct & percent & 0.01ratio \\\hline
+  dBW & decibel-watt & 10*log10(W) \\\hline
+  dBm & decibel-milliwatt & 10*log10(mW) \\\hline
+  dBmW & decibel-milliwatt & 10*log10(mW) \\\hline
+  dBV & decibel-volt & 20*log10(V) \\\hline
+  dBmV & decibel-millivolt & 20*log10(mV) \\\hline
+  dBA & decibel-ampere & 20*log10(A) \\\hline
+  dBmA & decibel-milliampere & 20*log10(mA) \\\hline
+  dB & decibel & 20*log10(ratio) \\\hline
+% @ENDFILE
+\end{longtable}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "usman"
+%%% End:

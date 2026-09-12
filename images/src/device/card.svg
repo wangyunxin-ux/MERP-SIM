@@ -1,0 +1,89 @@
+
+<svg enable-background="new 0 0 71.195 64.81" height="64.81"
+     viewBox="0 0 71.195 64.81" width="71.195"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a">
+        <stop offset="0" stop-color="#42bf00"/>
+        <stop offset=".0055" stop-color="#b8e058"/>
+        <stop offset=".3266" stop-color="#98d144"/>
+        <stop offset=".7678" stop-color="#73be2b"/>
+        <stop offset="1" stop-color="#64b722"/>
+    </linearGradient>
+    <linearGradient id="b" gradientTransform="matrix(1 0 0 -1 .4014 68.404)"
+                    gradientUnits="userSpaceOnUse" x1="10.151" x2="61.423"
+                    xlink:href="#a" y1="38.946" y2="38.946"/>
+    <linearGradient id="c" gradientUnits="userSpaceOnUse" x1="10.552" x2="68.67"
+                    xlink:href="#a" y1="29.458" y2="29.458"/>
+    <linearGradient id="d">
+        <stop offset="0" stop-color="#686868"/>
+        <stop offset=".6451" stop-color="#3b3b3b"/>
+        <stop offset="1" stop-color="#282828"/>
+    </linearGradient>
+    <linearGradient id="e" gradientTransform="matrix(1 0 0 -1 .4014 68.404)"
+                    gradientUnits="userSpaceOnUse" x1="61.878" x2="28.395"
+                    xlink:href="#d" y1="57.423" y2="25.602"/>
+    <linearGradient id="f" gradientTransform="matrix(1 0 0 -1 .4014 68.404)"
+                    gradientUnits="userSpaceOnUse" x1="66.378" x2="32.895"
+                    xlink:href="#d" y1="52.688" y2="20.866"/>
+    <linearGradient id="g" gradientTransform="matrix(1 0 0 -1 .4014 68.404)"
+                    gradientUnits="userSpaceOnUse" x1="63.728" x2="30.245"
+                    xlink:href="#d" y1="55.477" y2="23.656"/>
+    <linearGradient id="h" gradientTransform="matrix(1 0 0 -1 .4014 68.404)"
+                    gradientUnits="userSpaceOnUse" x1="46.174" x2="12.688"
+                    xlink:href="#d" y1="73.951" y2="42.127"/>
+    <linearGradient id="i" gradientTransform="matrix(1 0 0 -1 .4014 68.404)"
+                    gradientUnits="userSpaceOnUse" x1="50.31" x2="16.825"
+                    xlink:href="#d" y1="69.6" y2="37.776"/>
+    <switch>
+        <foreignObject height="1"
+                       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+                       width="1"/>
+        <g>
+            <path d="m68.67 49.492c0 1.1-.899 2-2 2h-54.118c-1.1 0-2-.9-2-2v-40.068c0-1.101.9-2 2-2h54.118c1.101 0 2 .899 2 2z"
+                  fill="url(#b)"/>
+            <path d="m68.67 49.492c0 1.1-.899 2-2 2h-54.118c-1.1 0-2-.9-2-2v-40.068c0-1.101.9-2 2-2h54.118c1.101 0 2 .899 2 2z"
+                  fill="url(#c)" stroke="#000"/>
+            <g fill="#dddf00" stroke="#9f6700">
+                <path d="m23.408 51.492h6.893v3.512h-6.893z"/>
+                <path d="m32.289 51.492h14.977v3.512h-14.977z"/>
+                <path d="m49.122 51.492h6.892v3.512h-6.892z"/>
+            </g>
+            <path d="m64.959 18.418c0 .55-.45 1-1 1h-14.699c-.55 0-1-.45-1-1v-4.097c0-.55.45-1 1-1h14.699c.55 0 1 .45 1 1z"
+                  fill="url(#e)"/>
+            <path d="m64.959 18.418c0 .55-.45 1-1 1h-14.699c-.55 0-1-.45-1-1v-4.097c0-.55.45-1 1-1h14.699c.55 0 1 .45 1 1z"
+                  fill="none" stroke="#3c3c3c"/>
+            <path d="m64.959 27.431c0 .55-.45 1-1 1h-14.699c-.55 0-1-.45-1-1v-4.097c0-.55.45-1 1-1h14.699c.55 0 1 .45 1 1z"
+                  fill="url(#f)"/>
+            <path d="m64.959 27.431c0 .55-.45 1-1 1h-14.699c-.55 0-1-.45-1-1v-4.097c0-.55.45-1 1-1h14.699c.55 0 1 .45 1 1z"
+                  fill="none" stroke="#3c3c3c"/>
+            <path d="m43.968 44.396c0 .551-.45 1-1 1h-12.197c-.55 0-1-.449-1-1v-11.123c0-.549.45-.999 1-.999h12.196c.55 0 1 .45 1 .999z"
+                  fill="url(#g)"/>
+            <path d="m43.968 44.396c0 .551-.45 1-1 1h-12.197c-.55 0-1-.449-1-1v-11.123c0-.549.45-.999 1-.999h12.196c.55 0 1 .45 1 .999z"
+                  fill="none" stroke="#3c3c3c" stroke-width=".7046"/>
+            <path d="m24.668 20.672c0 .55-.45 1-1 1h-4.562c-.55 0-1-.45-1-1v-4.562c0-.55.45-1 1-1h4.562c.55 0 1 .45 1 1z"
+                  fill="url(#h)"/>
+            <path d="m24.668 20.672c0 .55-.45 1-1 1h-4.562c-.55 0-1-.45-1-1v-4.562c0-.55.45-1 1-1h4.562c.55 0 1 .45 1 1z"
+                  fill="none" stroke="#3c3c3c" stroke-width=".7046"/>
+            <path d="m24.668 28.955c0 .55-.45 1-1 1h-4.562c-.55 0-1-.45-1-1v-4.562c0-.55.45-1 1-1h4.562c.55 0 1 .45 1 1z"
+                  fill="url(#i)"/>
+            <path d="m24.668 28.955c0 .55-.45 1-1 1h-4.562c-.55 0-1-.45-1-1v-4.562c0-.55.45-1 1-1h4.562c.55 0 1 .45 1 1z"
+                  fill="none" stroke="#3c3c3c" stroke-width=".7046"/>
+            <path d="m10.552 62.691v-59.508h-8.416" fill="none" stroke="#bfb200"
+                  stroke-width="2"/>
+            <switch enable-background="new">
+                <foreignObject height="1" overflow="visible"
+                               requiredExtensions="http://ns.adobe.com/Flows/1.0/"
+                               width="1"/>
+                <text transform="translate(31.798 39.723)">
+                    <tspan fill="#aaa" font-family="'Arial-BoldMT'"
+                           font-size="5" x="0" y="0">
+                        chip
+                    </tspan>
+                </text>
+            </switch>
+            <path d="m8.477 7.281c-.001-1.1-.901-2-2.001-2h-3.476c-1.1 0-2-.9-2-2v-.281c0-1.1.9-2 2-2h7.63c1.1 0 1.989.9 1.976 2l-.016 1.239c-.013 1.1.875 1.998 1.976 1.995l53.631-.124c1.1-.003 1.999.895 1.998 1.995l-.054 42.843c-.001 1.1-.901 2.005-2.002 2.01l-8.526.044c-1.101.005-2 .786-2 1.735 0 .948-.9 1.726-2 1.726h-31.591c-1.1 0-2-.791-2-1.757 0-.967-.9-1.758-2-1.758h-5.329c-1.1 0-2 .899-2 2v6.861c0 1.101-.9 2-2 2h-.179c-1.1 0-2-.899-2.001-2l-.036-54.528z"
+                  fill="none" stroke="#212121" stroke-width="2"/>
+        </g>
+    </switch>
+</svg>

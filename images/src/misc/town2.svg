@@ -1,0 +1,107 @@
+
+<svg enable-background="new 0 0 68.833 68.582" height="68.582"
+     viewBox="0 0 68.833 68.582" width="68.833"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientTransform="matrix(1 0 0 -1 1.4849 68.6699)"
+                    gradientUnits="userSpaceOnUse" x1="35.022" x2="64.4234"
+                    y1="51.084" y2="10.251">
+        <stop offset="0" stop-color="#c54c32"/>
+        <stop offset="1" stop-color="#903008"/>
+    </linearGradient>
+    <linearGradient id="b">
+        <stop offset="0" stop-color="#c2927c"/>
+        <stop offset="1" stop-color="#bb5347"/>
+    </linearGradient>
+    <linearGradient id="c" gradientTransform="matrix(1 0 0 -1 1.4849 68.6699)"
+                    gradientUnits="userSpaceOnUse" x1="34.6348" x2="13.8013"
+                    xlink:href="#b" y1="50.043" y2="9.2091"/>
+    <linearGradient id="d" gradientTransform="matrix(1 0 0 -1 1.4849 68.6699)"
+                    gradientUnits="userSpaceOnUse" x1="14.4316" x2="-1.3477"
+                    xlink:href="#b" y1="54.2246" y2="12.184"/>
+    <switch>
+        <foreignObject height="1"
+                       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+                       width="1"/>
+        <g stroke-linecap="square" stroke-linejoin="round">
+            <path d="m37.542 68.082 29.94-9.39.546-46.389-21.307-11.26-29.731 1.642 20.486 13.985z"
+                  fill="url(#a)" stroke="#595959"/>
+            <path d="m17.294 2.685v14.182 44.977l20.552 6.238-.065-51.412z"
+                  fill="url(#c)" stroke="#666"/>
+            <path d="m37.781 16.67 30.552-4.367-21.307-11.26-29.732 1.642z"
+                  fill="#c0bba9" stroke="#666"/>
+            <path d="m1.076 2.914.263 53.481 15.955 5.449v-46.882z"
+                  fill="url(#d)" stroke="#666"/>
+            <path d="m1.076 2.914 32.322-1.966 1.629.758-17.733.979v12.277z"
+                  fill="#9d9081" stroke="#666"/>
+            <path d="m30.053 65.717-7.178 1.904v-3.019l2.43-.592v-2.954l4.73-1.117z"
+                  fill="#656565" stroke="#666"/>
+            <path d="m17.491 65.651 5.384 1.97v-3.019l-5.495-1.774z"
+                  fill="#a2a9ac" stroke="#666"/>
+            <path d="m25.305 64.01-2.43.592-5.491-1.692 2.337-.679z"
+                  fill="#d2d2cd" stroke="#666"/>
+            <path d="m25.305 61.056v2.954l-5.584-1.779v-2.752z" fill="#a2a9ac"
+                  stroke="#666"/>
+            <path d="m19.721 59.479 5.584 1.577 4.73-1.117-5.65-1.444z"
+                  fill="#d2d2cd" stroke="#666"/>
+            <path d="m24.385 44.313 5.711 1.116-.061 14.51-5.65-1.444z"
+                  fill="#379f00" stroke="#1c5200"/>
+            <path d="m11.066 59.577-6.575 1.239-.03-2.417 2.525-.46.048-2.406 4.017-.798z"
+                  fill="#656565" stroke="#666"/>
+            <path d="m6.21 40.262 4.896.957-.055 13.516-4.828-1.368z"
+                  fill="#379f00" stroke="#1c5200"/>
+            <g stroke="#666">
+                <path d="m.517 59.361 3.974 1.455-.03-2.417-3.961-1.448z"
+                      fill="#a2a9ac"/>
+                <path d="m6.986 57.939-2.525.46-3.961-1.448 2.524-.418z"
+                      fill="#d2d2cd"/>
+                <path d="m7.034 55.533-.048 2.406-3.868-1.5v-2.218z"
+                      fill="#a2a9ac"/>
+                <path d="m6.237 53.504 4.814 1.231-4.017.798-3.916-1.312z"
+                      fill="#d2d2cd"/>
+                <path d="m51.117 35.405-9.363 1.298v-18.175l9.622-1.428z"
+                      fill="#fff" stroke-width=".9758"/>
+                <path d="m45.792 26.234-2.931.422.012-6.757 2.96-.437z"
+                      fill="#bffffb" stroke-width=".8728"/>
+                <path d="m49.989 25.63-2.929.422.054-6.779 2.959-.437z"
+                      fill="#bffffb" stroke-width=".8728"/>
+                <path d="m45.742 34.371-2.894.404.011-6.502 2.923-.419z"
+                      fill="#bffffb" stroke-width=".8561"/>
+                <path d="m49.888 33.792-2.892.404.051-6.523 2.922-.418z"
+                      fill="#bffffb" stroke-width=".8561"/>
+                <path d="m63.996 33.48-8.096 1.271v-17.795l8.32-1.398z"
+                      fill="#fff" stroke-width=".8979"/>
+                <path d="m59.39 24.5-2.533.414.01-6.616 2.558-.428z"
+                      fill="#bffffb" stroke-width=".8031"/>
+                <path d="m63.021 23.909-2.533.413.047-6.637 2.558-.428z"
+                      fill="#bffffb" stroke-width=".8031"/>
+                <path d="m59.347 32.467-2.502.395.01-6.365 2.526-.41z"
+                      fill="#bffffb" stroke-width=".7877"/>
+                <path d="m62.934 31.899-2.502.396.044-6.386 2.527-.409z"
+                      fill="#bffffb" stroke-width=".7877"/>
+                <path d="m31.989 35.972-9.938-1.131v-17.083l9.938.628z"
+                      fill="#fff" stroke-width=".9442"/>
+                <path d="m26.272 25.912-3.063-.264v-6.368l3.063.206z"
+                      fill="#bffffb" stroke-width=".8445"/>
+                <path d="m30.662 26.291-3.063-.265v-6.45l3.063.207z"
+                      fill="#bffffb" stroke-width=".8445"/>
+                <path d="m26.272 33.632-3.063-.334v-6.127l3.063.279z"
+                      fill="#bffffb" stroke-width=".8284"/>
+                <path d="m30.662 34.109-3.063-.333v-6.206l3.063.278z"
+                      fill="#bffffb" stroke-width=".8284"/>
+                <path d="m12.724 33.617-7.994-1.082v-16.353l7.994.601z"
+                      fill="#fff" stroke-width=".8285"/>
+                <path d="m8.125 23.988-2.464-.253v-6.096l2.464.198z"
+                      fill="#bffffb" stroke-width=".7411"/>
+                <path d="m11.656 24.351-2.464-.253v-6.176l2.464.198z"
+                      fill="#bffffb" stroke-width=".7411"/>
+                <path d="m8.125 31.377-2.464-.318v-5.866l2.464.266z"
+                      fill="#bffffb" stroke-width=".7269"/>
+                <path d="m11.656 31.835-2.464-.319v-5.941l2.464.266z"
+                      fill="#bffffb" stroke-width=".7269"/>
+            </g>
+            <path d="m37.846 68.082 29.636-9.39.851-46.389-21.307-11.26-11.337.626-1.843-1.169-32.77 2.414.263 53.481-.839.556.017 2.41 3.974 1.455 6.575-1.239 7.792 2.741-1.474.592.107 2.741 5.384 1.97 7.178-1.904z"
+                  fill="none" stroke="#454545"/>
+        </g>
+    </switch>
+</svg>

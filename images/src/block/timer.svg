@@ -1,0 +1,39 @@
+
+<svg clip-rule="evenodd" fill-rule="evenodd" height="72"
+     image-rendering="optimizeQuality" shape-rendering="geometricPrecision"
+     text-rendering="geometricPrecision" viewBox="0 0 72 72" width="72"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="65.3315"
+                    x2="6.66969" y1="66.1937" y2="5.80748">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".619608" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <rect fill="url(#a)" height="66.15" rx="9.39803" stroke="#000"
+          stroke-width="3" width="66.15" x="2.92559" y="2.92559"/>
+    <g fill="none">
+        <circle cx="36" cy="36" r="25.0736" stroke="#000" stroke-width="4.16693"/>
+        <path d="m14.2547 36c0-12.0071 9.73819-21.7453 21.7453-21.7453"
+              stroke="#ccc" stroke-linecap="round" stroke-width="1.99961"/>
+        <path d="m16.1185 27.1831c2.69882-6.11102 7.15984-10.0724 13.0098-11.8193"
+              stroke="#efefef" stroke-linecap="round" stroke-width="1.99961"/>
+        <path d="m57.7453 36c0 12.0071-9.73819 21.7453-21.7453 21.7453"
+              stroke="#9c9c9c" stroke-linecap="round" stroke-width="1.99961"/>
+        <path d="m36 13.5v4.3949" stroke="#000" stroke-width=".9"/>
+        <path d="m54.978 24.9591-2.9304 1.6913" stroke="#000" stroke-width=".9"/>
+        <path d="m47.152 16.7598-1.6914 2.9304" stroke="#000" stroke-width=".9"/>
+        <path d="m36 54.1051v4.3949" stroke="#000" stroke-width=".9"/>
+        <path d="m19.6146 45.515-2.9303 1.6913" stroke="#000" stroke-width=".9"/>
+        <path d="m26.6091 52.2472-1.6914 2.9304" stroke="#000" stroke-width=".9"/>
+        <path d="m54.1051 36h4.3949" stroke="#000" stroke-width=".9"/>
+        <path d="m45.4594 52.2756 1.6914 2.9303" stroke="#000" stroke-width=".9"/>
+        <path d="m52.3205 45.4866 2.9303 1.6914" stroke="#000" stroke-width=".9"/>
+        <path d="m13.5 36h4.3949" stroke="#000" stroke-width=".9"/>
+        <path d="m24.8516 16.7409 1.6913 2.9304" stroke="#000" stroke-width=".9"/>
+        <path d="m16.7138 24.7701 2.9303 1.6913" stroke="#000" stroke-width=".9"/>
+    </g>
+    <circle cx="35.9988" cy="36" r="1.86142" stroke="#000" stroke-width=".9"/>
+    <path d="m36.5433 36.3638 4.77992-21.561-6.15 21.2126 1.37008.348425zm-.682682-.173562"
+          fill-rule="nonzero" stroke="#000" stroke-width=".9"/>
+</svg>

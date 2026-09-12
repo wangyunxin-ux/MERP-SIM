@@ -1,0 +1,1559 @@
+\chapter{Message Definitions}
+\label{cha:msg-def}
+
+
+\section{Introduction}
+\label{sec:msg-defs:intro}
+
+In practice, one needs to add various fields to \cclass{cMessage} or
+\cclass{cPacket} to make them useful. For example, when modeling
+communication networks, message/packet objects need to carry protocol
+header fields. Since the simulation library is written in C++, the natural
+way of extending \cclass{cMessage}/\cclass{cPacket} is via subclassing
+them. However, at least three items has to be added to the new class for
+each field (a private data member, a getter and a setter method) and the
+resulting class needs to integrate with the simulation framework, which
+means that writing the necessary C++ code can be a tedious and
+time-consuming task.
+
+{\opp} offers a more convenient way called \textit{message definitions}.
+Message definitions offer a compact syntax to describe message contents,
+and the corresponding C++ code is automatically generated from the
+definitions. When needed, the generated class can also be customized via
+subclassing. Even when the generated class needs to be heavily customized,
+message definitions can still save the programmer a great deal of manual
+work.
+
+
+\subsection{The First Message Class}
+\label{sec:msg-defs:first-msg-class}
+
+Let us begin with a simple example. Suppose that we need a packet type that
+carries a source and a destination address as well as a hop count. The
+corresponding C++ code can be generated from the following definition in a
+\ttt{MyPacket.msg} file:
+
+\begin{msg}
+packet MyPacket
+{
+     int srcAddress;
+     int destAddress;
+     int remainingHops = 32;
+};
+\end{msg}
+
+It is the task of the {\opp} \textit{message compiler}, \fprog{opp\_msgc} or
+\fprog{opp\_msgtool}, to translate the definition into a C++ class that can be
+instantiated from C++ model code. The message compiler is normally invoked for
+\ttt{.msg} files automatically, as part of the build process.
+
+When the message compiler processes \ttt{MyPacket.msg}, it creates two files:
+\ttt{MyPacket\_m.h} and \ttt{MyPacket\_m.cc}. The generated \ttt{MyPacket\_m.h}
+will contain the following class declaration (abbreviated):
+
+\begin{cpp}
+class MyPacket : public cPacket {
+  protected:
+    int srcAddress;
+    int destAddress;
+    int remainingHops = 32;
+  public:
+    MyPacket(const char *name=nullptr, short kind=0);
+    MyPacket(const MyPacket& other);
+    MyPacket& operator=(const MyPacket& other);
+    virtual MyPacket *dup() const override {return new MyPacket(*this);}
+    ...
+
+    // field getter/setter methods
+    virtual int getSrcAddress() const;
+    virtual void setSrcAddress(int srcAddress);
+    virtual int getDestAddress() const;
+    virtual void setDestAddress(int destAddress);
+    virtual int getRemainingHops() const;
+    virtual void setRemainingHops(int remainingHops);
+};
+\end{cpp}
+
+As you can see, for each field the generated class contains a protected data
+member, and a public getter and a setter method. The names of the methods will
+begin with \ttt{get} and \ttt{set}, followed by the field name with its first
+letter converted to uppercase.
+
+The \ttt{MyPacket\_m.cc} file contains implementation of the generated
+\ttt{MyPacket} class as well as ``reflection'' code (see
+\cclass{cClassDescriptor}) that allows inspection of these data structures under
+graphical user interfaces like Qtenv. The \ttt{MyPacket\_m.cc} file should be
+compiled and linked into the simulation; this is normally taken care of
+automatically.
+
+In order to use the \ttt{MyPacket} class from a C++ source file, the
+generated header file needs to be included:
+
+\begin{cpp}
+#include "MyPacket_m.h"
+
+...
+MyPacket *pkt = new MyPacket("pkt");
+pkt->setSrcAddress(localAddr);
+...
+\end{cpp}
+
+
+\subsection{Ingredients of Message Files}
+\label{sec:msg-defs:ingredients}
+
+Message files contain the following ingredients:
+
+\begin{itemize}
+  \item \textit{Packet, message, and class definitions} translate into C++ class
+    definitions. The three types are very similar, they practically only differ
+    in the choice of the default base class (\cclass{cPacket},
+    \cclass{cMessage}, and no base class, respectively).
+  \item \textit{Struct definitions} translate into C-like structs, where fields
+    are represented with public data members (there are no getters and setters).
+  \item \textit{Enum definitions} translate into C++ enums.
+  \item \textit{Namespace declarations} define the namespace for subsequent definitions.
+  \item \textit{Imports} allow reusing definitions from other \ttt{.msg} files.
+  \item \textit{Properties} are metadata annotations of the syntax \ttt{@name}
+    or \ttt{@name(...)} that may occur on file, class (packet, struct, etc.)
+    definition, and field level as well. There are many predefined properties,
+    and a large subset of them deal with the details of what C++ code to
+    generate for the item they occur with. For example, \ttt{@getter(getFoo)}
+    on a field requests that the generated getter function have the name \ttt{getFoo}.
+  \item \textit{C++ blocks} are used for injecting literal C++ code fragments
+    into the generated source files. The target (the place where to insert the
+    code) can be specified.
+\end{itemize}
+
+The following sections describe all of the above elements in detail.
+
+
+\section{Classes, Messages, Packets, Structs}
+\label{sec:msg-defs:classes-messages-packets-structs}
+
+As shown above, the message description language allows you to generate C++ data
+classes and structs from concise descriptions that have a syntax resembling C
+structs. The descriptions contain the choice of the base class (message
+descriptions only support single inheritance), the list of fields the class
+should have, and possibly various metadata annotations that e.g. control the
+details of the code generation.
+
+A description starts with one of the \fkeyword{packet}, \fkeyword{message},
+\fkeyword{class}, \fkeyword{struct} keywords. The first three are very
+similar: they all generate C++ classes, and only differ on the choice of the
+default base class (and related details such as the argument list of the
+constructor). The fourth one generates a plain (C-style) struct.
+
+
+\subsection{Classes, Messages, Packets}
+\label{sec:msg-defs:classes-messages-packets}
+\label{sec:msg-defs:defining-classes} % legacy
+\label{sec:msg-defs:messages-and-packets} % legacy
+\label{sec:msg-defs:defining-messages-and-packets} % legacy
+
+For \fkeyword{packet}, the default base class is \cclass{cPacket}; or if a base
+class is explicitly named, it must be a subclass of \cclass{cPacket}. Similarly,
+for \fkeyword{message}, the default base class is \cclass{cMessage}, or if a
+base class is specified, it must be a subclass of \cclass{cMessage}.
+
+For \fkeyword{class}, the default is \textit{no} base class. However, it is often a
+good idea to choose \cclass{cObject} as a base class.\footnote{Until \omnetpp
+6.0, the default base class was \cclass{cObject}. Thus, when migrating code from
+version 5.x or earlier, one needs to add \ttt{extends cObject} to class
+definitions lacking an "extends" clause.}
+
+\begin{note}
+  It is recommended to use \cclass{cObject} as base class, because it adds zero
+  overhead to the generated class, and at the same time makes the class more
+  interoperable with the rest of the simulation library. \cclass{cObject}
+  only defines virtual methods but no data members, so the only overhead would
+  be the \textit{vptr}; however, the generated class already has a vptr because
+  the generated methods are also virtual.
+\end{note}
+
+The base class is specified with the \fkeyword{extends} keyword. For example:
+
+\begin{msg}
+packet FooPacket extends PacketBase
+{
+    ...
+};
+\end{msg}
+
+The generated C++ class will look like this:
+
+\begin{cpp}
+class FooPacket : public PacketBase {
+    ...
+};
+\end{cpp}
+
+The generated class will have a constructor and also a copy constructor. An
+assignment operator (\ffunc{operator=()}) and cloning method (\ffunc{dup()})
+will also be generated.
+
+The argument list of the generated constructor depends on the base class. For
+classes derived from \cclass{cMessage}, it will accept an object name and
+message kind. For classes derived from \cclass{cNamedObject}, it will accept an
+object name. The arguments are optional (they have default values).
+
+\begin{cpp}
+class FooPacket : public PacketBase
+{
+  public:
+    FooPacket(const char *name=nullptr, int kind=0);
+    FooPacket(const FooPacket& other);
+    FooPacket& operator=(const FooPacket& other);
+    virtual FooPacket *dup() const;
+    ...
+\end{cpp}
+
+Additional base classes can be added by listing them in the \fprop{@implements}
+class property.
+
+
+\subsection{Structs}
+\label{sec:msg-defs:defining-structs}
+
+Message definitions allow one to define C-style structs, ``C-style''
+meaning ``containing only data and no methods''. These structs can be
+useful as fields in message classes.
+
+The syntax is similar to that of defining messages:
+
+\begin{msg}
+struct Place
+{
+    int type;
+    string description;
+    double coords[3];
+};
+\end{msg}
+
+The generated struct has public data members, and no getter or setter
+methods. The following code is generated from the above definition:
+
+\begin{cpp}
+// generated C++
+struct Place
+{
+    int type;
+    omnetpp::opp_string description;
+    double coords[3];
+};
+\end{cpp}
+
+Note that \fkeyword{string} fields are generated with the \ttt{opp\_string} C++
+type, which is a minimalistic string class that wraps \ttt{const char*} and
+takes care of allocation/deallocation. It was chosen instead of
+\ttt{std::string} because of its significantly smaller memory footprint.
+(\ttt{std::string} is significantly larger than a \ttt{const char*} pointer
+because it also needs to store length and capacity information in some form.)
+
+Inheritance is supported for structs:
+
+\begin{msg}
+struct Base
+{
+    ...
+};
+
+struct Extended extends Base
+{
+    ...
+};
+\end{msg}
+
+However, because a struct has no member functions, there are limitations:
+
+\begin{itemize}
+   \item variable-size arrays are not supported;
+   \item customization via inheritance and \fkeyword{abstract} fields
+      (see later in \ref{sec:msg-defs:customizing-via-inheritance})
+      cannot be used;
+   \item cannot have classes subclassed from \cclass{cOwnedObject} as fields,
+      because structs cannot be owners.
+\end{itemize}
+
+
+\section{Enums}
+\label{sec:msg-defs:enums}
+
+An enum is declared with the \fkeyword{enum} keyword, using the following
+syntax:
+
+\begin{msg}
+enum PayloadType
+{
+   NONE = 0;
+   VOICE = 1;
+   VIDEO = 2;
+   DATA = 3;
+};
+\end{msg}
+
+Enum values need to be unique.
+
+The message compiler translates an enum into a normal C++ enum, plus also
+generates a descriptor that stores the symbolic names as strings. The latter
+makes it possible for Qtenv to display symbolic names for enum values.
+
+Enums can be used in two ways. The first is simply to use the enum's name as
+field type:
+
+\begin{msg}
+packet FooPacket
+{
+    PayloadType payloadType;
+};
+\end{msg}
+
+The second way is to tag a field of the type \fkeyword{int} or any
+other integral type with the \fprop{@enum} property and the name of
+the enum, like so:
+
+\begin{msg}
+packet FooPacket
+{
+    int16_t payloadType @enum(PayloadType);
+};
+\end{msg}
+
+In the generated C++ code, the field will have the original type (in this case,
+\fkeyword{int16\_t}). However, additional code generated by the message compiler
+will allow Qtenv to display the symbolic name of the field's value in addition
+to the numeric value.
+
+
+\section{Imports}
+\label{sec:msg-defs:imports}
+
+Import directives are used to make definitions in one message file available to another
+one. Importing an MSG file makes the definitions in that file available to the
+file that imports it, but has no further side effect (and in particular, it will
+generate no C++ code).
+
+To import a message file, use the \fkeyword{import} keyword followed by a name
+that identifies the message file within its project:
+
+\begin{msg}
+import inet.linklayer.common.MacAddress;
+\end{msg}
+
+The \fkeyword{import}'s parameter is interpreted as a relative file path (by
+replacing dots with slashes, and appending \ttt{.msg}), which is searched for in
+folders listed in the \textit{message import path}, much like C/C++ include
+files are searched for in the compiler's include path, Python modules in the
+Python module search path, or NED files in the NED path.
+
+The message import path can be be specified to the message compiler via a series
+of \fopt{-I} command-line options.
+
+
+\section{Namespaces}
+\label{sec:msg-defs:namespaces}
+\label{sec:msg-defs:declaring-a-namespace} % legacy
+
+To place generated types into a namespace, add a \fkeyword{namespace} directive
+above the types in question:
+
+\begin{msg}
+namespace inet;
+\end{msg}
+
+Hierarchical (nested) namespaces are declared using double colons in the
+namespace definition, much like nested namespace definitions introduced into
+C++ in version C++17.
+
+\begin{msg}
+namespace inet::ieee80211;
+\end{msg}
+
+The above code will be translated into multiple nested namespaces in the C++ code:
+
+\begin{cpp}
+namespace inet { namespace ieee80211 {
+...
+}}
+\end{cpp}
+
+There can be multiple \fkeyword{namespace} directives in a message file. The
+effect of the \fkeyword{namespace} directive extends from the place of the
+directive until the next \fkeyword{namespace} directive or the end of the
+message file. Each \fkeyword{namespace} directive opens a completely new
+namespace, i.e. \textit{not} a namespace within the previous one. An empty
+namespace directive (\ttt{namespace;}) returns to the global namespace. For
+example:
+
+\begin{msg}
+namespace foo::bar;
+class A {}  // defines foo::bar::A
+
+namespace baz;
+class B {}  // defines baz::B
+
+namespace;
+class C {}  // defines ::C
+\end{msg}
+
+
+\section{Properties}
+\label{sec:msg-defs:properties}
+
+Properties are metadata annotations of the syntax \ttt{@name} or
+\ttt{@name(...)} that may occur on file, class (packet, struct, etc.)
+definition, and field level. There are many predefined properties, and a
+large subset of them deal with the details of what C++ code to generate for the
+item they occur with. For example, \ttt{@getter(getFoo)} on a field requests
+that the generated getter function have the name \ttt{getFoo}.
+
+Here is a syntax example. Note that class properties are placed in the fields
+list (fields and properties may be mixed in arbitrary order), and field
+properties are written after the field name.
+
+\begin{msg}
+@foo;
+class Foo {
+  @customize(true);
+  string value @getter(...) @setter(...) @hint("...");
+}
+\end{msg}
+
+Syntactically, the mandatory part of a property is the \ttt{@} character
+followed by the property name. They are then optionally followed by an
+\textit{index} and a \textit{parameter list}. The index is a name in square
+brackets, and it is rarely used. The parameter list is enclosed in parentheses,
+and in theory it may contain a value list and key-valuelist pairs, but
+almost all properties expect to find just a single value there.
+
+For boolean properties, the value may be \fkeyword{true} or \fkeyword{false}; if
+the value is missing, \fkeyword{true} is assumed. Thus, \ttt{@customize} is
+equivalent to \ttt{@customize(true)}.
+
+As a guard against mistyping property names, properties need to be declared
+before they can be used. Properties are declared using the \fprop{@property}
+property, with the name of the new property in the index, and the type and other
+attributes of the property in the parameter list. Examples for property
+declarations, including the declaration of \fprop{@property} itself, can be seed
+by listing the built-in definitions of the message compiler
+(\ttt{opp\_msgtool -h builtindefs}).
+
+The full list of properties understood by the message compiler and other {\opp}
+tools can be found in Appendix \ref{cha:msg-properties}.
+
+
+\subsection{Data Types}
+\label{sec:msg-defs:field-data-types}
+
+The following data types can be used for fields:
+
+\begin{itemize}
+  \item C/C++ primitive data types: \fkeyword{bool}, \fkeyword{char},
+    \fkeyword{short}, \fkeyword{int}, \fkeyword{long}, \fkeyword{unsigned char},
+    \fkeyword{unsigned short}, \fkeyword{unsigned int}, \fkeyword{unsigned
+    long}, \fkeyword{float}, \fkeyword{double}.
+  \item \fkeyword{string}. Getters and setters use the \fkeyword{const char*} data
+    type; \fkeyword{nullptr} is not allowed. Setters store a copy of the string, not
+    just the pointer.
+  \item C99-style fixed-size integer types: \fkeyword{int8\_t},
+    \fkeyword{int16\_t}, \fkeyword{int32\_t}, \fkeyword{int64\_t},
+    \fkeyword{uint8\_t}, \fkeyword{uint16\_t}, \fkeyword{uint32\_t},
+    \fkeyword{uint64\_t}.\footnote{These type names are accepted without the
+    \ttt{\_t} suffix as well, but you are responsible to ensure that the
+    generated code compiles, i.e. the shortened type names must be defined in a
+    header file you include.}
+\end{itemize}
+
+In addition, {\opp} class names such as \cclass{simtime\_t} and \cclass{cMessage} are
+also made available without the need to import anything. These names are
+accepted both with and without spelling out the \ttt{omnetpp} namespace
+name.
+
+Numeric fields are initialized to zero, booleans to \fkeyword{false}, and string
+fields to the empty string.
+
+
+\section{Fields}
+\label{sec:msg-defs:fields}
+
+\subsection{Scalar fields}
+\label{sec:msg-defs:scalar-fields}
+
+A scalar field is one that holds a single value. It is defined by specifying the
+data type and the field name, for example:
+
+\begin{msg}
+int timeToLive;
+\end{msg}
+
+For each field, the generated class will have a protected data member, and a
+public getter and setter method. The names of the methods will begin with
+\ttt{get} and \ttt{set}, followed by the field name with its first letter
+converted to uppercase. Thus, the above field will generate the following
+methods in the C++ class:
+
+\begin{cpp}
+int getTimeToLive() const;
+void setTimeToLive(int timeToLive);
+\end{cpp}
+
+\begin{note}
+All methods are generated to be virtual, but we omit the \fkeyword{virtual}
+keyword here and in further examples.
+\end{note}
+
+The method names are derived from the field name, but they can be customized
+with the \fprop{@getter} and \fprop{@setter} properties, as shown below:
+
+\begin{msg}
+int timeToLive @getter(getTTL) @setter(setTTL);
+\end{msg}
+
+The choice of C++ type used for the data member and the getter/setter methods
+can be overridden with the help of the \fprop{@cppType} property (and on a more
+fine-grained level, with \fprop{@datamemberType}, \fprop{@argType} and
+\fprop{@returnType}), although this it is rarely useful.
+
+
+\subsection{Initial Values}
+\label{sec:msg-defs:initial-values}
+
+Initial values for fields can be specified after an equal sign, like so:
+
+\begin{msg}
+int version = HTTP_VERSION;
+string method = "GET";
+string resource = "/";
+bool keepAlive = true;
+int timeout = 5*60;
+\end{msg}
+
+Any phrase that is a valid C++ expression can be used as initializer value. (The
+message compiler does not check the syntax of the values, it merely copies them
+into the generated C++ file.)
+
+For array fields, the initializer specifies the value for individual array
+elements. There is no syntax for initializing an array with a list of values.
+
+
+\subsection{Overriding Initial Values from Subclasses}
+\label{sec:msg-defs:assignment-of-inherited-fields}
+
+In a subclass, it is possible to override the initial value of an inherited
+field. The syntax is similar to that of a field definition with initial value,
+only the data type is missing.
+
+An example:
+
+\begin{msg}
+packet Ieee80211Frame
+{
+    int frameType;
+    ...
+};
+
+packet Ieee80211DataFrame extends Ieee80211Frame
+{
+    frameType = DATA_FRAME;  // assignment of inherited field
+    ...
+};
+\end{msg}
+
+It may seem like the message compiler would need the definition of the base
+class to check the definition of the field being assigned. However, it is
+not the case. The message compiler trusts that such field exists; or
+rather, it leaves the check to the C++ compiler.
+
+What the message compiler actually does is derives a setter method name
+from the field name, and generates a call to it into the constructor.
+Thus, the generated constructor for the above packet type would be
+something like this:
+
+\begin{cpp}
+Ieee80211DataFrame::Ieee80211DataFrame(const char *name, int kind) :
+    Ieee80211Frame(name, kind)
+{
+    this->setFrameType(DATA_FRAME);
+    ...
+}
+\end{cpp}
+
+This implementation also lets one initialize \cclass{cMessage} /
+\cclass{cPacket} fields such as message kind or packet length:
+
+\begin{msg}
+packet UDPPacket
+{
+    byteLength = 16;  // results in 'setByteLength(16);' being placed into ctor
+};
+\end{msg}
+
+
+\subsection{Const Fields}
+\label{sec:msg-defs:const-fields}
+
+A field can be marked as const by the using \fkeyword{const} keyword. A
+const field only has a (const) data member and a getter function, but no
+setter. The value can be provided via an initializer. An example:
+
+\begin{msg}
+const int foo = 24;
+\end{msg}
+
+This generates a \ttt{const int} data member in the class, initialized to 24,
+and a getter member function that returns its value:
+
+\begin{cpp}
+int getFoo() const;
+\end{cpp}
+
+Array fields cannot be const.
+
+Note that a pointer field may also be marked const, but \fkeyword{const} is
+interpreted differently in that case: as a mutable field that holds a pointer to
+a \fkeyword{const} object.
+
+One use of \fkeyword{const} is to implement computed fields. For that, the field
+needs to be annotated with the \fprop{@custom} or \fprop{@customImpl} property
+to allow for a custom implementation to be supplied for the getter. The custom
+getter can then encapsulate the computation of the field value. Customization is
+covered in section \ref{sec:msg-defs:customizing-generated-class}.
+
+\begin{note}
+To add actual constants (as opposed to getter-only fields) to a class, it
+is better use a targeted \fkeyword{cplusplus} block to inject their definitions
+into the C++ class declaration.
+\end{note}
+
+
+\subsection{Abstract Fields}
+\label{sec:msg-defs:abstract-fields}
+
+Abstract fields is a way to allow a custom implementation (such as storage,
+getter/setter methods, etc.) to be provided for a field. For a field marked as
+abstract, the message compiler does not generate a data member, and generated
+getter/setter methods will be pure virtual. It is expected that the pure virtual
+methods will be implemented in a subclass (possibly via \fprop{@customize}, see
+section \ref{sec:msg-defs:customizing-generated-class}).
+
+A field is declared abstract by using the \fkeyword{abstract} keyword or the
+\fprop{@abstract} property (the two are equivalent).
+
+\begin{msg}
+abstract bool urgentBit; // or: bool urgentBit @abstract;
+\end{msg}
+
+The generated pure virtual methods:
+
+\begin{cpp}
+virtual bool getUrgentBit() const = 0;
+virtual void setUrgentBit(bool urgentBit) = 0;
+\end{cpp}
+
+Alternatives to \fkeyword{abstract}, at least for certain use cases, are
+\fprop{@custom} and \fprop{@customImpl} (see section
+\ref{sec:msg-defs:customizing-generated-class}).
+
+
+\subsection{Fixed-Size Arrays}
+\label{sec:msg-defs:fixed-size-arrays}
+
+Fixed-size arrays can be declared with the usual syntax of putting the
+array size in square brackets after the field name:
+
+\begin{msg}
+int route[4];
+\end{msg}
+
+The generated getter and setter methods will have an extra \ttt{k} argument (the
+array index), and a third method that returns the array size is also generated:
+
+\begin{cpp}
+int getRoute(size_t k) const;
+void setRoute(size_t k, int route);
+size_t getRouteArraySize() const;
+\end{cpp}
+
+When the getter or setter method is called with an index that is out of bounds,
+an exception is thrown.
+
+The method names can be overridden with the \fprop{@getter}, \fprop{@setter} and
+\fprop{@sizeGetter} properties. To use another C++ type for array size and
+indices instead of the default \fprop{size\_t}, specify the \fprop{@sizeType}
+property.
+
+\begin{note}
+  Use a singular noun for field name instead of plural (\ttt{route[]} instead of
+  \ttt{routes[]}), otherwise method names will look confusing (\ttt{getRoutes()},
+  \ttt{appendRoutes()}, etc, for methods that deal with a single route).
+\end{note}
+
+When a default value is given, it is interpreted as a scalar for filling the
+array with. There is no syntax for initializing an array with a list of values.
+
+\begin{msg}
+int route[4] = -1; // all elements set to -1
+\end{msg}
+
+
+\subsection{Variable-Size Arrays}
+\label{sec:msg-defs:variable-size-arrays}
+
+If the array size is not known in advance, the field can be declared
+to have a variable size by using an empty pair in brackets:
+
+\begin{msg}
+int route[];
+\end{msg}
+
+In this case, the generated class will have extra methods in addition to the
+getter and setter: one for resizing the array, one for getting the array size,
+plus methods for inserting an element at a given position, appending an element,
+and erasing an element at a given position.
+
+\begin{cpp}
+int getRoute(size_t k) const;
+void setRoute(size_t k, int route);
+void setRouteArraySize(size_t size);
+size_t getRouteArraySize() const;
+void insertRoute(size_t k, int route);
+void appendRoute(int route);
+void eraseRoute(size_t k);
+\end{cpp}
+
+The default array size is zero. Elements can be added by calling the inserter
+or the appender method, or resizing the array and setting individual elements.
+
+Internally, all methods that change the array size (inserter, appender, resizer)
+always allocate a new array, and copy existing values over to the new array.
+Therefore, when adding a large number elements, it is recommended to resize the
+array first, instead of calling the appender method multiple times.
+
+The method names can be overridden with the \fprop{@getter}, \fprop{@setter},
+\fprop{@sizeGetter}, \fprop{@sizeSetter}, \fprop{@inserter}, \fprop{@appender}
+and \fprop{@eraser} field properties. To use another C++ type for array size and
+indices instead of the default \fprop{size\_t}, specify the \fprop{@sizeType}
+property.
+
+When a default value is given, it is used for initializing new elements
+when the array is expanded.
+
+\begin{msg}
+int route[] = -1;
+\end{msg}
+
+
+\subsection{Classes and Structs as Fields}
+\label{sec:msg-defs:other-types-as-fields}
+
+Classes and structs may also be used as as fields, not only primitive types and
+\ttt{string}. For example, given a class named \ttt{IPAddress}, one can write
+the following field:
+
+\begin{msg}
+IPAddress sourceAddress;
+\end{msg}
+
+The \ttt{IPAddress} type must be known to the message compiler.
+
+The generated class will contain an \ttt{IPAddress} data member, and the
+following member functions:
+
+\begin{cpp}
+const IPAddress& getSourceAddress() const;
+void setSourceAddress(const IPAddress& sourceAddress);
+IPAddress& getSourceAddressForUpdate();
+\end{cpp}
+
+Note that in addition to the getter and setter, a mutable getter
+(\ttt{get...ForUpdate}) is also generated, which allows the stored value (object
+or struct) to be modified in place.
+
+By default, values are passed by reference. This can be changed by specifying
+the \fprop{@byValue} property:
+
+\begin{msg}
+IPAddress sourceAddress @byValue;
+\end{msg}
+
+This generates the following member functions:
+
+\begin{cpp}
+virtual IPAddress getSourceAddress() const;
+virtual void setSourceAddress(IPAddress sourceAddress);
+\end{cpp}
+
+Note that both member functions use pass-by-value, and that the mutable getter
+function is not generated.
+
+Specifying \fkeyword{const} will cause only a getter function to be generated
+but no setter or mutable getter, as shown before in \ref{sec:msg-defs:const-fields}.
+
+Array fields are treated similarly, the difference being that the getter and setter
+methods take an extra index argument:
+
+\begin{msg}
+IPAddress route[];
+\end{msg}
+
+The generated methods:
+
+\begin{cpp}
+void setRouteArraySize(size_t size);
+size_t getRouteArraySize() const;
+const IPAddress& getRoute(size_t k) const;
+IPAddress& getRouteForUpdate(size_t k);
+void setRoute(size_t k, const IPAddress& route);
+void insertRoute(size_t k, const IPAddress& route);
+void appendRoute(const IPAddress& route);
+void eraseRoute(size_t k);
+\end{cpp}
+
+
+\subsection{Non-Owning Pointer Fields}
+\label{sec:msg-defs:pointers-fields}
+
+The field type may be a pointer, both for scalar and array fields. Pointer
+fields come in two flavours: owning and non-owning. A non-owning pointer field
+just stores the pointer value regardless of the ownership of the object it
+points to, while an owning pointer holds the ownership of the object. This
+section discusses non-owning pointer fields.
+
+Example:
+
+\begin{msg}
+cModule *contextModule;  // missing @owner: non-owning pointer field
+\end{msg}
+
+The generated methods:
+
+\begin{cpp}
+const cModule *getContextModule() const;
+void setContextModule(cModule *contextModule);
+cModule *getContextModuleForUpdate();
+\end{cpp}
+
+If the field is marked \fkeyword{const}, then the setter will take a
+\fkeyword{const} pointer, and the \ttt{getForUpdate()} method is not generated:
+
+\begin{msg}
+const cModule *contextModule;
+\end{msg}
+
+The output:
+
+\begin{cpp}
+const cModule *getContextModule() const;
+void setContextModule(const cModule *contextModule);
+\end{cpp}
+
+
+\subsection{Owning Pointer Fields}
+\label{sec:msg-defs:pointers-fields}
+
+This section discusses pointer fields that own the objects they point to, that
+is, are responsible for deallocating the object when the object containing the
+field (let's refer to it as \textit{container} object) is deleted.
+
+For all owning pointer fields in a class, the destructor of the class deletes the
+owned objects, the \ffunc{dup()} method and the copy constructor duplicate the
+owned objects for the newly created object, and the assignment operator
+(\ffunc{operator=}) does both: the old objects in the destination object are
+deleted, and replaced by clones of the objects in the source object.
+
+When the owned object is a subclass of \cclass{cOwnedObject} that keeps track of
+its owner, the code generated for the container class invokes the \ffunc{take()}
+and \ffunc{drop()} methods at the appropriate times to manage the ownership.
+
+Example:
+
+\begin{msg}
+cPacket *payload @owned;
+\end{msg}
+
+The generated methods:
+
+\begin{cpp}
+const cPacket *getPayload() const;
+cPacket *getPayloadForUpdate();
+void setPayload(cPacket *payload);
+cPacket *removePayload();
+\end{cpp}
+
+The getter and mutable getter return the stored pointer (or \fkeyword{nullptr} if
+there is none).
+
+The remover method releases the ownership of the stored object, sets the field
+to \fkeyword{nullptr}, and returns the object.
+
+The setter method behavior depends on the presence of the \fprop{@allowReplace}
+property. By default (when \fprop{@allowReplace} is absent), the setter does not
+allow replacing the object. That is, when the setter is invoked on a field that
+already contains an object (the pointer is non-null), an error is raised:
+\textit{"A value is already set, remove it first with removePayload()"}.
+One must call \fprop{removePayload()} before setting a new object.
+
+When \fprop{@allowReplace} is specified for the field, there is no need to call
+te remover method before setting a new value, because the setter method deletes
+the old object before storing the new one.
+
+\begin{msg}
+cPacket *payload @owned @allowReplace; // allow setter to delete the old object
+\end{msg}
+
+If the field is marked \fkeyword{const}, then the \ttt{getForUpdate()} method
+is not generated, and the setter takes a \fkeyword{const} pointer.
+
+\begin{msg}
+const cPacket *payload @owned;
+\end{msg}
+
+The generated methods:
+
+\begin{cpp}
+const cPacket *getPayload() const;
+void setPayload(const cPacket *payload);
+cPacket *removePayload();
+\end{cpp}
+%TODO removePayload() should return const pointer here
+
+The name of the remover method (which is the only extra method compared to
+non-pointer fields) can be customized using the \fprop{@remover} property.
+
+
+\section{Literal C++ Blocks}
+\label{sec:msg-defs:cplusplus-blocks}
+
+It is possible to have C++ code fragments injected directly into the generated
+code. This is done with the \fkeyword{cplusplus} keyword optionally followed by
+a \textit{target} in parentheses, and the code fragment enclosed in double curly
+braces.
+
+The target specifies where to insert the code fragment in the generated header
+or implementation file; we'll get to it in a minute.
+
+As far as a the code fragment is concerned, the message compiler does not try to
+make sense of it, just simply copies it into the generated source file at the
+requested location. The code fragment should be formatted so that it does not
+contain a double close curly brace (\ttt{\}\}}) because it would be interpreted as
+end of the fragment block.\footnote{Should this ever be a problem, just insert a space
+between the two braces, or use the automatic concatenation of adjacent string literals
+feature of C/C++ if they occur within a string constant, i.e. break up \ttt{"foo\}\}bar"}
+into \ttt{"foo\}" "\}bar"}.}
+
+\begin{msg}
+cplusplus {{
+#include "FooDefs.h"
+#define SOME_CONSTANT 63
+}}
+\end{msg}
+
+The target can be \ttt{h} (the generated header file -- this is the default),
+\ttt{cc} (the generated \ttt{.cc} file), the name of a type generated in the
+same message file (content is inserted in the declaration of the type, just
+before the closing curly brace), or a member function name of one such type.
+
+\fkeyword{cplusplus} blocks with the target \ttt{h} are customarily used to
+insert \ttt{\#include} directives, commonly used constants or macros (e.g.
+\ttt{\#define}s), or, rarely, typedefs and other elements into the generated
+header. The fragments are pasted into the namespace which is open at that point.
+Note that includes should always be placed into a \fkeyword{cplusplus(h)} block
+\tbf{above} the first namespace declaration in the message file.
+
+\fkeyword{cplusplus} blocks with \ttt{cc} as target allow you to insert code
+into the \ttt{.cc} file, e.g. implementations of member functions. This is
+useful e.g with custom-implementation fields (\fprop{@customImpl}, see
+\ref{sec:msg-defs:customimpl-fields}).
+
+\fkeyword{cplusplus} blocks with a type name as target allow you to insert new
+data members and member functions into the class. This is useful e.g with custom
+fields (\fprop{@custom}, see \ref{sec:msg-defs:custom-fields}).
+
+To inject code into the implementation of a member function of a generated
+class, specify \textit{<classname>}\ttt{::}\textit{<methodname>} as target.
+Supported methods include the constructor, copy constructor (use \ttt{Foo\&} as
+name), destructor, \ttt{operator=}, \ttt{copy()}, \ttt{parsimPack()},
+\ttt{parsimUnpack()}, etc., and the per-field generated methods (setter, getter,
+etc.).
+
+
+
+\section{Using External C++ Types}
+\label{sec:msg-defs:using-cpp-types}
+\label{sec:msg-defs:announcing-types} %% legacy
+
+The message compiler only allows types it knows about to be used for fields or
+base classes. If you want to use to types not generated by the message compiler,
+you need to do the following:
+
+\begin{enumerate}
+   \item Let the message compiler know about the type; and
+   \item Make sure its C++ declaration is available at compile time
+\end{enumerate}
+
+For the first one can be achieved with the \fprop{@existingClass} property. When
+a type (class or struct) is annotated with \fprop{@existingClass}, the message
+compiler remembers the definition, but assumes that the class (or struct)
+already exist in C++ code, and does not generate it. (However, it will still
+generate a class descriptor, see section \ref{sec:msg-defs:descriptor-classes}.)
+
+\begin{note}
+Support for C++-style type announcements is no longer part of the message
+definitions syntax, they were removed in {\opp} version 6.0.
+\end{note}
+
+The second task is achieved by adding a \fkeyword{cplusplus} block with
+an \ttt{\#include} directive to the message file.
+
+For example, suppose we have a hand-written \ttt{ieee802::MACAddress} class
+defined in \ttt{MACAddress.h} that we would like to use for fields in multiple
+message files. One way to make this possible is to add a \ttt{MACAddress.msg}
+file alongside the header with the following content:
+
+\begin{msg}
+// MACAddress.msg
+
+cplusplus {{
+#include "MACAddress.h"
+}}
+
+class ieee802::MACAddress  // a separate namespace decl would also do
+{
+    @existingClass;
+    int8_t octet[6]; // assumes class has getOctet(k) and setOctet(k)
+}
+\end{msg}
+
+As exemplified above, for existing classes it is possible to announce
+them with their namespace-qualified name, there is no need for separate
+\fkeyword{namespace} line.
+
+This message file can be imported into all other message files that need
+\ttt{MACAddress}, for example like this:
+
+\begin{msg}
+import MACAddress;
+
+packet EthernetFrame {
+    ieee802::MACAddress source;
+    ieee802::MACAddress destination;
+    ...
+}
+\end{msg}
+
+
+\section{Customizing the Generated Class}
+\label{sec:msg-defs:customizing-generated-class}
+
+There are several possibilities for customizing a generated class:
+
+\begin{itemize}
+  \item Using custom method names and custom field types
+  \item Using custom field types
+  \item Injecting code into existing member functions
+  \item Custom fields
+  \item Fields with custom-implementation methods
+  \item The Generation Gap pattern
+  \item Abstract fields
+  \item Special customizations, e.g. \fprop{@str}, \fprop{@nopack}, etc.
+\end{itemize}
+
+The following sections explore the above possibilities.
+
+
+\subsection{Customizing Method Names}
+\label{sec:msg-defs:customizing-method-names}
+
+The names and some other properties of generated methods can be influenced
+with metadata annotations (properties).
+
+The following field properties exist for overriding method names:
+\fprop{@getter}, \fprop{@setter}, \fprop{@getterForUpdate}, \fprop{@remover},
+\fprop{@sizeGetter}, \fprop{@sizeSetter}, \fprop{@inserter}, \fprop{@appender}
+and \fprop{@eraser}.
+
+To override data types used by the data member and its accessor methods, use
+\fprop{@cppType}, \fprop{@datamemberType}, \fprop{@argType}, or
+\fprop{@returnType}.
+
+To override the default \ttt{size\_t} type used for array size and indices, use
+\fprop{@sizeType}.
+
+Consider the following example:
+
+\begin{msg}
+packet IPPacket {
+    int ttl @getter(getTTL) @setter(setTTL);
+    Option options[] @sizeGetter(getNumOptions)
+                     @sizeSetter(setNumOptions)
+                     @sizetype(short);
+}
+\end{msg}
+
+The generated class would have the following methods (note the differences
+from the default names \ttt{getTtl()}, \ttt{setTtl()}, \ttt{getOptions()},
+\ttt{setOptions()}, \ttt{getOptionsArraySize()}, \ttt{getOptionsArraySize()};
+also note that indices and array sizes are now \fkeyword{short}):
+
+\begin{cpp}
+virtual int getTTL() const;
+virtual void setTTL(int ttl);
+virtual const Option& getOption(short k) const;
+virtual void setOption(short k, const Option& option);
+virtual short getNumOptions() const;
+virtual void setNumOptions(short n);
+\end{cpp}
+
+In some older simulation models you may also see the use of the
+\fprop{@omitGetVerb} class property. This property tells the message
+compiler to generate getter methods without the ``get'' prefix, e.g. for a
+\ttt{sourceAddress} field it would generate a \ttt{sourceAddress()} method
+instead of the default \ttt{getSourceAddress()}. It is not recommended to
+use \ttt{@omitGetVerb} in new models, because it is inconsistent with the
+accepted naming convention.
+
+%% TODO \fprop{nopack}  (also a field property)
+
+
+\subsection{Injecting Code into Methods}
+\label{sec:msg-defs:injecting-code-into-methods}
+
+Generally, literal C++ blocks (the \fkeyword{cplusplus} keyword) are the way to
+inject code into the body of individual methods, as described in
+\ref{sec:msg-defs:cplusplus-blocks}.
+
+The \fprop{@beforeChange} class property can be used to designate a member function
+which is to be called before any mutator code (in setters, non-const getters,
+assignment operator, etc.) executes. This can be used to implement e.g. a dirty
+flag or some form of immutability (i.e. freeze the state of the object).
+
+
+\subsection{Generating str()}
+\label{sec:msg-defs:generating-str-method}
+
+The \fprop{@str} class property aims at simplifying adding an \ffunc{str()}
+method in the generated class. Having an \ffunc{str()} method is often useful
+for debugging, and it also has a special role in class descriptors (see
+\ref{sec:msg-defs:descriptor-tostring}).
+
+When \fprop{@str} is present, an \ttt{std::string str() const} method is
+generated for the class. The method's implementation will contain a single
+\ttt{return} keyword, with the value of the \fprop{@str} property copied
+after it.
+
+Example:
+
+\begin{msg}
+class Location {
+    double lat;
+    double lon;
+    @str("(" + std::to_string(getLat()) + "," + std::to_string(getLon()) + ")");
+}
+\end{msg}
+
+It will result in the following \ttt{str()} method to be generated as part of
+the \ttt{Location} class:
+
+\begin{cpp}
+std::string Location::str() const
+{
+    return "(" + std::to_string(getLat()) + "," + std::to_string(getLon()) + ")";
+}
+\end{cpp}
+
+
+\subsection{Custom-implementation Methods}
+\label{sec:msg-defs:customimpl-fields}
+
+When member functions generated for a field need customized implementation and
+method-targeted C++ blocks are not sufficient, the \fprop{customImpl} property
+can be of help. When a field is marked \fprop{customImpl}, the message compiler
+will skip generating the implementations of its accessor methods in the \ttt{.cc} file,
+allowing the user to supply their own versions.
+
+Here is a simple example. The methods in it do not perform anything extra
+compared to the default generated versions, but they illustrate the principle.
+
+\begin{msg}
+class Packet
+{
+    int hopCount @customImpl;
+}
+
+cplusplus(cc) {{
+int Packet::getHopCount() const
+{
+    return hopCount; // replace/extend with extra code
+}
+
+void Packet::setHopCount(int value)
+{
+    hopCount = value; // replace/extend with extra code
+}
+}}
+\end{msg}
+
+
+\subsection{Custom Fields}
+\label{sec:msg-defs:custom-fields}
+
+If a field is marked with \fprop{@custom}, the field will only appear in the
+class descriptor, but no code is generated for it at all. One can inject the
+code that implements the field (data member, getter, setter, etc.) via targeted
+\fkeyword{cplusplus} blocks (\ref{sec:msg-defs:cplusplus-blocks}).
+\fprop{@custom} is a good way to go when you want the field to have a different
+underlying storage or different accessor methods than normally generated by the
+message compiler. (For the latter case, however, be aware that the generated
+class descriptor assumes the presence of certain accessor methods for the
+field, although the set of expected methods can be customized to a degree. See
+\ref{sec:msg-defs:descriptor-classes} for details.)
+
+The following example uses \fprop{@custom} to implement a field that acts a
+stack (has \ttt{push()} and \ttt{pop()} methods), and uses \ttt{std::vector} as
+the underlying data structure.
+
+\begin{msg}
+cplusplus {{
+#include <vector>
+}}
+
+class MPLSHeader
+{
+    int32_t label[] @custom @sizeGetter(getNumLabels) @sizeSetter(setNumLabels);
+}
+
+cplusplus(MPLSHeader) {{
+  protected:
+    std::vector<int32_t> labels;
+  public:
+    // expected methods:
+    virtual void setNumLabels(size_t size) {labels.resize(size);}
+    virtual size_t getNumLabels() const {return labels.size();}
+    virtual int32_t getLabel(size_t k) const {return labels.at(k);}
+    virtual void setLabel(size_t k, int32_t label) {labels.at(k) = label;}
+    // new methods:
+    virtual void pushLabel(int32_t label) {labels.push_back(label);}
+    virtual int32_t popLabel() {auto l=labels.back();labels.pop_back();return l;}
+}}
+
+cplusplus(MPLSHeader::copy) {{
+    labels = other.labels;
+}}
+\end{msg}
+
+The last C++ block is needed so that the copy constructor and the
+\ttt{operator=} method also copies the new field. (\ttt{copy()} is a member
+function where the common part of the above two are factored out, and the C++
+block injects code in there.)
+
+
+\subsection{Customizing the Class via Inheritance}
+\label{sec:msg-defs:customizing-via-inheritance}
+
+Another way of customizing the generated code is by employing what is known as
+the \textit{Generation Gap} design pattern, proposed by John Vlissides. The idea
+is that the customization can be done while \textit{subclassing} the generated
+class, overriding whichever member functions need to be different from their
+generated versions.
+
+This feature is enabled by adding the \fprop{@customize} property on the class.
+Doing so will cause the message compiler to generate an intermediate class
+instead of the final one, and the user will subclass the intermediate class to
+obtain the real class. The name of the intermediate class is obtained by
+appending \ttt{\_Base} to the class name. The subclassing code can be in an
+entirely different header and \ttt{.cc} file from the generated one, so this
+method does not require the use of \fkeyword{cplusplus} blocks.
+
+Consider the following example:
+
+\begin{msg}
+packet FooPacket
+{
+   @customize(true);
+   ...
+};
+\end{msg}
+
+The message compiler will generate a \ttt{FooPacket\_Base} class instead of
+\ttt{FooPacket}. It is then the user's task to subclass \ttt{FooPacket\_Base} to
+derive \ttt{FooPacket}, while adding extra data members and adding/overriding
+methods to achieve the goals that motivated the customization.
+
+There is a minimum amount of code you have to write for \ttt{FooPacket}, because
+not everything can be pre-generated as part of \ttt{FooPacket\_Base} (e.g.
+constructors cannot be inherited). This minimum code, which usually goes into a
+header file, is the following:
+
+\begin{cpp}
+class FooPacket : public FooPacket_Base
+{
+  private:
+    void copy(const FooPacket& other) { ... }
+  public:
+    FooPacket(const char *s=nullptr, short kind=0) : FooPacket_Base(s,kind) {}
+    FooPacket(const FooPacket& other) : FooPacket_Base(other) {copy(other);}
+    FooPacket& operator=(const FooPacket& other) {if (this==&other) return *this;
+        FooPacket_Base::operator=(other); copy(other); return *this;}
+    virtual FooPacket *dup() const override {return new FooPacket(*this);}
+};
+\end{cpp}
+
+\begin{note}
+  The above boilerplate code can be copied out of the generated C++ header, which
+  contains it as a comment.
+\end{note}
+
+The generated constructor, copy constructor, \ttt{operator=}, \ttt{dup()} can be
+usually be copied verbatim. The only method that needs to be custom code is
+\ffunc{copy()}. It is shared by the copy constructor and \ttt{operator=}, and
+should take care of copying the new data members you added as part of
+\ttt{FooPacket}.
+
+In addition to the above, the implementation (\ttt{.cc}) file should contain the
+registration of the new class:
+
+\begin{cpp}
+Register_Class(FooPacket);
+\end{cpp}
+
+
+\subsection{Using an Abstract Field}
+\label{sec:msg-defs:customizing-via-abstact-field}
+
+Abstract fields, introduced in \ref{sec:msg-defs:abstract-fields}, are an
+alternative to \fprop{@custom} (see \ref{sec:msg-defs:custom-fields}) for
+allowing a custom implementation (such as storage, getter/setter methods, etc.)
+to be provided for a field. For a field marked \fkeyword{abstract}, the message compiler does
+not generate a data member, and generated getter/setter methods will be pure
+virtual.
+
+Abstract fields are most often used together with the Generation Gap pattern
+(see \ref{sec:msg-defs:customizing-via-inheritance}), so that one can
+immediately supply a custom implementation.
+
+The following example demonstrates the use of abstract fields for creating
+an array field that uses \ttt{std::vector} as underlying implementation:
+
+\begin{msg}
+packet FooPacket
+{
+    @customize(true);
+    abstract int foo[]; // impl will use std::vector<int>
+}
+\end{msg}
+
+If you compile the above code, in the generated C++ code you will only find
+abstract methods for \ttt{foo}, but no underlying data member or method
+implementation. You can implement everything as you like. You can then write the
+following C++ file to implement \ttt{foo} with \ttt{std::vector} (some
+details omitted for brevity):
+
+\begin{cpp}
+#include <vector>
+#include "FooPacket_m.h"
+
+class FooPacket : public FooPacket_Base
+{
+  protected:
+    std::vector<int> foo;
+
+  public:
+    // constructor and other methods omitted, see below
+    ...
+    virtual int getFoo(size_t k) {return foo[k];}
+    virtual void setFoo(size_t k, int x) {foo[k]=x;}
+    virtual void addFoo(int x) {foo.push_back(x);}
+    virtual void setFooArraySize(size_t size) {foo.resize(size);}
+    virtual size_t getFooArraySize() const {return foo.size();}
+};
+
+Register_Class(FooPacket);
+\end{cpp}
+
+Some additional boilerplate code is needed so that the class conforms
+to conventions, and duplication and copying works properly:
+
+\begin{cpp}
+    FooPacket(const char *name=nullptr, int kind=0) : FooPacket_Base(name,kind) {
+    }
+    FooPacket(const FooPacket& other) : FooPacket_Base(other.getName()) {
+        operator=(other);
+    }
+    FooPacket& operator=(const FooPacket& other) {
+        if (&other==this) return *this;
+        FooPacket_Base::operator=(other);
+        foo = other.foo;
+        return *this;
+    }
+    virtual FooPacket *dup() {
+        return new FooPacket(*this);
+    }
+\end{cpp}
+
+
+\section{Descriptor Classes}
+\label{sec:msg-defs:descriptor-classes}
+
+For each generated class and struct, the message compiler also generates an
+associated descriptor class, which class carries ``reflection'' information
+about the new class. The descriptor class encapsulates virtually all information
+that the original message definition contains, and exposes it via member
+functions. Reflection information allows inspecting object contents down to
+field level in Qtenv, filtering objects by a filter expression that refers to
+object fields, serializing messages-packets in a readable form for the eventlog
+file, and has several further potential uses.
+
+
+\subsection{cClassDescriptor}
+\label{sec:msg-defs:cclassdescriptor}
+
+The descriptor class is subclassed from \cclass{cClassDescriptor}. It has
+methods for enumerating fields (\ffunc{getFieldCount()}, \ffunc{getFieldName()},
+\ffunc{getFieldTypeString()}, etc.), for getting and setting a field's value in
+string form (\ffunc{getFieldAsString()}, \ffunc{setFieldAsString()}) and as
+\cclass{cValue} (\ffunc{getFieldValue()}, \ffunc{setFieldValue()}), for
+exploring the class hierarchy (\ffunc{getBaseClassDescriptor()}, etc.), for
+accessing class and field properties, and for similar tasks.
+
+Classes derived from \cclass{cObject} have a virtual member function
+\ffunc{getDescriptor} that returns their associated descriptor. For other
+classes, it is possible to obtain the descriptor using
+\ttt{cClassDescriptor::getDescriptorFor()} with the class name as argument.
+
+Several properties control the creation and details of the class descriptor.
+
+
+\subsection{Controlling Descriptor Generation}
+\label{sec:msg-defs:descriptor-property}
+
+The \fprop{@descriptor} class property can be used to control the generation
+of the descriptor class. \ttt{@descriptor(readonly)} instructs the message
+compiler not to generate field setters for the descriptor, and
+\ttt{@descriptor(false)} instructs it not to generate a description class
+for the class at all.
+
+
+\subsection{Generating Descriptors For Existing Classes}
+\label{sec:msg-defs:descriptor-existingclass-property}
+
+It is also possible to use (or abuse) the message compiler for generating a
+descriptor class for an existing class. To do that, write a message definition
+for your existing class (for example, if it has \ttt{int getFoo()} and
+\ttt{setFoo(int)} methods, add an \ttt{int foo} field to the message
+definition), and mark it with \fprop{@existingClass}. This will tell the
+message compiler that it should not generate an actual class (as it already
+exists), only a descriptor class.
+
+
+\subsection{Field Metadata}
+\label{sec:msg-defs:descriptor-field-meadata}
+
+When an object is shown in Qtenv's Object Inspector pane, Qtenv obtains all
+information it displays from the object's descriptor. There are several
+properties that can be used to customize how a field appears in the Object
+Inspector:
+
+\begin{itemize}
+  \item \fprop{@icon} associates an icon with the field;
+  \item \fprop{@label} overrides the text displayed as field name;
+  \item \fprop{@group} is used for grouping related fields;
+  \item \fprop{@hint} can be used to provide a short description of the field,
+    which Qtenv displays in a tooltip
+\end{itemize}
+
+
+\subsection{Method Name Properties}
+\label{sec:msg-defs:descriptor-method-name-properties}
+
+Several of the properties which are for overriding field accessor method names
+(\fprop{@getter}, \fprop{@setter}, \fprop{@sizeGetter}, \fprop{@sizeSetter},
+etc., see \ref{sec:msg-defs:customizing-method-names}) have a secondary purpose.
+When generating a descriptor for an \textit{existing} class (see
+\fprop{@existingClass}), those properties specify how the descriptor can access
+the field, i.e. what code to generate in the implementation of the descriptor's
+various methods. In that use case, such properties may contain code fragments or
+a function call template instead of a method name.
+
+
+\subsection{toString/fromString}
+\label{sec:msg-defs:descriptor-tostring}
+
+To be able to generate the descriptor's \ffunc{getFieldValueAsString()} member
+function, the message compiler needs to know how to convert the return type of
+the getter to \ttt{std::string}. Similarly, for \ffunc{setFieldValueAsString()} it
+needs to know how to convert (or parse) a string to obtain the setter's argument
+type. For the built-in types (\fkeyword{int}, \fkeyword{double}, etc.) this information is
+pre-configured, but for other types the user needs to supply it via two
+properties:
+
+\begin{itemize}
+  \item \fprop{@toString} specifies the code to convert the return type of the setter to a string;
+  \item \fprop{@fromString} specifies the code to convert a string to the setter's argument type.
+\end{itemize}
+
+These properties can be specified on the class (where it will be applied to
+fields of that type), or directly on fields. Multiple syntaxes are accepted:
+
+\begin{itemize}
+  \item If the value starts with a dot, it is interpreted as a member function call.
+  \item If the value contains a dollar sign, it serves as a placeholder for the
+        value to be converted.
+\end{itemize}
+
+Example:
+
+\begin{msg}
+class IPAddress
+{
+    @existingClass;
+    @opaque;
+    @toString(.str());  // use IPAddress::str() to produce a string
+    @fromString(IPAddress($));  // use constructor; '$' will be replaced by the string
+}
+\end{msg}
+
+If the \fprop{@toString} property is missing, the message compiler generates
+code which calls the \ffunc{str()} member function on the value returned by the
+getter, provided that it knows for certain that the corresponding type has such
+method (the type is derived from \cclass{cObject}, or has the \fprop{@str} property).
+
+If there is no \fprop{@toString} property and no (known) \ffunc{str()} method,
+the descriptor will return the empty string.
+
+
+\subsection{toValue/fromValue}
+\label{sec:msg-defs:descriptor-tovalue}
+
+Similarly to \fprop{@toString}/\fprop{@fromString} described in the previous
+section, the \fprop{@toValue} and \fprop{@fromValue} properties are used define
+how to convert the field's value to and from \cclass{cValue} for the
+descriptor's \ffunc{getFieldValue()} and \ffunc{setFieldValue()} methods.
+
+
+\subsection{Field Modifiers}
+\label{sec:msg-defs:descriptor-fieldmodifiers}
+
+There are several boolean-valued properties which enable/disable various
+features in the descriptor:
+
+\begin{itemize}
+
+  \item \fprop{@opaque}: If true: Treat the field as atomic (non-compound) type, i.e.
+    having no descriptor class. When specified on a class, it determines the default
+    for fields of that type.
+
+  \item \fprop{@editable}: If set, value of the field (or value of fields that
+    are instances of this type) can be set via the class descriptor's
+    \ffunc{setFieldValueFromString()} and \ffunc{setFieldValue()} methods.
+
+  \item \fprop{@replaceable}: If set, field is a pointer whose value can be set
+    via the class descriptor's \ffunc{setFieldStructValuePointer()} and
+    \ffunc{setFieldValue()} methods.
+
+  \item \fprop{@resizable}: If set, field is a variable-size array whose size
+    can be set via the class descriptor's \ffunc{setFieldArraySize()} method.
+
+  \item \fprop{@readonly}: This is simply a shorthand for \ttt{@editable(false)
+    @replaceable(false) @resizable(false)}.
+
+\end{itemize}

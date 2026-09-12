@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   <extension
+         id="nedconsistencyproblem"
+         name="NED Consistency Problem"
+         point="org.eclipse.core.resources.markers">
+      <persistent value="false"/>
+      <super type="org.eclipse.core.resources.problemmarker"/>
+      <super
+            type="org.eclipse.core.resources.textmarker">
+      </super>
+      <attribute
+            name="nedelement-id">
+      </attribute>
+   </extension>
+   <extension
+         id="nedsyntaxproblem"
+         name="NED Syntax Problem"
+         point="org.eclipse.core.resources.markers">
+      <persistent value="false"/>
+      <super type="org.eclipse.core.resources.problemmarker"/>
+      <super
+            type="org.eclipse.core.resources.textmarker">
+      </super>
+      <attribute
+            name="nedelement-id">
+      </attribute>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            description="All actions global to OMNeT++ NED editing"
+            id="org.omnetpp.ned.ActionSet"
+            label="OMNeT++"
+            visible="true">
+         <action
+               class="org.omnetpp.ned.core.ui.actions.OpenNedTypeAction"
+               definitionId="org.omnetpp.ned.openNedType"
+               icon="icons/full/etool16/opennedtype.gif"
+               id="openNedType"
+               label="Open NED Type..."
+               style="push"
+               toolbarPath="org.eclipse.search.searchActionSet/Search"
+               tooltip="Open NED Type"/>
+         <action
+               class="org.omnetpp.ned.core.ui.actions.CleanupNedFilesAction"
+               definitionId="org.omnetpp.ned.cleanupNedFiles"
+               id="cleanupNedFiles"
+               label="Clean Up NED Files..."
+               tooltip="Clean Up NED Files"/>
+      </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.ui.category.navigate"
+            description="Open NED Type"
+            id="org.omnetpp.ned.openNedType"
+            name="Open NED Type"/>
+      <command
+            description="Clean up and organize all import statements in NED files"
+            id="org.omnetpp.ned.cleanupNedFiles"
+            name="Clean Up NED Files...">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.omnetpp.ned.openNedType"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+N"/>
+     <!-- undefine Ctrl-Shift-N for C++ editors (add includes) -->
+     <key
+            sequence="M1+M2+N"
+            contextId="org.eclipse.cdt.ui.cEditorScope"
+            commandId=""
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:project?after=additions">
+            <command
+                  commandId="org.omnetpp.ned.cleanupNedFiles"
+                  id="cleanupNedFiles"
+                  mnemonic="C"
+                  style="push">
+            </command>
+      </menuContribution>
+      <menuContribution
+            locationURI="menu:navigate?after=open.ext2">
+         <command
+               commandId="org.omnetpp.ned.openNedType"
+               id="openNedType"
+               mnemonic="N"
+               style="push">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commandImages">
+      <image
+            commandId="org.omnetpp.ned.openNedType"
+            icon="icons/full/etool16/opennedtype.gif">
+      </image>
+   </extension>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            category="org.omnetpp.main.OmnetppCategory"
+            class="org.omnetpp.ned.core.ui.misc.NedSourceFoldersPropertyPage"
+            id="org.omnetpp.ned.core.NedSourceFolders"
+            name="NED Source Folders">
+         <enabledWhen>
+            <adapt type="org.eclipse.core.resources.IProject">
+            </adapt>
+         </enabledWhen>
+         <filter
+               name="projectNature"
+               value="org.omnetpp.main.omnetppnature">
+         </filter>
+      </page>
+   </extension>
+</plugin>

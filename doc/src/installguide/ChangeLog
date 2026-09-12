@@ -1,0 +1,36 @@
+2022-04-11  ------ omnetpp-6.0 released ------
+
+2022-04-11  Rudolf Hornig
+
+	* Added notes about configuring debugging (disabling code signature checking) on macOS
+
+2022-03-22  Rudolf Hornig
+
+	* Updated Install Guide to reflect minimum GLIBC requirement for the IDE.
+
+2021-12-01  Rudolf Hornig
+
+	* Updated MPI package name in Ubuntu chapter
+
+2021-08-04  Rudolf Hornig
+
+	* Updated. Among others, added two sections to the MacOS chapter:
+	    - Enabling Development Mode in Terminal
+	    - Running OMNeT++ on Apple Silicon
+
+2021-08-04  Rudolf Hornig
+
+	* Renamed macosx.rst to macos.rst and removed unused FO XSL file.
+
+2021-06-01  Rudolf Hornig
+
+	* Updated instructions on how to source setenv from .profile
+
+2021-06-01  Rudolf Hornig
+
+	* Ubuntu 21.04 or later does not come with qt5-default, update
+	list of required packages
+
+2021-03-25  Andras Varga
+
+	* ChangeLog added

@@ -1,0 +1,60 @@
+
+<svg clip-rule="evenodd" fill-rule="evenodd" height="72"
+     image-rendering="optimizeQuality" shape-rendering="geometricPrecision"
+     text-rendering="geometricPrecision" viewBox="0 0 72 72" width="72"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="65.3315"
+                    x2="6.66969" y1="66.1937" y2="5.80748">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".619608" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <radialGradient id="b" cx="23.4437" cy="24.776"
+                    gradientUnits="userSpaceOnUse" r="25.7539">
+        <stop offset="0" stop-color="#ffd1c2"/>
+        <stop offset=".211765" stop-color="#ab4968"/>
+        <stop offset="1" stop-color="#da251d"/>
+    </radialGradient>
+    <rect fill="url(#a)" height="66.15" rx="9.39803" stroke="#000"
+          stroke-width="3" width="66.15" x="2.92559" y="2.92559"/>
+    <ellipse cx="23.6167" cy="37.076" fill="url(#b)" rx="8.62146" ry="15"
+             stroke="#000" stroke-width="4.00039"/>
+    <g fill="none">
+        <path d="m17.3516 37.1197c.0472441-6.25276 3.93661-13.6831 7.19646-12.411"
+              stroke="#f99" stroke-width=".9"/>
+        <path d="m18.45 31.1244c1.00866-3.97795 2.95276-6.64016 6.09921-6.41693"
+              stroke="#fcc" stroke-width=".9"/>
+        <path d="m29.7366 34.5319c.703937 6.28465-2.58898 15.6402-6.9189 14.8311"
+              stroke="#f66" stroke-width=".9"/>
+        <path d="m28.6276 43.3972c.0732283 1.06772-1.11142 3.7937-4.43976 5.88543"
+              stroke="#f99" stroke-width=".9"/>
+        <path d="m36.4512 37.8791h25.3134" stroke="#aaa" stroke-linecap="round"
+              stroke-linejoin="round" stroke-width="1.99961"/>
+        <path d="m50.2087 55.461-7.6737-7.8165" stroke="#aaa"
+              stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="1.99961"/>
+        <path d="m52.6736 39.1476v15.7666" stroke="#ccc" stroke-linecap="round"
+              stroke-linejoin="round" stroke-width="1.99961"/>
+        <path d="m44.7909 16.2118 9.1134 9.1465" stroke="#aaa"
+              stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="1.99961"/>
+        <path d="m45.3697 34.3878 8.5346-9.0307" stroke="#ccc"
+              stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="1.99961"/>
+        <path d="m36.6012 36h25.3134" stroke="#000" stroke-linecap="round"
+              stroke-linejoin="round" stroke-width="1.99961"/>
+        <path d="m11.8606 37.076c0-10.1327 5.26535-18.3496 11.7555-18.3496"
+              stroke="#5d5d5d" stroke-width="1.99961"/>
+        <path d="m23.6161 55.4256c-6.49016 0-11.7555-8.21693-11.7555-18.3496"
+              stroke="#949494" stroke-width="1.99961"/>
+        <path d="m35.3728 37.076c0 10.1327-5.26535 18.3496-11.7567 18.3496"
+              stroke="#ccc" stroke-width="1.99961"/>
+        <path d="m23.6161 18.7264c6.49134 0 11.7567 8.21693 11.7567 18.3496"
+              stroke="#949494" stroke-width="1.99961"/>
+    </g>
+    <path d="m51.1181 54.2575-7.8579-8.113 7.8591-8.113z" stroke="#000"
+          stroke-width=".9"/>
+    <path d="m43.9571 33.6709 7.8579-8.113-7.8591-8.113z" stroke="#000"
+          stroke-width=".9"/>
+</svg>

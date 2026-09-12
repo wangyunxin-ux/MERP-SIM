@@ -1,0 +1,24 @@
+
+<svg enable-background="new 0 0 69.15 69.15" height="69.15"
+     viewBox="0 0 69.15 69.15" width="69.15" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientTransform="matrix(1 0 0 -1 270.5 428.65)"
+                    gradientUnits="userSpaceOnUse" x1="-206.59" x2="-265.26"
+                    y1="363.88" y2="424.27">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".6196" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <switch>
+        <foreignObject height="1"
+                       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+                       width="1"/>
+        <path d="m10.898 1.5h47.354c5.19 0 9.398 4.208 9.398 9.398v47.354c0 5.19-4.208 9.398-9.398 9.398h-47.354c-5.19 0-9.398-4.208-9.398-9.398v-47.354c0-5.19 4.208-9.398 9.398-9.398z"
+              fill="url(#a)" stroke="#000" stroke-width="3"/>
+    </switch>
+    <path clip-rule="evenodd"
+          d="m57.066606 34.749445q0 7.408488-2.922614 12.947861-2.88863 5.50539-8.2241 8.428004-5.301487 2.922614-12.166232 2.922614h-19.370815v-47.883296h17.331782q12.098264 0 18.725121 6.1171 6.626858 6.083115 6.626858 17.467717zm-10.093214 0q0-7.714342-4.010099-11.758424-4.010098-4.078067-11.452569-4.078067h-7.102632v32.386644h8.495971q6.456938 0 10.263134-4.451889 3.806195-4.451889 3.806195-12.098264z"
+          fill-rule="evenodd" image-rendering="optimizeQuality"
+          shape-rendering="geometricPrecision"
+          text-rendering="geometricPrecision"/>
+</svg>

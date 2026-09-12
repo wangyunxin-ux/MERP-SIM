@@ -1,0 +1,62 @@
+
+<svg clip-rule="evenodd" fill-rule="evenodd" height=".24in"
+     image-rendering="optimizeQuality" shape-rendering="geometricPrecision"
+     text-rendering="geometricPrecision" viewBox="0 0 .24 .24" width=".24in"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1=".134031"
+                    x2=".228228" y1=".194366" y2=".045634">
+        <stop offset="0" stop-color="#506273"/>
+        <stop offset="1" stop-color="#898ca5"/>
+    </linearGradient>
+    <linearGradient id="b" gradientUnits="userSpaceOnUse" x1=".051016"
+                    x2=".140441" y1=".197965" y2=".056768">
+        <stop offset="0" stop-color="#53818c"/>
+        <stop offset="1" stop-color="#8fb8cb"/>
+    </linearGradient>
+    <linearGradient id="c" gradientUnits="userSpaceOnUse" x1=".06711"
+                    x2=".125882" y1=".235898" y2=".143102">
+        <stop offset="0" stop-color="#7d8286"/>
+        <stop offset="1" stop-color="#ccced1"/>
+    </linearGradient>
+    <linearGradient id="d" gradientUnits="userSpaceOnUse" x1=".072929"
+                    x2=".117551" y1=".066902" y2="-.003547">
+        <stop offset="0" stop-color="#989b9f"/>
+        <stop offset="1" stop-color="#ccced1"/>
+    </linearGradient>
+    <g stroke-width=".003">
+        <path d="m.205406.199634.000578-.1740356-.049712-.0139015.001157.2166021z"
+              fill="url(#a)" stroke="#1f1a17"/>
+        <path d="m.035563.150701.043252.002019.0006693.052378.0175393.001193v-.053571l.0600154.003182.00039.072397-.1210983-.011004z"
+              fill="url(#c)" stroke="#4d5356"/>
+        <path d="m.156465.0484409-.1220516.0032166.0011496.0990435.043252.002019.0006693.052378.0175393.001193v-.053571l.0600154.003182z"
+              fill="url(#b)" stroke="#4d5356"/>
+        <path d="m.0340197.0177795.1222523-.0060826.000193.036744-.1220516.0032166z"
+              fill="url(#d)" stroke="#4d5356"/>
+        <path d="m.075091.172315.000322.036358" fill="none" stroke="#ccced1"/>
+        <path d="m.096929.209638-.02152-.001481" fill="none" stroke="#b2b4b7"/>
+        <path d="m.147598.048677.000863.106768" fill="none" stroke="#656b6f"/>
+        <path d="m.139783.048882.000867.106149" fill="none" stroke="#656b6f"/>
+        <path d="m.132559.049075.000626.105559" fill="none" stroke="#656b6f"/>
+        <path d="m.125335.049264.000023.104956" fill="none" stroke="#656b6f"/>
+        <path d="m.117815.049461.000563.104389" fill="none" stroke="#656b6f"/>
+        <path d="m.110331.049658.00059.103799" fill="none" stroke="#656b6f"/>
+        <path d="m.103102.04985.001158.103252" fill="none" stroke="#656b6f"/>
+        <path d="m.095441.050051.001583.102669" fill="none" stroke="#656b6f"/>
+        <path d="m.087484.05026.000772.155433" fill="none" stroke="#656b6f"/>
+        <path d="m.078823.050488-.000008.102232" fill="none" stroke="#656b6f"/>
+        <path d="m.071878.050673.000606.101748" fill="none" stroke="#656b6f"/>
+        <path d="m.064626.050862.001173.101248" fill="none" stroke="#656b6f"/>
+        <path d="m.058008.051039.001709.100788" fill="none" stroke="#656b6f"/>
+        <path d="m.051634.051205.001118.100295" fill="none" stroke="#656b6f"/>
+        <path d="m.045587.051366.000602.099831" fill="none" stroke="#656b6f"/>
+        <path d="m.03865.051547.001279.099355" fill="none" stroke="#656b6f"/>
+        <path d="m.152504.014213.000004.030889" fill="none" stroke="#e7e8ea"/>
+        <path d="m.124283.157268.029882.001236.000311.066358" fill="none"
+              stroke="#e7e8ea"/>
+        <path d="m.156272.011697.000767.144205" fill="none" stroke="#7d8286"/>
+    </g>
+    <path d="m.0340197.0177795.1222523-.0060826.049712.0139015-.000578.1740356-.047977.028665-.1210983-.011004z"
+          fill="none" stroke="#4d5356" stroke-linecap="round"
+          stroke-linejoin="round" stroke-width=".006665"/>
+</svg>

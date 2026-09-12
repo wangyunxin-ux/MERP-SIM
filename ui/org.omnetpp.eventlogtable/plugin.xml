@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.omnetpp.eventlogtable.editors.EventLogTableEditor"
+            contributorClass="org.omnetpp.eventlogtable.editors.EventLogTableContributor"
+            default="false"
+            extensions="elog"
+            icon="icons/eventlog.png"
+            id="org.omnetpp.eventlogtable.editors.EventLogTableEditor"
+            name="OMNeT++ Event Log Table">
+      </editor>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            name="Event Log"
+            icon="icons/eventlog.png"
+            category="org.omnetpp.views"
+            class="org.omnetpp.eventlogtable.editors.EventLogTableView"
+            id="org.omnetpp.eventlogtable.editors.EventLogTableView">
+      </view>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               id="org.omnetpp.eventlogtable.editors.EventLogTableView"
+               relationship="stack"
+               relative="org.eclipse.ui.views.ProblemView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$FindTextHandler"
+            id="org.omnetpp.eventlogtable.findText"
+            name="Find...">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$FindNextHandler"
+            id="org.omnetpp.eventlogtable.findNext"
+            name="Find Next">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$GotoEventHandler"
+            id="org.omnetpp.eventlogtable.gotoEvent"
+            name="Go to Event...">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$GotoSimulationTimeHandler"
+            id="org.omnetpp.eventlogtable.gotoSimulationTime"
+            name="Go to Simulation Time...">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$GotoEventCauseHandler"
+            id="org.omnetpp.eventlogtable.gotoEventCause"
+            name="Go to Event Cause">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$GotoMessageArrivalHandler"
+            id="org.omnetpp.eventlogtable.gotoMessageArrival"
+            name="Go to Message Arrival">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$GotoPreviousEventHandler"
+            id="org.omnetpp.eventlogtable.gotoPreviousEvent"
+            name="Go to Previous Event">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$GotoNextEventHandler"
+            id="org.omnetpp.eventlogtable.gotoNextEvent"
+            name="Go to Next Event">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$GotoPreviousModuleEventHandler"
+            id="org.omnetpp.eventlogtable.gotoPreviousModuleEvent"
+            name="Go to Previous Module Event">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$GotoNextModuleEventHandler"
+            id="org.omnetpp.eventlogtable.gotoNextModuleEvent"
+            name="Go to Next Module Event">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.eventlogtable.editors.EventLogTableContributor$RefreshHandler"
+            id="org.omnetpp.eventlogtable.refresh"
+            name="Refresh">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.omnetpp.eventlogtable.findText"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Ctrl+F">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.findNext"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Ctrl+K">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.gotoEvent"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Ctrl+G">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.gotoSimulationTime"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Ctrl+Shift+G">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.gotoEventCause"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+Arrow_Up">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.gotoMessageArrival"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+Arrow_Down">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.gotoPreviousEvent"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Alt+Arrow_Up">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.gotoNextEvent"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Alt+Arrow_Down">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.gotoPreviousModuleEvent"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Shift+Arrow_Up">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.gotoNextModuleEvent"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Shift+Arrow_Down">
+      </key>
+      <key
+            commandId="org.omnetpp.eventlogtable.refresh"
+            contextId="org.omnetpp.context.EventLogTable"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="F5">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            description="OMNeT++ Eventlog Table"
+            id="org.omnetpp.context.EventLogTable"
+            name="EventLogTableContext"
+            parentId="org.eclipse.ui.contexts.window">
+      </context>
+   </extension>
+
+</plugin>

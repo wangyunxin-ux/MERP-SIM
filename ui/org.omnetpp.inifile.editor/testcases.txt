@@ -1,0 +1,42 @@
+
+Corner cases to include in testing:
+===================================
+
+Missing [General] section
+- check Sections & Parameters pages
+
+Section chain problems
+- missing base section
+- a Config extends a Scenario
+- cycle in fallback chain
+- General contains extends= line
+ ** check Sections & Parameters page with each of the conditions above **
+
+Bogus Scenarios
+- ${} iteration in Config sections
+- invalid ${} iteration syntax
+- redeclaration of ${} variable
+- reference to nonexistent ${} variable
+- reference to nonexistent variable in the constraint= line
+- constraint= line occurs in a Config section
+
+Handling of included files
+- content should appear, but should be non-editable
+
+Sections page
+- should work when General doesn't exist
+- renaming the General section
+- renaming a nonexistent General section
+- test flipping a Config into a Scenario, and vice versa (also for General!!!)
+
+Parameters page
+- should work when General doesn't exist
+- drag&drop
+- "New" button
+- "Remove" button
+- editing, content assist, error handling while editing (bogus entries like duplicate key)
+
+Continued lines (backslash syntax)
+- check that everything works, including form editor pages
+
+

@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Figure Plug-in
+Bundle-SymbolicName: org.omnetpp.test.unit.figure
+Bundle-Version: 1.0.0
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.junit4,
+ org.eclipse.core.runtime,
+ org.eclipse.ui,
+ org.eclipse.draw2d,
+ org.omnetpp.common.core;bundle-version="4.0.0",
+ org.omnetpp.figures;bundle-version="4.0.0",
+ org.omnetpp.ned.model;bundle-version="4.0.0"

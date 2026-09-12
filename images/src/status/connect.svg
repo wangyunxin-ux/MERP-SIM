@@ -1,0 +1,48 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" height="24pt" viewBox="0 0 24 24"
+     width="24pt" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <radialGradient id="a" cx="6.8418" cy="9.6157"
+                    gradientUnits="userSpaceOnUse" r="8.2857">
+        <stop offset="0" stop-color="#ececec"/>
+        <stop offset="1" stop-color="#8b8b8b"/>
+    </radialGradient>
+    <radialGradient id="b" cx="-352.9282" cy="8.3965"
+                    gradientTransform="matrix(-1 0 0 1 -339.6719 0)"
+                    gradientUnits="userSpaceOnUse" r="8.444">
+        <stop offset="0" stop-color="#c7c7c7"/>
+        <stop offset="1" stop-color="#8b8b8b"/>
+    </radialGradient>
+    <linearGradient id="c" gradientUnits="userSpaceOnUse" x1="9.8066"
+                    x2="10.3496" y1="12.9663" y2="12.9663">
+        <stop offset="0" stop-color="#959595"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="d" gradientTransform="matrix(-1 0 0 1 248.3281 0)"
+                    gradientUnits="userSpaceOnUse" x1="234.2236" x2="234.7529"
+                    y1="12.9492" y2="12.9492">
+        <stop offset="0" stop-color="#b3b3b3"/>
+        <stop offset=".2379" stop-color="#afafaf"/>
+        <stop offset=".4577" stop-color="#a4a4a4"/>
+        <stop offset=".6703" stop-color="#919191"/>
+        <stop offset=".8773" stop-color="#777"/>
+        <stop offset="1" stop-color="#646464"/>
+    </linearGradient>
+    <g clip-rule="evenodd">
+        <g fill="#fff" fill-rule="evenodd">
+            <path d="m12.6 7.2c-.1 0-.9 0-1 0s-.1 0-.2 0h-.8c-.3 0-.6.1-.8.4-.6 0-1.7 0-1.7 0-.9 0-1.7.7-2.6 2.2-.4.6-.7 1.2-.8 1.5-.5 0-3.7 0-3.7 0v3.7h3.7c.2.3.5.9.9 1.4.9 1.3 1.8 1.9 2.6 1.9h1.8c.2.2.5.4.8.4h.8.2 1 .8c.3 0 .6-.1.8-.4h1.8c.8 0 1.7-.6 2.6-1.9.4-.5.7-1.1.9-1.4h3.7v-3.7s-3.1 0-3.7 0c-.2-.4-.5-1-.8-1.5-.9-1.5-1.8-2.2-2.6-2.2 0 0-1.1 0-1.7 0-.2-.2-.5-.4-.8-.4h-.8z"
+                  fill="#000" stroke="#000" stroke-width=".8046"/>
+            <path d="m1.7 12.1h3.2c.1 0 .2 0 .2-.1 0 0 1.6-3.6 2.9-3.6h2.3v-.2c0-.1.1-.2.2-.2h.8c.1 0 .2.1.2.2v9.4c0 .2 0 .3-.2.3h-.8c-.2 0-.3-.1-.3-.3v-.1h-2.2c-1.3 0-2.9-3.2-2.9-3.2s-.1-.1-.2-.1h-3.2z"
+                  fill="url(#a)"/>
+            <path d="m22.3 12.1h-3.3c-.1 0-.2 0-.2-.1 0 0-1.6-3.6-2.9-3.6h-2.3v-.2c0-.1-.1-.2-.2-.2h-.8c-.1 0-.2.1-.2.2v9.4c0 .2 0 .3.2.3h.8c.2 0 .3-.1.3-.3v-.1h2.3c1.3 0 2.9-3.2 2.9-3.2s.1-.1.2-.1h3.2z"
+                  fill="url(#b)"/>
+            <path d="m12.6 8-.2 9.6v-9.4c0-.1.1-.2.2-.2z" opacity=".92"/>
+            <path d="m1.7 12.1h3.3c.1 0 .2-.1.2-.1.1-.3 1.6-3.6 2.8-3.6h2.4l-2.4.1c-1.6.3-2.2 4.2-3.1 4.2h-3.2z"
+                  opacity=".92"/>
+            <path d="m10.3 8.4-.5 9 .5.1v-9.2z" fill="url(#c)" opacity=".92"/>
+            <path d="m13.6 17.5.5-9.1h-.5z" fill="url(#d)" opacity=".5"/>
+            <path d="m13.6 8.4h2.3c1.2 0 2.6 3.2 2.9 3.7-1-1.6-2-3.6-3-3.6l-2.3-.1z"
+                  opacity=".92"/>
+        </g>
+        <path d="m24 24h-24v-24h24z" fill="none"/>
+    </g>
+</svg>

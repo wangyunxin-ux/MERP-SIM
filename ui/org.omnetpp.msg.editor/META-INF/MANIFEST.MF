@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OMNeT++ Message File Editor
+Bundle-SymbolicName: org.omnetpp.msg.editor; singleton:=true
+Bundle-Version: 6.0.0.qualifier
+Bundle-Activator: org.omnetpp.msg.editor.MsgEditorPlugin
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: OpenSim Ltd.
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.views,
+ org.eclipse.ui.navigator,
+ org.eclipse.ui.editors,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.jface.text,
+ org.omnetpp.common,
+ org.omnetpp.ide.nativelibs,
+ org.omnetpp.ned.core,
+ org.omnetpp.ned.model
+Export-Package: org.omnetpp.msg.editor.highlight
+Automatic-Module-Name: org.omnetpp.msg.editor

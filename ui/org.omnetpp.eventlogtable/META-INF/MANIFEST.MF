@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OMNeT++ Event Log Table
+Bundle-SymbolicName: org.omnetpp.eventlogtable;singleton:=true
+Bundle-Version: 6.0.0.qualifier
+Bundle-Activator: org.omnetpp.eventlogtable.EventLogTablePlugin
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: OpenSim Ltd.
+Require-Bundle: org.eclipse.core.resources,
+ org.eclipse.core.runtime,
+ org.eclipse.core.expressions,
+ org.eclipse.ui,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.views,
+ org.eclipse.e4.ui.workbench,
+ org.eclipse.ui.editors,
+ org.eclipse.jface.text,
+ org.eclipse.draw2d,
+ org.omnetpp.common,
+ org.omnetpp.ide.nativelibs
+Export-Package: org.omnetpp.eventlogtable,
+ org.omnetpp.eventlogtable.editors,
+ org.omnetpp.eventlogtable.widgets
+Automatic-Module-Name: org.omnetpp.eventlogtable

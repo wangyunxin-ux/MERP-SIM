@@ -1,0 +1,107 @@
+MERP-SIM
+========
+
+MERP-SIM 是一个基于 OMNeT++ 6.0 的实验性并行离散事件仿真扩展，目标是在保留
+OMNeT++ 现有模型和运行机制的基础上，探索多线程事件调度与并发执行。
+
+主要修改与贡献
+--------------
+
+本项目在 OMNeT++ 6.0 上实现和集成了以下功能：
+
+* 新增 `cParallelSimulation`，使用线程池分发和执行可并行事件。
+* 新增 `cParallelScheduler` 和 `cParallelEventSet`，为并发事件调度、事件队列访问
+  以及任务完成同步提供支持。
+* 新增 `cEventColorer`，并结合模块连接关系和传播延迟分析辅助判断事件之间的
+  并发执行条件。
+* 在仿真内核中引入原子计数器、线程局部仿真上下文和必要的互斥保护，增强事件
+  编号、对象所有权、信号处理、参数配置及字符串池等共享状态的并发安全性。
+* 将运行环境接入并行仿真实现，并更新仿真内核构建清单及公共头文件入口。
+
+这些修改目前用于多线程/并行仿真机制研究，属于实验性实现。使用前建议针对具体
+模型验证事件因果关系、确定性和线程安全性。
+
+项目作者与维护者：王赟新
+
+上游项目
+--------
+
+本项目基于 OpenSim Ltd. 开发的 OMNeT++ 6.0。原项目地址：
+https://github.com/omnetpp/omnetpp
+
+以下保留 OMNeT++ 上游项目说明。
+
+OMNeT++
+~~~~~~~
+
+OMNeT++ is a public-source, component-based, modular and open-architecture
+simulation environment with strong GUI support and an embeddable simulation
+kernel. Its primary application area is the simulation of communication
+networks, but it has been successfully used in other areas like the simulation
+of IT systems, queueing networks, hardware architectures and business processes
+as well.
+
+If you installed and successfully compiled the source distribution, the omnetpp
+directory on your system should contain the following subdirectories.
+(If you installed a precompiled distribution, some of the directories may be missing,
+or there might be additional directories, e.g. containing software bundled with OMNeT++.)
+
+The simulation system itself:
+
+  omnetpp/         OMNeT++ root directory
+    bin/           OMNeT++ executables (opp_run, nedtool, scavetool, etc.)
+    include/       header files for simulation models
+    lib/           library files
+    images/        icons that can be used in network graphics
+    doc/           simulation manual (PDF), readme, license, etc.
+      manual/      Simulation Manual in HTML
+      ide-customization-guide/ HTML version of IDE Customization Guide
+      ide-developersguide/ HTML version of IDE Developers Guide
+      api/         API reference in HTML
+      nedxml-api/  API reference for the NEDXML library
+      parsim-api/  API reference for the parallel simulation support
+      tictoc-tutorial/  introduction into using OMNeT++
+    src/           OMNeT++ sources
+      sim/         simulation kernel
+        parsim/    files for distributed execution
+        netbuilder/files for dynamically reading NED files
+      envir/       common code for runtime user interfaces
+      cmdenv/      command-line runtime user interface
+      qtenv/       Qt-based graphical runtime user interface
+      nedxml/      nedtool, message compiler, NED infrastructure
+      layout/      graph layouting library
+      scave/       library for processing result files
+      eventlog/    library for processing event log files
+      common/      common utility classes
+      utils/       makefile generator and various utilities
+    ide/           the OMNeT++ Integrated Development Environment
+    misc/          various 3rd party contributions
+    test/          regression test suite
+      core/        regression test suite for the simulation library
+      ...
+    tools/         3rd party tools and libraries bundled with OMNeT++
+      win64/       on Windows, contains MSYS tools and the MinGW-W64 toolchain
+      macosx/      on macOS, contains various 3rd party libraries (e.g. OSG, osgEarth, Qt)
+
+Sample simulations are in the samples directory.
+
+    samples/     directories for sample simulations
+      aloha/     models the Aloha protocol
+      cqn/       Closed Queueing Network
+      ...
+
+
+The example simulations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The example simulations are designed to demonstrate many of the features of
+OMNeT++. We recommend that you try tictoc first, which also has an
+accompanying tutorial under doc/.
+
+
+Installation
+~~~~~~~~~~~~
+
+Please see the Install Guide, doc/InstallGuide.pdf for specific instructions
+for various operating systems, and to read about dependencies, optional
+packages and build options.

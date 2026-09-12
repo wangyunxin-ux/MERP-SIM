@@ -1,0 +1,49 @@
+
+<svg enable-background="new 0 0 69.15 69.15" height="69.15"
+     viewBox="0 0 69.15 69.15" width="69.15" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a"
+                    gradientTransform="matrix(1 0 0 -1 262.4995 453.5391)"
+                    gradientUnits="userSpaceOnUse" x1="-198.5942" x2="-257.256"
+                    y1="388.7705" y2="449.1567">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".6196" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <radialGradient id="b" cx="-227.562" cy="440.8652"
+                    gradientTransform="matrix(1 0 0 -.5458 262.4995 270.0591)"
+                    gradientUnits="userSpaceOnUse" r="19.3846">
+        <stop offset="0" stop-color="#ffd1c2"/>
+        <stop offset=".2118" stop-color="#ab4968"/>
+        <stop offset="1" stop-color="#da251d"/>
+    </radialGradient>
+    <switch>
+        <foreignObject height="1"
+                       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+                       width="1"/>
+        <g>
+            <path d="m10.898 1.5h47.354c5.19 0 9.398 4.208 9.398 9.398v47.354c0 5.19-4.208 9.398-9.398 9.398h-47.354c-5.19 0-9.398-4.208-9.398-9.398v-47.354c0-5.19 4.208-9.398 9.398-9.398z"
+                  fill="url(#a)" stroke="#000" stroke-width="3"/>
+            <path d="m63.7 32.912h-10.27v-6.015l-8.284 7.721 8.284 7.722v-6.015h10.27z"
+                  stroke="#000" stroke-width=".9"/>
+            <path d="m6.325 36.413h10.27v6.015l8.283-7.721-8.283-7.722v6.015h-10.27z"
+                  stroke="#000" stroke-width=".9"/>
+            <circle cx="35.068" cy="34.487" fill="url(#b)" r="6.162"
+                    stroke="#000" stroke-width="2"/>
+            <g stroke-width=".9">
+                <path d="m30.352 34.505c.037-2.241 2.963-4.903 5.417-4.447"
+                      fill="none" stroke="#f99"/>
+                <path d="m31.179 32.357c.759-1.425 2.223-2.379 4.592-2.299"
+                      fill="none" stroke="#fcc"/>
+                <path d="m39.675 33.443c.528 2.303-1.949 5.733-5.208 5.436"
+                      fill="none" stroke="#f66"/>
+                <path d="m38.84 36.691c.055.393-.837 1.392-3.342 2.158"
+                      fill="none" stroke="#f99"/>
+                <path d="m36.793 24.339v-10.271h6.015l-7.721-8.283-7.722 8.283h6.014v10.271z"
+                      stroke="#000"/>
+                <path d="m33.125 44.694v10.271h-6.015l7.721 8.283 7.722-8.283h-6.015v-10.271z"
+                      stroke="#000"/>
+            </g>
+        </g>
+    </switch>
+</svg>

@@ -1,0 +1,40 @@
+
+<svg enable-background="new 0 0 69.15 69.15" height="69.15"
+     viewBox="0 0 69.15 69.15" width="69.15" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a"
+                    gradientTransform="matrix(1 0 0 -1 262.4995 453.5391)"
+                    gradientUnits="userSpaceOnUse" x1="-198.5942" x2="-257.256"
+                    y1="388.7705" y2="449.1567">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".6196" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <switch>
+        <foreignObject height="1"
+                       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+                       width="1"/>
+        <g>
+            <path d="m10.898 1.5h47.354c5.19 0 9.398 4.208 9.398 9.398v47.354c0 5.19-4.208 9.398-9.398 9.398h-47.354c-5.19 0-9.398-4.208-9.398-9.398v-47.354c0-5.19 4.208-9.398 9.398-9.398z"
+                  fill="url(#a)" stroke="#000" stroke-width="3"/>
+            <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m11.381 29.574h46.386" stroke="#000"
+                      stroke-width="4.0004"/>
+                <path d="m11.381 41.181h46.386" stroke="#000"
+                      stroke-width="4.0004"/>
+                <path d="m11.381 17.165h46.386" stroke="#000"
+                      stroke-width="4.0004"/>
+                <path d="m11.381 52.966h46.386" stroke="#000"
+                      stroke-width="4.0004"/>
+                <path d="m11.203 56.092h46.385" stroke="#ccc"
+                      stroke-width="1.9996"/>
+                <path d="m11.203 44.127h46.385" stroke="#ccc"
+                      stroke-width="1.9996"/>
+                <path d="m11.203 32.878h46.385" stroke="#ccc"
+                      stroke-width="1.9996"/>
+                <path d="m11.203 20.199h46.385" stroke="#ccc"
+                      stroke-width="1.9996"/>
+            </g>
+        </g>
+    </switch>
+</svg>

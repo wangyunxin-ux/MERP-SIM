@@ -1,0 +1,37 @@
+
+<svg enable-background="new 0 0 71.095 64.807" height="64.807"
+     viewBox="0 0 71.095 64.807" width="71.095"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="1.0161"
+                    x2="70.0854" y1="32.4033" y2="32.4033">
+        <stop offset="0" stop-color="#fff"/>
+        <stop offset=".065" stop-color="#fefffa"/>
+        <stop offset=".3324" stop-color="#fcfde9"/>
+        <stop offset=".6272" stop-color="#fafcdf"/>
+        <stop offset="1" stop-color="#fafcdc"/>
+    </linearGradient>
+    <linearGradient id="b" gradientUnits="userSpaceOnUse" x1="1.0098"
+                    x2="68.1929" y1="33.1709" y2="33.1709">
+        <stop offset="0" stop-color="#e3d29f"/>
+        <stop offset=".0959" stop-color="#dbc990"/>
+        <stop offset=".2871" stop-color="#ceba79"/>
+        <stop offset=".4914" stop-color="#c4af68"/>
+        <stop offset=".716" stop-color="#bfa95e"/>
+        <stop offset="1" stop-color="#bda75b"/>
+    </linearGradient>
+    <g stroke-miterlimit="3.8637">
+        <path d="m6.208 14.755c.496-3.45 2.643-6.461 4.801-6.732l55.54-6.99c2.351-.296 3.905 2.381 3.462 5.987l-6.205 50.676c-.459 3.739-2.91 5.892-5.297 6.084l-54.354.01c-2.19.177-3.542-2.584-3.029-6.157z"
+              fill="url(#a)" stroke="#333" stroke-width="2.0198"/>
+        <path d="m6.201 14.746c.496-3.451 2.643-6.462 4.801-6.733l43.364-5.458c-.732 1.01-1.381 2.132-1.923 3.354-3.254 7.341-1.395 15.497 4.152 18.218 3.702 1.814 8.107.755 11.597-2.33l-4.396 35.89c-.459 3.74-2.911 5.901-5.297 6.094h-54.353c-2.189.177-3.542-2.583-3.028-6.157z"
+              fill="url(#b)" stroke="#333" stroke-width="2.0198"/>
+        <path d="m4.873 45.563 3.712-30.95c.388-3.578 2.02-4.108 3.314-4.651-2.782.517 31.572-3.96 31.572-3.96"
+              fill="none" stroke="#ffffd1" stroke-linejoin="round"
+              stroke-width="1.9017"/>
+    </g>
+    <path d="m65.443 27.396-2.99 28.25c-.406 3.734-2.451 6.927-4.563 7.119l-24.79-.619"
+          fill="none"/>
+    <path d="m65.443 27.396-3.226 28.485c-.406 3.734-2.216 5.652-4.327 5.845h-24.79"
+          fill="none" stroke="#bfbfa0" stroke-miterlimit="3.8637"
+          stroke-width="1.9017"/>
+</svg>

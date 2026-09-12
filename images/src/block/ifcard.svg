@@ -1,0 +1,97 @@
+
+<svg enable-background="new 0 0 69.15 69.15" height="69.15"
+     viewBox="0 0 69.15 69.15" width="69.15" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientTransform="matrix(1 0 0 -1 270.499 428.6504)"
+                    gradientUnits="userSpaceOnUse" x1="-206.5957" x2="-265.2574"
+                    y1="363.8857" y2="424.2719">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".6196" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="b">
+        <stop offset="0" stop-color="#42bf00"/>
+        <stop offset=".0055" stop-color="#b8e058"/>
+        <stop offset=".3266" stop-color="#98d144"/>
+        <stop offset=".7678" stop-color="#73be2b"/>
+        <stop offset="1" stop-color="#64b722"/>
+    </linearGradient>
+    <linearGradient id="c" gradientTransform="matrix(1 0 0 -1 .4014 71.7441)"
+                    gradientUnits="userSpaceOnUse" x1="13.5522" x2="55.0281"
+                    xlink:href="#b" y1="38.3037" y2="38.3037"/>
+    <linearGradient id="d" gradientUnits="userSpaceOnUse" x1="13.9536"
+                    x2="60.9678" xlink:href="#b" y1="33.4404" y2="33.4404"/>
+    <linearGradient id="e">
+        <stop offset="0" stop-color="#686868"/>
+        <stop offset=".6451" stop-color="#3b3b3b"/>
+        <stop offset="1" stop-color="#282828"/>
+    </linearGradient>
+    <linearGradient id="f" gradientTransform="matrix(1 0 0 -1 .4014 71.7441)"
+                    gradientUnits="userSpaceOnUse" x1="55.3955" x2="28.3089"
+                    xlink:href="#e" y1="53.249" y2="27.5066"/>
+    <linearGradient id="g" gradientTransform="matrix(1 0 0 -1 .4014 71.7441)"
+                    gradientUnits="userSpaceOnUse" x1="59.0371" x2="31.9526"
+                    xlink:href="#e" y1="49.418" y2="23.6775"/>
+    <linearGradient id="h" gradientTransform="matrix(1 0 0 -1 .4014 71.7441)"
+                    gradientUnits="userSpaceOnUse" x1="56.8926" x2="29.8064"
+                    xlink:href="#e" y1="51.6748" y2="25.9328"/>
+    <linearGradient id="i" gradientTransform="matrix(1 0 0 -1 .4014 71.7441)"
+                    gradientUnits="userSpaceOnUse" x1="42.6914" x2="15.6049"
+                    xlink:href="#e" y1="66.6191" y2="40.8769"/>
+    <linearGradient id="j" gradientTransform="matrix(1 0 0 -1 .4014 71.7441)"
+                    gradientUnits="userSpaceOnUse" x1="46.0381" x2="18.9516"
+                    xlink:href="#e" y1="63.0986" y2="37.3564"/>
+    <switch>
+        <foreignObject height="1"
+                       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+                       width="1"/>
+        <g>
+            <path d="m10.898 1.5h47.354c5.19 0 9.398 4.208 9.398 9.398v47.354c0 5.19-4.208 9.398-9.398 9.398h-47.354c-5.19 0-9.398-4.208-9.398-9.398v-47.354c0-5.19 4.208-9.398 9.398-9.398z"
+                  fill="url(#a)" stroke="#000" stroke-width="3"/>
+            <path d="m60.968 49.647c0 .89-.728 1.618-1.618 1.618h-43.778c-.89 0-1.618-.729-1.618-1.618v-32.413c0-.891.728-1.618 1.618-1.618h43.778c.891 0 1.618.728 1.618 1.618z"
+                  fill="url(#c)"/>
+            <path d="m60.968 49.647c0 .89-.728 1.618-1.618 1.618h-43.778c-.89 0-1.618-.729-1.618-1.618v-32.413c0-.891.728-1.618 1.618-1.618h43.778c.891 0 1.618.728 1.618 1.618z"
+                  fill="url(#d)" stroke="#000"/>
+            <g fill="#dddf00" stroke="#9f6700">
+                <path d="m24.354 51.266h5.576v2.841h-5.576z"/>
+                <path d="m31.538 51.266h12.116v2.841h-12.116z"/>
+                <path d="m45.154 51.266h5.575v2.841h-5.575z"/>
+            </g>
+            <path d="m57.966 24.51c0 .445-.364.809-.809.809h-11.89c-.445 0-.81-.364-.81-.809v-3.314c0-.445.364-.809.81-.809h11.891c.444 0 .809.364.809.809v3.314z"
+                  fill="url(#f)"/>
+            <path d="m57.966 24.51c0 .445-.364.809-.809.809h-11.89c-.445 0-.81-.364-.81-.809v-3.314c0-.445.364-.809.81-.809h11.891c.444 0 .809.364.809.809v3.314z"
+                  fill="none" stroke="#3c3c3c"/>
+            <path d="m57.966 31.802c0 .444-.364.809-.809.809h-11.89c-.445 0-.81-.364-.81-.809v-3.315c0-.445.364-.809.81-.809h11.891c.444 0 .809.364.809.809v3.315z"
+                  fill="url(#g)"/>
+            <path d="m57.966 31.802c0 .444-.364.809-.809.809h-11.89c-.445 0-.81-.364-.81-.809v-3.315c0-.445.364-.809.81-.809h11.891c.444 0 .809.364.809.809v3.315z"
+                  fill="none" stroke="#3c3c3c"/>
+            <path d="m40.985 45.524c0 .445-.364.809-.809.809h-9.866c-.445 0-.809-.363-.809-.809v-8.997c0-.444.364-.809.809-.809h9.865c.445 0 .81.364.81.809z"
+                  fill="url(#h)"/>
+            <path d="m40.985 45.524c0 .445-.364.809-.809.809h-9.866c-.445 0-.809-.363-.809-.809v-8.997c0-.444.364-.809.809-.809h9.865c.445 0 .81.364.81.809z"
+                  fill="none" stroke="#3c3c3c" stroke-width=".7046"/>
+            <path d="m25.373 26.333c0 .445-.364.809-.809.809h-3.69c-.445 0-.809-.364-.809-.809v-3.69c0-.445.364-.809.809-.809h3.69c.445 0 .809.364.809.809z"
+                  fill="url(#i)"/>
+            <path d="m25.373 26.333c0 .445-.364.809-.809.809h-3.69c-.445 0-.809-.364-.809-.809v-3.69c0-.445.364-.809.809-.809h3.69c.445 0 .809.364.809.809z"
+                  fill="none" stroke="#3c3c3c" stroke-width=".7046"/>
+            <path d="m25.373 33.034c0 .444-.364.809-.809.809h-3.69c-.445 0-.809-.364-.809-.809v-3.69c0-.445.364-.809.809-.809h3.69c.445 0 .809.364.809.809z"
+                  fill="url(#j)"/>
+            <path d="m25.373 33.034c0 .444-.364.809-.809.809h-3.69c-.445 0-.809-.364-.809-.809v-3.69c0-.445.364-.809.809-.809h3.69c.445 0 .809.364.809.809z"
+                  fill="none" stroke="#3c3c3c" stroke-width=".7046"/>
+            <path d="m13.954 60.325v-48.139h-6.808" fill="none" stroke="#bfb200"
+                  stroke-width="2"/>
+            <switch enable-background="new">
+                <foreignObject height="1" overflow="visible"
+                               requiredExtensions="http://ns.adobe.com/Flows/1.0/"
+                               width="1"/>
+                <text transform="translate(31.1406 41.7451)">
+                    <tspan fill="#aaa" font-family="'Arial-BoldMT'"
+                           font-size="4" x="0" y="0">
+                        chip
+                    </tspan>
+                </text>
+            </switch>
+            <path d="m12.275 15.501c0-.89-.729-1.618-1.619-1.618h-2.812c-.89 0-1.618-.728-1.618-1.618v-.228c0-.89.728-1.618 1.618-1.618h6.172c.89 0 1.609.728 1.599 1.618l-.013 1.002c-.01.89.708 1.616 1.599 1.614l43.385-.1c.889-.002 1.616.724 1.616 1.614l-.044 34.658c-.001.89-.729 1.622-1.619 1.626l-6.897.035c-.891.004-1.618.637-1.618 1.404s-.729 1.396-1.618 1.396h-25.556c-.89 0-1.618-.64-1.618-1.421 0-.782-.728-1.422-1.618-1.422h-4.311c-.889 0-1.618.728-1.618 1.618v5.55c0 .891-.728 1.618-1.618 1.618h-.145c-.89 0-1.618-.728-1.619-1.618z"
+                  fill="none" stroke="#212121" stroke-width="2"/>
+        </g>
+    </switch>
+</svg>

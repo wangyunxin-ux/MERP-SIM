@@ -1,0 +1,17 @@
+*.pdf
+*.htm
+*.html
+*.pyc
+/guides/
+/manual/
+/installguide/
+/ide-customization-guide/
+/ide-developersguide/
+/userguide/
+/api/
+/nedxml-api/
+/parsim-api/
+/scave-engine/
+/tictoc-tutorial/
+/src/*/eclipse/
+/src/*/tmp/

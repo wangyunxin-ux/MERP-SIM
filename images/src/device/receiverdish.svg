@@ -1,0 +1,74 @@
+
+<svg clip-rule="evenodd" fill-rule="evenodd" height=".24in"
+     image-rendering="optimizeQuality" shape-rendering="geometricPrecision"
+     text-rendering="geometricPrecision" viewBox="0 0 .24 .24" width=".24in"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1=".192319"
+                    x2=".034839" y1=".050945" y2=".144583">
+        <stop offset="0" stop-color="#9c9ea3"/>
+        <stop offset="1" stop-color="#e5e6e9"/>
+    </linearGradient>
+    <linearGradient id="b" gradientUnits="userSpaceOnUse" x1=".135898"
+                    x2=".210961" y1=".197614" y2=".144339">
+        <stop offset="0" stop-color="#85888c"/>
+        <stop offset="1" stop-color="#abadb3"/>
+    </linearGradient>
+    <linearGradient id="c" gradientUnits="userSpaceOnUse" x1=".042571"
+                    x2=".215437" y1=".200551" y2=".002071">
+        <stop offset="0" stop-color="#7b7f82"/>
+        <stop offset="1" stop-color="#bfc1c6"/>
+    </linearGradient>
+    <linearGradient id="d" gradientUnits="userSpaceOnUse" x1=".110035"
+                    x2=".175547" y1=".208587" y2=".133366">
+        <stop offset="0" stop-color="#afb2b5"/>
+        <stop offset="1" stop-color="#ccd0d7"/>
+    </linearGradient>
+    <path d="m.114012.204618.03213.007433.025433-.082149z" fill="url(#d)"
+          stroke="#4d5356" stroke-linecap="round" stroke-linejoin="round"
+          stroke-width=".003"/>
+    <path d="m.155555.0220394c-.0455984-.015685-.117906.127173-.0839528.151449.0915748.0227795.148752-.0917008.0839528-.151449z"
+          fill="url(#c)" stroke="#4d5356" stroke-linecap="round"
+          stroke-linejoin="round" stroke-width=".003"/>
+    <ellipse fill="url(#a)" rx=".033382" ry=".086583" stroke="#b6b7bc"
+             stroke-linecap="round" stroke-linejoin="round"
+             stroke-width=".006665"
+             transform="matrix(.874565 .484908 -.484908 .874565 .113579 .097764)"/>
+    <path d="m.171575.129902-.025433.082149.054578-.003378z" fill="url(#b)"
+          stroke="#4d5356" stroke-linecap="round" stroke-linejoin="round"
+          stroke-width=".003"/>
+    <g fill="none">
+        <path d="m.03928.05778.053854.068019" stroke="#747a7f"
+              stroke-linecap="round" stroke-linejoin="round"
+              stroke-width=".006665"/>
+        <path d="m.0716024.173488c.018311.00587008.0411181-.0096063.0711772-.0595197.0240197-.0467953.0282402-.0778937.0127756-.0919291"
+              stroke="#d8dadd" stroke-width=".006665"/>
+        <path d="m.14278.113969c.0240197-.0467953.0282402-.0778937.0127756-.0919291"
+              stroke="#edeef1" stroke-width=".006665"/>
+        <path d="m.122264.130413-.0829845-.0726335.0580551.0508145"
+              stroke="#757b80" stroke-linecap="round" stroke-linejoin="round"
+              stroke-width=".006665"/>
+        <path d="m.133953.077516-.094673-.019736" stroke="#757b80"
+              stroke-linecap="round" stroke-linejoin="round"
+              stroke-width=".006665"/>
+        <path d="m.104055.114476-.0647755-.0566965.0350866.0449055"
+              stroke="#82858b" stroke-linecap="round" stroke-linejoin="round"
+              stroke-width=".006665"/>
+        <path d="m.113122.073173-.073842-.015393" stroke="#82858b"
+              stroke-linecap="round" stroke-linejoin="round"
+              stroke-width=".006665"/>
+        <path d="m.089311.101571-.0500315-.0437915.0164725.0200512"
+              stroke="#9c9fa3" stroke-linecap="round" stroke-linejoin="round"
+              stroke-width=".006665"/>
+        <path d="m.098795.070189-.059515-.012409" stroke="#9c9fa3"
+              stroke-linecap="round" stroke-linejoin="round"
+              stroke-width=".006665"/>
+        <path d="m.167256.143846-.015287.049394" stroke="#757b80"
+              stroke-width=".003"/>
+        <path d="m.163894.154705-.007107.02296" stroke="#989a9f"
+              stroke-width=".003"/>
+        <path d="m.0758228.174445c-.0173228-.00478346-.0171654-.0300748-.0014685-.0723661l-.0350748-.0442992.0527559.011c.0228386-.0329291.0445512-.054185.0635197-.0467402.0305276.0233307.0361142.0636063.0160197.107862l.0291457.0787717-.0545787.00337795-.0321299-.00743307.0397835-.0516417c-.0215354.0195709-.0376417.0299055-.0779724.0214685z"
+              stroke="#4d5356" stroke-linecap="round" stroke-linejoin="round"
+              stroke-width=".006665"/>
+    </g>
+</svg>

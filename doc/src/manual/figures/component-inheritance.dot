@@ -1,0 +1,16 @@
+digraph g {
+        fontsize=12; size="5.5,5.5";
+        node [fontname="Arial"];
+        edge [fontname="Arial"];
+
+        node [shape = "rectangle"];
+        edge [dir = "back"];
+
+        cObject -> cComponent [label="..."];
+        cComponent -> cModule;
+        cComponent -> cChannel;
+        cModule -> cSimpleModule;
+        cChannel -> cIdealChannel;
+        cChannel -> cDelayChannel;
+        cChannel -> cDatarateChannel;
+}

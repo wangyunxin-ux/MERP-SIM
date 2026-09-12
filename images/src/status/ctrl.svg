@@ -1,0 +1,18 @@
+
+<svg enable-background="new 0 0 43.42 68.814" height="68.814"
+     viewBox="0 0 43.42 68.814" width="43.42" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="37.1177"
+                    x2=".7422" y1="2.0547" y2="68.3716">
+        <stop offset="0" stop-color="#7cb3ca"/>
+        <stop offset=".0753" stop-color="#8ebdd3"/>
+        <stop offset=".2302" stop-color="#accde3"/>
+        <stop offset=".3937" stop-color="#c3daef"/>
+        <stop offset=".5674" stop-color="#d4e4f8"/>
+        <stop offset=".7585" stop-color="#dee9fd"/>
+        <stop offset="1" stop-color="#e1ebff"/>
+    </linearGradient>
+    <path d="m28.298 54.071-27.556 14.002 1.262-24.358 5.795 11.021 18.526-24.689-24.418.263 19.291-27.473c3.807-3.154 22.267-2.575 18.461.58l-20.141 21.924 23.161-.443-31.318 31.438z"
+          fill="url(#a)" stroke="#333" stroke-linejoin="round"
+          stroke-miterlimit="3.8637" stroke-width="1.483"/>
+</svg>

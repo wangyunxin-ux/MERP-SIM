@@ -1,0 +1,15 @@
+
+<svg enable-background="new 0 0 17.084 17.084" height="17.084"
+     viewBox="0 0 17.084 17.084" width="17.084"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="-.25629999999"
+                    x2="17.3405" y1="2.0726" y2="14.9318">
+        <stop offset="0" stop-color="#fff"/>
+        <stop offset="1" stop-color="#93989f"/>
+    </linearGradient>
+    <g stroke="#4d5356">
+        <circle cx="8.542" cy="8.542" fill="url(#a)" r="8.292" stroke-width=".5"/>
+        <circle cx="8.542" cy="8.542" fill="none" r="8.292" stroke-width=".0067"/>
+    </g>
+</svg>

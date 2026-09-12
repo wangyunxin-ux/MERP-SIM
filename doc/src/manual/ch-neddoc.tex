@@ -1,0 +1,566 @@
+\chapter{Documenting NED and Messages}
+\label{cha:neddoc}
+
+\section{Overview}
+\label{sec:neddoc:overview}
+
+{\opp} provides a tool which can generate HTML documentation from NED files
+and message definitions. Like Javadoc and Doxygen, the NED documentation tool
+makes use of source code comments. The generated HTML documentation
+lists all modules, channels, messages, etc., and presents their details including
+description, gates, parameters, assignable submodule parameters, and
+syntax-highlighted source code. The documentation also includes clickable
+network diagrams (exported from the graphical editor) and usage diagrams as
+well as inheritance diagrams.
+
+The documentation tool integrates with Doxygen, meaning that it can
+hyperlink simple modules and message classes to their C++ implementation
+classes in the Doxygen documentation. If the C++ documentation is generated
+with some Doxygen features turned on (such as \textit{inline-sources} and
+\textit{referenced-by-relation}, combined with \textit{extract-all},
+\textit{extract-private} and \textit{extract-static}), the result is an
+easily browsable and very informative presentation of the source code.
+
+NED documentation generation is available as part of the {\opp} IDE, and
+also as a command-line tool (\fprog{opp\_neddoc}).
+
+
+\section{Documentation Comments}
+\label{sec:neddoc:documentation-comments}
+
+Documentation is embedded in normal comments. All \texttt{//} comments
+that are in the ``right place'' (from the documentation tool's
+point of view) will be included in the generated documentation.
+  \footnote{In contrast, Javadoc and Doxygen use special comments (those
+     beginning with \texttt{/**}, \texttt{///}, \texttt{//<} or a similar
+     marker) to distinguish documentation from ``normal'' comments in the
+     source code. In {\opp} there is no need for that: NED and the message
+     syntax is so compact that practically all comments one would want to write
+     in them can serve documentation purposes.}
+
+Example:
+
+\begin{ned}
+//
+// An ad-hoc traffic generator to test the Ethernet models.
+//
+simple Gen
+{
+    parameters:
+        string destAddress;  // destination MAC address
+        int protocolId;      // value for SSAP/DSAP in Ethernet frame
+        double waitMean @unit(s); // mean for exponential interarrival times
+    gates:
+        output out;  // to Ethernet LLC
+}
+\end{ned}
+
+One can also place comments above parameters and gates, which is better
+suited for long explanations. Example:
+
+\begin{ned}
+//
+// Deletes packets and optionally keeps statistics.
+//
+simple Sink
+{
+    parameters:
+        // Turns statistics generation on/off. This is a very long
+        // comment because it has to be described what statistics
+        // are collected.
+        bool collectStatistics = default(true);
+    gates:
+        input in;
+}
+\end{ned}
+
+\subsection{Private Comments}
+\label{sec:neddoc:private-comments}
+
+Lines that start with \texttt{//\#} will not appear in the generated
+documentation. Such lines can be used to make ``private'' comments like
+\texttt{FIXME} or \texttt{TODO}, or to comment out unused code.
+
+\begin{ned}
+//
+// An ad-hoc traffic generator to test the Ethernet models.
+//# TODO above description needs to be refined
+//
+simple Gen
+{
+    parameters:
+        string destAddress;  // destination MAC address
+        int protocolId;      // value for SSAP/DSAP in Ethernet frame
+        //# double burstiness;  -- not yet supported
+        double waitMean @unit(s); // mean for exponential interarrival times
+    gates:
+        output out;  // to Ethernet LLC
+}
+\end{ned}
+
+
+\subsection{More on Comment Placement}
+\label{sec:neddoc:comment-placement}
+
+Comments should be written where the tool will find them.
+This is a) immediately above the documented item, or b) after the
+documented item, on the same line.
+
+In the former case, make sure there is no blank line left
+between the comment and the documented item. Blank lines
+detach the comment from the documented item.
+
+Example:
+\begin{ned}
+// This is wrong! Because of the blank line, this comment is not
+// associated with the following simple module!
+
+simple Gen
+{
+    ...
+}
+\end{ned}
+
+Do not try to comment groups of parameters together. The result
+will be awkward.
+
+\section{Referring to Other NED and Message Types}
+\label{sec:neddoc:referring-to-other-ned-and-message-types}
+
+One can reference other NED and message types by name in comments. There
+are two styles in which references can be written: automatic linking and
+tilde linking. The same style must be following throughout the whole
+project, and the correct one must be selected in the documentation
+generator tool when it is run.
+
+\subsection{Automatic Linking}
+\label{sec:neddoc:automatic-linking}
+
+In the automatic linking style, words that match existing NED of message
+types are hyperlinked automatically. It is usually enough to write the
+simple name of the type (e.g. \ttt{TCP}), one does not need to spell out the
+fully qualified type (\ttt{inet.transport.tcp.TCP}), although that is also
+allowed.
+
+Automatic hyperlinking is sometimes overly agressive. For example, when the
+words \textit{IP address} appear in a comment and the project contains an
+\ttt{IP} module, it will create a hyperlink to the module, which is not
+desirable. One can prevent hyperlinking of a word by inserting a
+backslash in front it: \ttt{{\textbackslash}IP address}. The backslash will
+not appear in the HTML output. The \ttt{<nohtml>} tag will also prevent
+hyperlinking words in the enclosed text: \ttt{<nohtml>IP address</nohtml>}.
+On the other hand, if a backslash needs to be printed immediately
+in front of a word (e.g. output \textit{``use {\textbackslash}t to print a Tab''}),
+use either two backslashes (\ttt{use {\textbackslash}{\textbackslash}t...}) or the
+\ttt{<nohtml>} tag (\ttt{<nohtml>use {\textbackslash}t...</nohtml>}).
+Backslashes in other contexts (i.e. when not in front of a word) do not have
+a special meaning, and are preserved in the output.
+
+The detailed rules:
+
+\begin{enumerate}
+  \item Words matching a type name are automatically hyperlinked
+  \item A backslash immediately followed by an identifier (i.e. letter or underscore)
+        prevents hyperlinking, and the backslash is removed from the output
+  \item A double backslash followed by an identifier produces a single backslash,
+        plus the potentially hyperlinked identifier
+  \item Backslashes in any other contexts are not interpreted, and preserved in the output
+  \item Tildes are not interpreted, and are preserved in the output
+  \item Inside \ttt{<nohtml>}, no backslash processing or hyperlinking takes place
+\end{enumerate}
+
+\subsection{Tilde Linking}
+\label{sec:neddoc:tilde-linking}
+
+In the tilde style, only words that are explicitly marked with a tilde are
+subject to hyperlinking: \ttt{{\textasciitilde}TCP},
+\ttt{{\textasciitilde}inet.transport.tcp.TCP}.
+
+To produce a literal tilde followed by an identifier in the output (for example,
+to output \textit{``the {\textasciitilde}TCP() destructor''}), the tilde character
+needs to be doubled: \ttt{the {\textasciitilde}{\textasciitilde}TCP() destructor}.
+
+The detailed rules:
+
+\begin{enumerate}
+  \item Words matching a type name are \textit{not} hyperlinked automatically
+  \item A tilde immediately followed by an identifier (i.e. letter or underscore)
+        will be hyperlinked, and the tilde is removed from the output. It is
+        considered an error if there is no type with that name.
+  \item A double tilde followed by an identifier produces a single tilde plus the identifier
+  \item Tildes in any other contexts are not interpreted, and preserved in the output
+  \item Backslashes are not interpreted, and are preserved in the output
+  \item Inside \ttt{<nohtml>}, no tilde processing or hyperlinking takes place
+\end{enumerate}
+
+\section{Text Layout and Formatting}
+\label{sec:neddoc:text-layout-and-formatting}
+
+\subsection{Paragraphs and Lists}
+\label{sec:neddoc:paragraphs-and-lists}
+
+When writing documentation comments longer than a few sentences, one often
+needs structuring and formatting facilities. NED provides paragraphs,
+bulleted and numbered lists, and basic formatting support. More
+sophisticated formatting can be achieved using HTML.
+
+Paragraphs can be created by separating text by blanks lines. Lines
+beginning with ``\ttt{-}'' will be turned into bulleted lists, and lines
+beginning with ``\ttt{-\#}'' into numbered lists. An example:
+
+\begin{ned}
+//
+// Ethernet MAC layer. MAC performs transmission and reception of frames.
+//
+// Processing of frames received from higher layers:
+// - sends out frame to the network
+// - no encapsulation of frames -- this is done by higher layers.
+// - can send PAUSE message if requested by higher layers (PAUSE protocol,
+//   used in switches). PAUSE is not implemented yet.
+//
+// Supported frame types:
+// -# IEEE 802.3
+// -# Ethernet-II
+//
+\end{ned}
+
+
+\subsection{Special Tags}
+\label{sec:neddoc:special-tags}
+
+The documentation tool understands the following tags and will render them accordingly:
+\ttt{@author}, \ttt{@date}, \ttt{@todo}, \ttt{@bug}, \ttt{@see}, \ttt{@since},
+\ttt{@warning}, \ttt{@version}. Example usage:
+
+\begin{ned}
+//
+// @author Jack Foo
+// @date 2005-02-11
+//
+\end{ned}
+
+
+\subsection{Text Formatting Using HTML}
+\label{sec:neddoc:text-formatting-using-html}
+
+Common HTML tags are understood as formatting commands.
+The most useful tags are: \ttt{<i>..</i>} (italic),
+\ttt{<b>..</b>} (bold), \ttt{<tt>..</tt>} (typewriter font),
+\ttt{<sub>..</sub>} (subscript), \ttt{<sup>..</sup>} (superscript),
+\ttt{<br>} (line break), \ttt{<h3>} (heading),
+\ttt{<pre>..</pre>} (preformatted text) and \ttt{<a href=..>..</a>} (link),
+as well as a few other tags used for table creation (see below).
+For example, \texttt{<i>Hello</i>} will be rendered as ``\textit{Hello}''
+(using an italic font).
+
+The complete list of HTML tags interpreted by the documentation tool are:
+\texttt{<a>}, \texttt{<b>}, \texttt{<body>}, \texttt{<br>}, \texttt{<center>},
+\texttt{<caption>}, \texttt{<code>}, \texttt{<dd>}, \texttt{<dfn>}, \texttt{<dl>},
+\texttt{<dt>}, \texttt{<em>}, \texttt{<form>}, \texttt{<font>}, \texttt{<hr>},
+\texttt{<h1>}, \texttt{<h2>}, \texttt{<h3>}, \texttt{<i>}, \texttt{<input>}, \texttt{<img>},
+\texttt{<li>}, \texttt{<meta>}, \texttt{<multicol>}, \texttt{<ol>}, \texttt{<p>}, \texttt{<small>},
+\texttt{<span>}, \texttt{<strong>},
+\texttt{<sub>}, \texttt{<sup>}, \texttt{<table>}, \texttt{<td>}, \texttt{<th>}, \texttt{<tr>},
+\texttt{<tt>}, \texttt{<kbd>}, \texttt{<ul>}, \texttt{<var>}.
+
+Any tags not in the above list will not be interpreted as formatting commands
+but will be printed verbatim -- for example, \texttt{<what>bar</what>}
+will be rendered literally as ``<what>bar</what>'' (unlike HTML where
+unknown tags are simply ignored, i.e. HTML would display ``bar'').
+
+With links to external pages or web sites, its useful to add the
+\ttt{target="\_blank"} attribute to ensure pages come up in a new browser
+tab, and not in the current frame. Alternatively, one can use the
+\ttt{target="\_top"} attribute which replaces all frames in the current
+browser.
+
+Examples:
+
+\begin{ned}
+//
+// For more info on Ethernet and other LAN standards, see the
+// <a href="http://www.ieee802.org/" target="_blank">IEEE 802
+// Committee's site</a>.
+//
+\end{ned}
+
+One can also use the \ttt{<a href=..>} tag to create links within the page:
+
+\begin{ned}
+//
+// See the <a href="#resources">resources</a> in this page.
+// ...
+// <a name="resources"><b>Resources</b></a>
+// ...
+//
+\end{ned}
+
+One can use the \texttt{<pre>..</pre>} HTML tag to insert source code examples
+into the documentation. Line breaks and indentation will be preserved,
+but HTML tags continue to be interpreted (they can be turned off with
+\texttt{<nohtml>}, see later).
+
+Example:
+
+\begin{ned}
+// <pre>
+// // my preferred way of indentation in C/C++ is this:
+// <b>for</b> (<b>int</b> i = 0; i < 10; i++) {
+//     printf(<i>"%d\n"</i>, i);
+// }
+// </pre>
+\end{ned}
+
+will be rendered as
+
+\begin{Verbatim}[commandchars=\\\{\}]
+// my preferred way of indentation in C/C++ is this:
+\textbf{for} (\textbf{int} i = 0; i < 10; i++) \{
+    printf(\textit{"%d{\textbackslash}n"}, i);
+\}
+\end{Verbatim}
+
+HTML is also the way to create tables. The example below
+
+\begin{ned}
+//
+// <table border="1">
+//   <tr>  <th>#</th> <th>number</th> </tr>
+//   <tr>  <td>1</td> <td>one</td>    </tr>
+//   <tr>  <td>2</td> <td>two</td>    </tr>
+//   <tr>  <td>3</td> <td>three</td>  </tr>
+// </table>
+//
+\end{ned}
+
+will be rendered approximately as:
+
+\begin{longtable}{|l|l|}
+\hline
+\tabheadcol
+\tbf{\#} & \tbf{number} \\\hline
+1 & one \\\hline
+2 & two \\\hline
+3 & three \\\hline
+\end{longtable}
+
+
+\subsection{Escaping HTML Tags}
+\label{sec:neddoc:escaping-html-tags}
+
+In some cases, one needs to turn off interpreting HTML tags (\ttt{<i>},
+\ttt{<b>}, etc.) as formatting, and rather include them as literal text in
+the generated documentation. This can be achieved by surrounding the text
+with the \ttt{<nohtml>}...\ttt{</nohtml>} tag. For example,
+
+\begin{ned}
+// Use the <nohtml><i></nohtml> tag (like <tt><nohtml><i>this</i></nohtml><tt>)
+// to write in <i>italic</i>.
+\end{ned}
+
+will be rendered as ``Use the <i> tag (like \texttt{<i>this</i>}) to write
+in \textit{italic}.''
+
+\ttt{<nohtml>}...\ttt{</nohtml>} will also prevent \fprog{opp\_neddoc}
+from hyperlinking words that are accidentally the same as an existing
+module or message name. Prefixing the word with a backslash will achieve
+the same. That is, either of the following will do:
+
+\begin{ned}
+// In <nohtml>IP</nohtml> networks, routing is...
+\end{ned}
+
+\begin{ned}
+// In \IP networks, routing is...
+\end{ned}
+
+Both will prevent hyperlinking the word \textit{IP} in case there is an
+\ttt{IP} module in the project.
+
+
+
+\section{Incorporating Extra Content}
+\label{sec:neddoc:incorporating-extra-content}
+
+\subsection{Adding a Custom Title Page}
+\label{sec:neddoc:adding-custom-title-page}
+
+The title page is the one that appears in the main frame after opening the
+documentation in the browser. By default, it contains a boilerplate text
+with the title \textit{``{\opp} Model Documentation''}. Model authors will
+probably want to customize that, and at least change the title be more
+specific.
+
+A title page is defined with a \ttt{@titlepage} directive. It needs to
+appear in a file-level comment.
+
+\begin{note}
+A file-level comment is one that appears at the top of a NED file, and is
+separated from any other NED content by at least one \textit{blank line}.
+\end{note}
+
+While one can place the title page definition into any NED or MSG file, it is
+probably a good idea to create a dedicated NED file for it. Lines up to the
+next \ttt{@page} line or the end of the comment (whichever comes first) are
+interpreted as part of the page.
+
+The page should start with a title, as the documentation tool doesn't add
+one. Use the \ttt{<h1>..</h1>} HTML tag for that.
+
+Example:
+
+\begin{ned}
+//
+// @titlepage
+// <h1>Ethernet Model Documentation</h1>
+//
+// This documents the Ethernet model created by David Wu and refined by Andras
+// Varga at CTIE, Monash University, Melbourne, Australia.
+//
+\end{ned}
+
+
+\subsection{Adding Extra Pages}
+\label{sec:neddoc:adding-extra-pages}
+
+One can add new pages to the documentation using the \ttt{@page} directive.
+\ttt{@page} may appear in any file-level comment, and has the following
+syntax:
+
+\begin{ned}
+// @page filename.html, Title of the Page
+\end{ned}
+
+Choose a file name that doesn't collide with other files generated
+by the documentation tool. If the file name does not end in \ttt{.html},
+it will be appended. The page title will appear at the top of
+the page as well as in the page index.
+
+The lines after the \ttt{@page} line up to the next \ttt{@page} line or the
+end of the comment will be used as the page body. One does not need to add
+a title because the documentation tool automatically inserts the one
+specified in the \ttt{@page} directive.
+
+Example:
+\begin{ned}
+//
+// @page structure.html, Directory Structure
+//
+// The model core model files and the examples have been placed
+// into different directories. The <tt>examples/</tt> directory...
+//
+//
+// @page examples.html, Examples
+// ...
+//
+\end{ned}
+
+One can create links to the generated pages using standard HTML,
+using the \ttt{<a href="...">...</a>} tag. All HTML files are
+placed in a single directory, so one doesn't have to worry about
+directories.
+
+Example:
+\begin{ned}
+//
+// @titlepage
+// ...
+// The structure of the model is described <a href="structure.html">here</a>.
+//
+\end{ned}
+
+
+\subsection{Incorporating Externally Created Pages}
+\label{sec:neddoc:externally-created-pages}
+
+The \ttt{@externalpage} directive allows one to add externally created
+pages into the generated documentation. \ttt{@externalpage} may appear
+in a file-level comment, and has a similar syntax as \ttt{@page}:
+
+\begin{ned}
+// @externalpage filename.html, Title of the Page
+\end{ned}
+
+The directive causes the page to appear in the page index. However, the
+documentation tool does not check if the page exists, and it is the user's
+responsibility to copy the file into the directory of the generated
+documentation.
+
+External pages can be linked to from other pages using the \ttt{<a
+href="...">...</a>} tag.
+
+
+\subsection{File Inclusion}
+\label{sec:neddoc:file-inclusion}
+
+The \ttt{@include} directive allows one to include the content of a file
+into a documentation comment. \ttt{@include} expects file name or path; if
+a relative path is given, it is interpreted as relative to the file that
+includes it.
+
+The line of the \ttt{@include} directive will be replaced by the
+content of the file. The lines of the included file do not need
+to start with \texttt{//}, but otherwise they are processed in the same way
+as the NED comments. They can include other files, but circular
+includes are not allowed.
+
+\begin{ned}
+// ...
+// @include ../copyright.txt
+// ...
+\end{ned}
+
+\subsection{Extending Type Pages with Extra Content}
+\label{sec:neddoc:extending-type-pages}
+
+Sometimes it is useful to customize the generated documentation pages that describe
+NED and MSG types by adding extra content. It is possible to provide a documentation
+fragment file in XML format which can be used by the documentation tool to add it to 
+the generated documentation. 
+
+The fragment file may contain multiple top-level \ttt{<docfragment>} 
+elements in the XML file's root element. Each \ttt{<docfragment>} element must
+have one of the \ttt{nedtype}, \ttt{msgtype} or \ttt{filename} attributes
+depending on which page it extends. Additionally, it must provide an
+\ttt{anchor} attribute to define a point in the page where the fragment's
+content should be inserted. The content of the fragment must be provided in
+a \ttt{<![CDATA[]]>} section.
+
+\begin{xml}
+<docfragments>
+    <docfragment nedtype="fully.qualified.NEDTypeName" anchor="after-signals">
+    <![CDATA[
+        <h3 class="subtitle">Doc fragment after the signals section</h3>
+        ...
+    ]]>
+    </docfragment>
+    <docfragment msgtype="fully.qualified.MSGType" anchor="top">
+    <![CDATA[
+        <h3 class="subtitle">Doc fragment at the top of MSG type page</h3>
+        ...
+    ]]>
+    </docfragment>
+    <docfragment filename="project_relative_path/somefile.msg" anchor="bottom">
+    <![CDATA[
+        <h3 class="subtitle">Doc fragment at the end of the file listing page</h3>
+        ...
+    ]]>
+    </docfragment>
+</docfragments>
+\end{xml}
+    
+Possible attribute values:
+\begin{itemize}
+    \item \texttt{nedtype}: Fully qualified NED type name. 
+    \item \texttt{msgtype}: Fully qualified MSG type name.
+    \item \texttt{filename}: Project relative file path of a NED or MSG source file. 
+    The fragment will be inserted in the file's source listing page. 
+    \item \texttt{anchor}: Specifies the place where the content should inserted.
+    Possible values for NED type: \texttt{top, after-types, after-description,
+    after-image, after-diagrams, after-usage, after-inheritance, after-parameters,
+    after-properties, after-gates, after-signals, after-statistics, 
+    after-unassigned-parameters, bottom}; for MSG type: \texttt{top, after-description,
+    after-diagrams, after-inheritance, after-fields, after-properties, bottom};
+    for file listing: \texttt{top, after-types, bottom}
+\end{itemize}        
+

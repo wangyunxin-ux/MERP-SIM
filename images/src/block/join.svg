@@ -1,0 +1,57 @@
+
+<svg clip-rule="evenodd" fill-rule="evenodd" height="72"
+     image-rendering="optimizeQuality" shape-rendering="geometricPrecision"
+     text-rendering="geometricPrecision" viewBox="0 0 72 72" width="72"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="65.3315"
+                    x2="6.66969" y1="66.1937" y2="5.80748">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".619608" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <radialGradient id="b" cx="35.8276" cy="23.7" gradientUnits="userSpaceOnUse"
+                    r="25.7539">
+        <stop offset="0" stop-color="#ffd1c2"/>
+        <stop offset=".211765" stop-color="#ab4968"/>
+        <stop offset="1" stop-color="#da251d"/>
+    </radialGradient>
+    <rect fill="url(#a)" height="66.15" rx="9.39803" stroke="#000"
+          stroke-width="3" width="66.15" x="2.92559" y="2.92559"/>
+    <ellipse cx="36.0006" cy="36" fill="url(#b)" rx="8.62146" ry="15"
+             stroke="#000" stroke-width="4.00039"/>
+    <g stroke-width=".9">
+        <path d="m29.7354 36.0437c.0472441-6.25276 3.93661-13.6831 7.19646-12.411"
+              fill="none" stroke="#f99"/>
+        <path d="m30.8339 30.0484c1.00866-3.97795 2.95276-6.64016 6.09921-6.41693"
+              fill="none" stroke="#fcc"/>
+        <path d="m42.1205 33.4559c.703937 6.28465-2.58898 15.6402-6.9189 14.8311"
+              fill="none" stroke="#f66"/>
+        <path d="m41.0114 42.3213c.0732283 1.06772-1.11142 3.7937-4.43976 5.88543"
+              fill="none" stroke="#f99"/>
+        <path d="m9.09449 62.4602 8.65748-8.65748 3.0248 3.02362 3.10039-10.8661-10.8661 3.10039 3.02362 3.0248-8.65748 8.65748 1.71732 1.71732zm-.85866-.85866"
+              fill-rule="nonzero" stroke="#000"/>
+        <path d="m7.37717 10.8142 8.65748 8.65748-3.02362 3.0248 10.8661 3.10039-3.10039-10.8661-3.0248 3.02362-8.65748-8.65748-1.71732 1.71732zm.85866-.85866"
+              fill-rule="nonzero" stroke="#000"/>
+        <path d="m7.85787 37.2142h7.25553v4.2767l8.8004-5.4909-8.8004-5.4909v4.2767h-7.25553z"
+              stroke="#000"/>
+        <path d="m48.9461 37.2142h7.2555v4.2767l8.8004-5.4909-8.8004-5.4909v4.2767h-7.2555z"
+              stroke="#000"/>
+        <path d="m9.78189 63.3732 8.11301-8.2724 3.4559 3.4594 3.6815-12.7842"
+              fill="none" stroke="#ccc"/>
+        <path d="m6.66142 11.0185 8.14608 8.2406-3.5126 3.4015 7.6819 2.341 5.0433 1.5378"
+              fill="none" stroke="#ccc"/>
+        <path d="m23.752 26.4839-4.5071-1.428" fill="none" stroke="#e5e5e5"/>
+        <path d="m23.348 51.626 1.6843-5.85" fill="none" stroke="#e5e5e5"/>
+        <path d="m17.8949 55.1008 3.4559 3.4594" fill="none" stroke="#e5e5e5"/>
+        <path d="m14.8075 19.2591-3.5126 3.4015" fill="none" stroke="#e5e5e5"/>
+        <path d="m7.6311 38.2713 6.5421-.0426.1087 5.0445 10.2744-6.4819"
+              fill="none" stroke="#ccc"/>
+        <path d="m19.4197 40.0323 5.1366-3.241" fill="none" stroke="#e5e5e5"/>
+        <path d="m14.2819 43.2732-.1087-5.0445" fill="none" stroke="#e5e5e5"/>
+        <path d="m48.6472 38.2996 6.5422-.0425.1086 5.0445 10.2744-6.4819"
+              fill="none" stroke="#ccc"/>
+        <path d="m60.4358 40.0606 5.1366-3.2409" fill="none" stroke="#e5e5e5"/>
+        <path d="m55.298 43.3016-.1086-5.0445" fill="none" stroke="#e5e5e5"/>
+    </g>
+</svg>

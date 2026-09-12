@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="OMNeT++ Sequence Chart"
+            extensions="elog"
+            icon="icons/full/eobj16/sequencechart.png"
+            contributorClass="org.omnetpp.sequencechart.editors.SequenceChartContributor"
+            class="org.omnetpp.sequencechart.editors.SequenceChartEditor"
+            id="org.omnetpp.sequencechart.editors.SequenceChartEditor"
+            default="true">
+      </editor>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            name="Sequence Chart"
+            icon="icons/full/eview16/sequencechart.png"
+            category="org.omnetpp.views"
+            class="org.omnetpp.sequencechart.editors.SequenceChartView"
+            id="org.omnetpp.sequencechart.editors.SequenceChartView">
+      </view>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               id="org.omnetpp.sequencechart.editors.SequenceChartView"
+               relationship="stack"
+               relative="org.eclipse.ui.views.ProblemView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="org.omnetpp.sequencechart.editors.SequenceChartContributor$FindTextHandler"
+            id="org.omnetpp.sequencechart.findText"
+            name="Find...">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.sequencechart.editors.SequenceChartContributor$FindNextHandler"
+            id="org.omnetpp.sequencechart.findNext"
+            name="Find Next">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.sequencechart.editors.SequenceChartContributor$RefreshHandler"
+            id="org.omnetpp.sequencechart.refresh"
+            name="Refresh">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.sequencechart.editors.SequenceChartContributor$GotoSimulationTimeHandler"
+            id="org.omnetpp.sequencechart.gotoSimulationTime"
+            name="Go to Simulation Time...">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.sequencechart.editors.SequenceChartContributor$GotoEventHandler"
+            id="org.omnetpp.sequencechart.gotoEvent"
+            name="Go to Event...">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.omnetpp.sequencechart.findText"
+            contextId="org.omnetpp.context.SequenceChart"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Ctrl+F">
+      </key>
+      <key
+            commandId="org.omnetpp.sequencechart.findNext"
+            contextId="org.omnetpp.context.SequenceChart"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Ctrl+K">
+      </key>
+      <key
+            commandId="org.omnetpp.sequencechart.refresh"
+            contextId="org.omnetpp.context.SequenceChart"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="F5">
+      </key>
+      <key
+            commandId="org.omnetpp.sequencechart.gotoSimulationTime"
+            contextId="org.omnetpp.context.SequenceChart"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Ctrl+Shift+G">
+      </key>
+      <key
+            commandId="org.omnetpp.sequencechart.gotoEvent"
+            contextId="org.omnetpp.context.SequenceChart"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="Ctrl+G">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            description="OMNeT++ Sequence Chart"
+            id="org.omnetpp.context.SequenceChart"
+            name="Viewing a Sequence Chart"
+            parentId="org.eclipse.ui.contexts.window">
+      </context>
+   </extension>
+
+</plugin>

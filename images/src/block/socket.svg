@@ -1,0 +1,54 @@
+
+<svg enable-background="new 0 0 69.15 69.15" height="69.15"
+     viewBox="0 0 69.15 69.15" width="69.15" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a"
+                    gradientTransform="matrix(1 0 0 -1 262.4995 453.5391)"
+                    gradientUnits="userSpaceOnUse" x1="-198.5942" x2="-257.256"
+                    y1="388.7705" y2="449.1567">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".6196" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <switch>
+        <foreignObject height="1"
+                       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+                       width="1"/>
+        <g>
+            <path d="m10.898 1.5h47.354c5.19 0 9.398 4.208 9.398 9.398v47.354c0 5.19-4.208 9.398-9.398 9.398h-47.354c-5.19 0-9.398-4.208-9.398-9.398v-47.354c0-5.19 4.208-9.398 9.398-9.398z"
+                  fill="url(#a)" stroke="#000" stroke-width="3"/>
+            <circle cx="26.822" cy="35.449" r="3.658" stroke="#000"
+                    stroke-width=".9"/>
+            <circle cx="42.859" cy="35.449" r="3.658" stroke="#000"
+                    stroke-width=".9"/>
+            <g fill="none">
+                <circle cx="34.699" cy="35.449" r="19.581" stroke="#000"
+                        stroke-width="4.1669"/>
+                <path d="m39.2 35.449c0-2.02 1.64-3.659 3.659-3.659"
+                      stroke="#5d5d5d" stroke-width=".9"/>
+                <path d="m42.859 39.108c-2.02 0-3.659-1.639-3.659-3.659"
+                      stroke="#aaa" stroke-width=".9"/>
+                <path d="m46.52 35.449c0 2.021-1.64 3.659-3.66 3.659"
+                      stroke="#ccc" stroke-width=".9"/>
+                <path d="m42.859 31.791c2.021 0 3.66 1.639 3.66 3.659"
+                      stroke="#949494" stroke-width=".9"/>
+                <path d="m23.164 35.449c0-2.02 1.639-3.659 3.659-3.659"
+                      stroke="#5d5d5d" stroke-width=".9"/>
+                <path d="m26.822 39.108c-2.02 0-3.659-1.639-3.659-3.659"
+                      stroke="#aaa" stroke-width=".9"/>
+                <path d="m30.482 35.449c0 2.021-1.639 3.659-3.66 3.659"
+                      stroke="#ccc" stroke-width=".9"/>
+                <path d="m26.822 31.791c2.021 0 3.66 1.639 3.66 3.659"
+                      stroke="#949494" stroke-width=".9"/>
+                <path d="m17.472 35.333c0-9.542 7.74-17.284 17.282-17.284"
+                      stroke="#ccc" stroke-width="1.9996"/>
+                <path d="m34.754 52.62c-9.542 0-17.282-7.74-17.282-17.287"
+                      stroke="#949494" stroke-width="1.9996"/>
+                <path d="m52.042 35.333c0 9.547-7.741 17.287-17.288 17.287"
+                      stroke="#5d5d5d" stroke-width="1.9996"/>
+                <path d="m34.754 18.049c9.546 0 17.288 7.742 17.288 17.284"
+                      stroke="#aaa" stroke-width="1.9996"/>
+            </g>
+        </g>
+    </switch>
+</svg>

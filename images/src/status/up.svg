@@ -1,0 +1,33 @@
+
+<svg enable-background="new 0 0 70.131 70.131" height="70.131"
+     viewBox="0 0 70.131 70.131" width="70.131"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="5.5591"
+                    x2="64.5723" y1="18.0298" y2="52.1011">
+        <stop offset="0" stop-color="#bac1d3"/>
+        <stop offset="1" stop-color="#8397a5"/>
+    </linearGradient>
+    <linearGradient id="b" gradientTransform="matrix(-1 0 0 -1 70.1318 69.5605)"
+                    gradientUnits="userSpaceOnUse" x1="35.0659" x2="35.0659"
+                    y1="60.2246" y2="9.3301">
+        <stop offset="0" stop-color="#98d81a"/>
+        <stop offset=".3549" stop-color="#77ae24"/>
+        <stop offset=".7835" stop-color="#558130"/>
+        <stop offset="1" stop-color="#477034"/>
+    </linearGradient>
+    <g stroke-miterlimit="3.8637">
+        <circle cx="35.065" cy="35.065" fill="url(#a)" r="34.065" stroke="#333"
+                stroke-width="2"/>
+        <path d="m17.988 24.081c1.194-1.196 15.41-15.285 15.41-15.285s1.942-1.952 3.894 0c1.951 1.951 15.034 15.034 15.034 15.034s1.007 2.14-2.141 2.14c-3.146 0-9.873 0-9.873 0v33.709s.145 1.942-1.94 1.942c-2.087 0-6.964 0-6.964 0s-1.51.242-1.51-1.512c0-1.753 0-34.266 0-34.266h-10.715s-2.392-.565-1.195-1.762z"
+              fill="url(#b)" stroke="#000" stroke-width="2"/>
+        <g fill="none">
+            <path d="m23.592 20.366c1.197-1.194 10.279-9.982 10.279-9.982 1.662-1.661 1.788-1.715 3.865.363l4.973 5.225"
+                  stroke="#a9ea5e" stroke-width="1.297"/>
+            <path d="m27.359 16.733c1.195-1.196 5.917-5.986 5.917-5.986 2.068-2.067 2.32-2.141 4.46 0"
+                  stroke="#caf9af" stroke-width="1.297"/>
+            <path d="m39.009 50.219v8.197c-.142 2.016.076 1.942-1.941 1.942-2.087 0-4.716 0-4.716 0"
+                  stroke="#73be1e" stroke-width="1.4941"/>
+        </g>
+    </g>
+</svg>

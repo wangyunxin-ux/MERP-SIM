@@ -1,0 +1,55 @@
+
+<svg clip-rule="evenodd" fill-rule="evenodd" height=".24in"
+     image-rendering="optimizeQuality" shape-rendering="geometricPrecision"
+     text-rendering="geometricPrecision" viewBox="0 0 .24 .24" width=".24in"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1=".011315"
+                    x2=".176563" y1=".127224" y2=".127224">
+        <stop offset="0" stop-color="#e15520"/>
+        <stop offset=".141176" stop-color="#ce4e22"/>
+        <stop offset="1" stop-color="#bb4725"/>
+    </linearGradient>
+    <linearGradient id="b" gradientUnits="userSpaceOnUse" x1=".176563"
+                    x2=".228689" y1=".127776" y2=".127776">
+        <stop offset="0" stop-color="#b14228"/>
+        <stop offset=".54902" stop-color="#bb4726"/>
+        <stop offset="1" stop-color="#c64c23"/>
+    </linearGradient>
+    <g stroke-width=".003">
+        <path d="m.011315.0211102.0568385-.0108346.1605355.0119449-.00963.1753775-.043051.036012-.148945-.062492z"
+              fill="#e15520" stroke="#574237" stroke-linecap="round"
+              stroke-linejoin="round"/>
+        <path d="m.228689.0222205-.052126.0238897v.1872248l.042496-.035737z"
+              fill="url(#b)" stroke="#e67129" stroke-linecap="round"
+              stroke-linejoin="round"/>
+        <path d="m.176563.233335v-.1872248l-.165248-.025.015748.1500078.0152638.006343z"
+              fill="url(#a)" stroke="#e9833b" stroke-linecap="round"
+              stroke-linejoin="round"/>
+        <path d="m.176563.090752-.162716-.035898" fill="none" stroke="#ea8a2f"/>
+        <path d="m.176563.13972-.159937-.047708" fill="none" stroke="#ea8a2f"/>
+        <path d="m.176563.184575-.157232-.056465" fill="none" stroke="#ea8a2f"/>
+        <path d="m.176563.090752.049925-.028433" fill="none" stroke="#e15829"/>
+        <path d="m.176563.13972.047374-.031" fill="none" stroke="#e15829"/>
+        <path d="m.176563.184575.044976-.032106" fill="none" stroke="#e15829"/>
+        <path d="m.107492.204579-.003307-.046" fill="none" stroke="#ea8a2f"/>
+        <path d="m.040311.135642.003847.042578" fill="none" stroke="#ea8a2f"/>
+        <path d="m.069854.146252-.003228-.039583" fill="none" stroke="#ea8a2f"/>
+        <path d="m.132051.168591-.001878-.042709" fill="none" stroke="#ea8a2f"/>
+        <path d="m.103008.11778-.00287-.043886" fill="none" stroke="#ea8a2f"/>
+        <path d="m.03752.097984-.003784-.03874" fill="none" stroke="#ea8a2f"/>
+        <path d="m.064075.065937-.003378-.037354" fill="none" stroke="#ea8a2f"/>
+        <path d="m.130748.0806457-.002961-.0419134.055536-.0198858" fill="none"
+              stroke="#ea8a2f"/>
+        <path d="m.060697.028583.054433-.014811" fill="none" stroke="#ea8a2f"/>
+        <path d="m.0489843.026811.1275787.0192992v.1564178" fill="none"
+              stroke="#ee9c63"/>
+        <path d="m.202626.0341654-.026063.0119448v.1465748" fill="none"
+              stroke="#efa672"/>
+        <path d="m.0897913.0329843.0867717.0131259v.0999998" fill="none"
+              stroke="#f0bc99"/>
+    </g>
+    <path d="m.011315.0211102.0568385-.0108346.1605355.0119449-.00963.1753775-.043051.036012-.148945-.062492z"
+          fill="none" stroke="#574237" stroke-linecap="round"
+          stroke-linejoin="round" stroke-width=".006665"/>
+</svg>

@@ -1,0 +1,1511 @@
+\chapter{Configuring Simulations}
+\label{cha:config-sim}
+
+\section{The Configuration File}
+\label{sec:config-sim:config-file}
+
+Configuration and input data for the simulation are in
+a configuration file usually called \ffilename{omnetpp.ini}.
+
+\subsection{An Example}
+\label{sec:config-sim:example-inifile}
+
+For a start, let us see a simple \ffilename{omnetpp.ini} file which
+can be used to run the Fifo example simulation.
+
+\begin{inifile}
+[General]
+network = FifoNet
+sim-time-limit = 100h
+cpu-time-limit = 300s
+#debug-on-errors = true
+#record-eventlog = true
+
+[Config Fifo1]
+description = "low job arrival rate"
+**.gen.sendIaTime = exponential(0.2s)
+**.gen.msgLength = 100b
+**.fifo.bitsPerSec = 1000bps
+
+[Config Fifo2]
+description = "high job arrival rate"
+**.gen.sendIaTime = exponential(0.01s)
+**.gen.msgLength = 10b
+**.fifo.bitsPerSec = 1000bps
+\end{inifile}
+
+The file is grouped into \textit{sections} named \ttt{[General]}, \ttt{[Config Fifo1]}
+and \ttt{[Config Fifo2]}, each one containing several \textit{entries}.
+
+
+\subsection{File Syntax}
+\label{sec:config-sim:inifile-syntax}
+
+
+An {\opp} configuration file is a line-oriented text file. The encoding is
+primarily ASCII, but non-ASCII characters are permitted in comments
+and string literals. This allows for using encodings that are a superset of
+ASCII, for example ISO 8859-1 and UTF-8. There is no limit on the file size or
+on the line length.
+
+Comments may be placed at the end of any line after a hash mark, ``\#''.
+Comments extend to the end of the line, and are ignored during processing.
+Blank lines are also allowed and ignored.
+
+Long lines can be broken to multiple lines in two ways: using the traditional
+\textit{trailing backslash} notation also found in C/C++, or alternatively, by
+\textit{indenting} the continuation lines.
+
+When using the former method, the rule is that if the last character of a line
+is ``\textbackslash'', it will be joined with the next line after removing the
+backslash and the newline. (Potential leading whitespace on the second line is
+preserved.) Note that this allows breaking the line even in the middle of a
+name, number or string constant.
+
+When using latter method, a line can be broken between any two tokens by inserting
+a newline and indenting the next line. An indented line is interpreted as a
+continuation of the previous line. The first line and indented lines that follow
+it are then parsed as a single multi-line unit. Consequently, this method does
+not allow breaking a line in the middle of a word or inside string constants.
+
+The two ways of breaking lines can be freely combined.
+
+There are three types of lines: \textit{section heading lines},
+\textit{key-value lines}, and \textit{directive lines}:
+
+\begin{enumerate}
+\item \textit{Section heading lines} contain a section name enclosed in square brackets.
+\item \textit{Key-value lines} have the \textit{<key>=<value>} syntax; spaces
+      are allowed (but not required) on both sides of the equal sign.
+      If a line contains more than one equal sign, the leftmost one is taken
+      as the key-value separator.
+\item Currently there is only one kind of directive line, \textit{include}. An
+      include line starts with the \ttt{include} word, followed by the name of
+      the file to be included.
+\end{enumerate}
+
+Key-value lines may not occur above the first section heading line (except
+in included files, see later).
+
+Keys may be further classified based on syntax alone:
+
+\begin{enumerate}
+\item Keys that do not contain dots represent global or per-run \textit{configuration options}.
+\item If a key contains a dot, its last component (substring after the last dot)
+      is considered. If the last component contains a hyphen or is equal to
+      \ttt{typename}, the key represents a \textit{per-object configuration option}.
+\item Otherwise, the key represents a \textit{parameter assignment}. Thus, parameter
+      assignment keys contain a dot, and no hyphen after the last dot.
+\end{enumerate}
+
+An example:
+
+\begin{inifile}
+# This is a comment line
+[General]                       # section heading
+network = Foo                   # configuration option
+debug-on-errors = false         # another configuration option
+
+**.vector-recording = false     # per-object configuration option
+**.app*.typename = "HttpClient" # per-object configuration option
+
+**.app*.interval = 3s           # parameter value
+**.app*.requestURL = "http://www.example.com/this-is-a-very-very-very-very\
+-very-long-url?q=123456789"     # a two-line parameter value
+\end{inifile}
+
+\subsection{File Inclusion}
+\label{sec:config-sim:inifile-inclusion}
+
+{\opp} supports including an ini file in another\index{ini file!file inclusion},
+via the \ttt{include} keyword. This feature allows one to partition a large ini
+file into logical units, fixed and varying part, etc.
+
+An example:
+
+\begin{inifile}
+# omnetpp.ini
+...
+include params1.ini
+include params2.ini
+include ../common/config.ini
+...
+\end{inifile}
+
+One can also include files from other directories. If the included ini file
+further includes others, their path names will be understood as relative to
+the location of the file which contains the reference, rather than relative
+to the current working directory of the simulation.
+
+This rule also applies to other file names occurring in ini files (such as
+the \fconfig{load-libs}, \fconfig{output-vector-file},
+\fconfig{output-scalar-file}, etc. options, and \ttt{xmldoc()} module
+parameter values.)
+
+In included files, it is allowed to have key-value lines without first having a
+section heading line. File inclusion is conceptually handled as text
+substitution, except that a section heading in an included file will not
+change the current section the main file. The following example illustrates
+the rules:
+
+\begin{inifile}
+# incl.ini
+foo1 = 1          # no preceding section heading: these lines will go into
+foo2 = 2          # whichever section the file is included into
+[Config Bar]
+bar = 3           # this will always go to into [Config Bar]
+\end{inifile}
+
+\begin{inifile}
+# omnetpp.ini
+[General]
+include incl.ini  # adds foo1/foo2 to [General], and defines [Config Bar] w/ bar
+baz1 = 4          # include files don't change the current section, so these
+baz2 = 4          # lines still belong to [General]
+\end{inifile}
+
+\begin{note}
+The concept of file inclusion implies that include files may not make sense
+on their own. Thus, when an included ini file is opened in the ini editor
+in the IDE, file contents may be flagged with errors and warnings. These
+errors/warnings disappear when the file is viewed as part of its main file.
+\end{note}
+
+
+\section{Sections}
+\label{sec:config-sim:sections}
+
+An ini file may contain a \ttt{[General]} section, and several
+\ttt{[<configname>]} or \ttt{[Config <configname>]} sections. The use of the
+\ttt{Config} prefix is optional, i.e. \ttt{[Foo]} and \ttt{[Config Foo]} are
+equivalent.
+
+The order of the sections is not significant.
+
+
+\subsection{The [General] Section}
+\label{sec:config-sim:general-section}
+
+The most commonly used options of the \texttt{[General]} section are the
+following.
+
+\begin{itemize}
+  \item The \fconfig{network} option selects the model to be set up and run.
+  \item The length of the simulation can be set with the
+    \fconfig{sim-time-limit} and the \fconfig{cpu-time-limit} options (the
+    usual time units such as ms, s, m, h, etc. can be used).
+\end{itemize}
+
+Note that the NED files loaded by the simulation may contain several
+networks, and any of them may be specified in the \fconfig{network}
+option.
+
+
+\subsection{Named Configurations}
+\label{sec:config-sim:named-configurations}
+
+Named configurations are in sections of the form \ttt{[Config <configname>]} or
+\ttt{[<configname>]} (the \ttt{Config} word is optional), where \textit{<configname>}
+is by convention a camel-case string that starts with a capital letter:
+\ttt{Config1}, \ttt{WirelessPing}, \ttt{OverloadedFifo}, etc. For example,
+\ffilename{omnetpp.ini} for an Aloha simulation might have the following skeleton:
+
+\begin{inifile}
+[General]
+...
+[Config PureAloha]
+...
+[Config SlottedAloha1]
+...
+[Config SlottedAloha2]
+...
+\end{inifile}
+
+Some configuration options (such as user interface selection) are only
+accepted in the \ttt{[General]} section, but most of them can go into \ttt{Config}
+sections as well.
+
+When a simulation is run, one needs to select one of the configurations
+to be activated. In Cmdenv, this is done with the \fopt{-c} command-line option:
+
+\begin{commandline}
+$ aloha -c PureAloha
+\end{commandline}
+
+The simulation will then use the contents of the \ttt{[Config PureAloha]}
+section to set up the simulation. (Qtenv, of course, lets the user choose
+the configuration from a dialog.)
+
+
+\subsection{Section Inheritance}
+\label{sec:config-sim:section-inheritance}
+
+When the PureAloha configuration is activated, the contents of
+the \ttt{[General]} section will also be taken into account: if some
+configuration option or parameter value is not found in \ttt{[Config PureAloha]},
+then the search will continue in the \ttt{[General]} section. In
+other words, lookups in \ttt{[Config PureAloha]} will fall back to \ttt{[General]}.
+The \ttt{[General]} section itself is optional; when it is absent, it is
+treated like an empty \ttt{[General]} section.
+
+All named configurations fall back to \ttt{[General]} by default. However, for
+each configuration it is possible to specify the fall-back section or a list of
+fallback sections explicitly, using the \fconfig{extends} key. Consider the
+following ini file skeleton:
+
+\begin{inifile}
+[General]
+...
+[Config SlottedAlohaBase]
+...
+[Config LowTrafficSettings]
+...
+[Config HighTrafficSettings]
+...
+
+[Config SlottedAloha1]
+extends = SlottedAlohaBase, LowTrafficSettings
+...
+[Config SlottedAloha2]
+extends = SlottedAlohaBase, HighTrafficSettings
+...
+[Config SlottedAloha2a]
+extends = SlottedAloha2
+...
+[Config SlottedAloha2b]
+extends = SlottedAloha2
+...
+\end{inifile}
+
+
+When \ttt{SlottedAloha2b} is activated, lookups will consider sections in the
+following order (this is also called the \textit{section fallback chain}):
+\ttt{SlottedAloha2b}, \ttt{SlottedAloha2}, \ttt{SlottedAlohaBase},
+\ttt{HighTrafficSettings}, \ttt{General}.
+
+The effect is the same as if the contents of the sections
+SlottedAloha2b, SlottedAloha2, SlottedAlohaBase, HighTrafficSettings and
+General were copied together into one section, one after another,
+\ttt{[Config SlottedAloha2b]} being at the top, and \ttt{[General]}
+at the bottom. Lookups always start at the top, and stop at the first
+matching entry.
+
+The order of the sections in the \textit{fallback chain} is computed
+using the \textit{C3 linearization algorithm} (\cite{Barrett1996}):
+
+The \textit{fallback chain} of a configuration \ttt{A} is
+\begin{itemize}
+  \item if \ttt{A} does not have an \fconfig{extends} key then
+        \ttt{A}, \ttt{General}
+  \item otherwise the merge of the configurations enumerated in the
+        \fconfig{extends} key, and all of their \textit{fallback section chains}.
+        The merge is \textit{monotonic}: if some configuration \ttt{X}
+        precedes configuration \ttt{Y} in one of the input chains,
+        it will precede it in the output chain too.
+\end{itemize}
+
+The \textit{section fallback chain} can be printed by the \fopt{-X} option
+of the command line of the simulation program:
+
+\begin{commandline}
+$ aloha -X SlottedAloha2b
+`\opp` Discrete Event Simulation
+...
+Config SlottedAloha2b
+Config SlottedAloha2
+Config SlottedAlohaBase
+Config HighTrafficSettings
+General
+\end{commandline}
+
+The \textit{section fallback} concept is similar to multiple inheritance in
+object-oriented languages, and benefits are similar too; one can factor out
+the common parts of several configurations into a ``base'' configuration,
+and additionally, one can reuse existing configurations without copying, by
+using them as a base. In practice one will often have ``abstract''
+configurations too (in the C++/Java sense), which assign only a subset of
+parameters and leave the others open, to be assigned in derived
+configurations.
+
+When experimenting with a lot of different parameter settings for a
+simulation model, file inclusion and section inheritance can make it much
+easier to manage ini files.
+
+
+\section{Assigning Module Parameters}
+\label{sec:config-sim:parameter-settings}
+
+Simulations get input via module parameters, which can be assigned a
+value in NED files or in \ffilename{omnetpp.ini} -- in this order. Since parameters
+assigned in NED files cannot be overridden in \ffilename{omnetpp.ini}, one can
+think about them as being ``hardcoded''. In contrast, it is easier
+and more flexible to maintain module parameter settings in \ffilename{omnetpp.ini}.
+
+In \ffilename{omnetpp.ini}, module parameters are referred to by their full paths
+(hierarchical names). This name consists of the dot-separated list of
+the module names (from the top-level module down to the module containing
+the parameter), plus the parameter name (see section \ref{sec:sim-lib:object-fullpath}).
+
+An example \ffilename{omnetpp.ini} which sets the \ttt{numHosts} parameter of
+the toplevel module and the \ttt{transactionsPerSecond} parameter of the
+\ttt{server} module:
+
+\begin{inifile}
+[General]
+Network.numHosts = 15
+Network.server.transactionsPerSecond = 100
+\end{inifile}
+
+Typename pattern assignments are also accepted:
+
+\begin{inifile}
+[General]
+Network.host[*].app.typename = "PingApp"
+\end{inifile}
+
+
+\subsection{Using Wildcard Patterns}
+\label{sec:config-sim:wildcards}
+
+Models can have a large number of parameters to be configured, and it would
+be tedious to set them one-by-one in \ffilename{omnetpp.ini}. {\opp} supports
+\textit{wildcard patterns} which allow for setting several model parameters
+at once. The same pattern syntax is used for per-object configuration options;
+for example \ttt{<object-path-pattern>.record-scalar}, or \ttt{<module-path-pattern>.rng-<N>}.
+
+The pattern syntax is a variation on Unix \textit{glob}-style
+patterns. The most apparent differences to globbing rules are the
+distinction between \ttt{*} and \ttt{**}, and that character ranges should
+be written with curly braces instead of square brackets; that is,
+\textit{any-letter} is expressed as \ttt{\{a-zA-Z\}} and not as
+\ttt{[a-zA-Z]}, because square brackets are reserved for the notation of
+module vector indices.
+
+Pattern syntax:
+
+\begin{itemize}
+  \item \ttt{?} : matches any character except dot (.)
+  \item \ttt{*} : matches zero or more characters except dot (.)
+  \item \ttt{**} : matches zero or more characters (any character)
+  \item \ttt{\{a-f\}} : \textit{set}: matches a character in the range a-f
+  \item \ttt{\{{\textasciicircum}a-f\}}: \textit{negated set}: matches a character
+    NOT in the range a-f
+  \item \ttt{\{38..150\}} : \textit{numeric range}: any number (i.e. sequence of digits)
+    in the range 38..150, inclusive; both limits are optional
+  \item \ttt{[38..150]} : \textit{index range}: any number in square brackets in the
+    range 38..150, inclusive; both limits are optional
+  \item backslash ({\textbackslash}) : takes away the special meaning of the
+    subsequent character
+\end{itemize}
+
+\subsubsection{Precedence}
+\label{sec:config-sim:precedence-of-entries}
+
+The order of entries is very important with wildcards. When a key matches
+several wildcard patterns, the \textit{first} matching occurrence
+is used. This means that one needs to list specific settings first, and
+more general ones later. Catch-all settings should come last.
+
+An example ini file:
+
+\begin{inifile}
+[General]
+*.host[0].waitTime = 5ms   # specifics come first
+*.host[3].waitTime = 6ms
+*.host[*].waitTime = 10ms  # catch-all comes last
+\end{inifile}
+
+
+\subsubsection{Asterisk vs Double Asterisk}
+\label{sec:config-sim:asterisk-vs-double-asterisk}
+
+The \ttt{*} wildcard is for matching a single module or parameter name in the
+path name, while \ttt{**} can be used to match several components in the path.
+For example, \ttt{**.queue*.bufSize} matches the \ttt{bufSize} parameter of any module
+whose name begins with \ttt{queue} in the model, while \ttt{*.queue*.bufSize}
+or \ttt{net.queue*.bufSize} selects only queues immediately on network level.
+Also note that \ttt{**.queue**.bufSize} would match \ttt{net.queue1.foo.bar.bufSize}
+as well!
+
+\subsubsection{Sets, Negated Sets}
+\label{sec:config-sim:sets-negated-sets}
+
+Sets and negated sets can contain several character ranges and also
+enumeration of characters. For example, \ttt{\{\_a-zA-Z0-9\}} matches any letter
+or digit, plus the underscore; \ttt{\{xyzc-f\}} matches any of the characters
+x, y, z, c, d, e, f.
+To include '-' in the set, put it at a position where it cannot be
+interpreted as character range, for example: \ttt{\{a-z-\}} or \ttt{\{-a-z\}}.
+To include '\}' in the set, it must be the first character: \ttt{\{\}a-z\}},
+or as a negated set: \ttt{\{{\textasciicircum}\}a-z\}}.
+A backslash is always taken as a literal backslash (and not as an escape
+character) within set definitions.
+
+
+\subsubsection{Numeric Ranges and Index Ranges}
+\label{sec:config-sim:numeric-ranges-and-index-ranges}
+
+Only nonnegative integers can be matched.  The start or the end of the range
+(or both) can be omitted: \ttt{\{10..\}}, \ttt{\{..99\}} or \ttt{\{..\}}
+are valid numeric ranges (the last one matches any number).
+The specification must use exactly two dots.
+Caveat: \ttt{*\{17..19\}} will match \ttt{a17}, \ttt{117} and \ttt{963217} as well,
+because the \ttt{*} can also match digits!
+
+An example for numeric ranges:
+
+\begin{inifile}
+[General]
+*.*.queue[3..5].bufSize = 10
+*.*.queue[12..].bufSize = 18
+*.*.queue[*].bufSize = 6  # this will only affect queues 0,1,2 and 6..11
+\end{inifile}
+
+
+\subsection{Using the Default Values}
+\label{sec:config-sim:using-default-values}
+
+It is also possible to utilize the default values specified in the NED files.
+The \textit{<parameter-fullpath>}\ttt{=default} setting assigns
+the default value to a parameter if it has one.
+
+The \textit{<parameter-fullpath>}\ttt{=ask} setting will try to get the parameter
+value interactively from the user.
+
+If a parameter was not set but has a default value, that value will be
+assigned. This is like having a \ttt{**=default} line at the
+bottom of the \ttt{[General]} section.
+
+If a parameter was not set and has no default value, that will either
+cause an error or will be interactively prompted for, depending
+on the particular user interface.
+
+\begin{note}
+In Cmdenv, one must explicitly enable interactive mode with the
+\fopt{-{}-cmdenv-interactive=true} option, otherwise the simulation
+program will stop with an error in the setup phase.
+\end{note}
+
+More precisely, parameter resolution takes place as follows:
+
+\begin{enumerate}
+\item If the parameter is assigned in NED, it cannot be overridden in the
+    configuration. The value is applied and the process finishes.
+\item If the first match is a value line (matches
+    \textit{<parameter-fullpath>}\ttt{=}\textit{<value>}), the value is
+    applied and the process finishes.
+\item If the first match is a \textit{<parameter-fullpath>}\ttt{=default} line,
+    the default value is applied and the process finishes.
+\item If the first match is a \textit{<parameter-fullpath>}\ttt{=ask} line,
+    the parameter will be asked from the user interactively (UI dependent).
+\item If there was no match and the parameter has a default value, it is applied
+    and the process finishes.
+\item Otherwise the parameter is declared unassigned, and handled accordingly
+    by the user interface. It may be reported as an error, or may be
+    asked from the user interactively.
+\end{enumerate}
+
+
+\section{Parameter Studies}
+\label{sec:config-sim:parameter-studies}
+
+It is quite common in simulation studies that the simulation model is
+run several times with different parameter settings, and the results
+are analyzed in relation to the input parameters. {\opp} 3.x had no
+direct support for batch runs, and users had to resort to writing shell
+(or Python, Ruby, etc.) scripts that iterated over the required
+parameter space, to generate a (partial) ini file and run the
+simulation program in each iteration.
+
+{\opp} 4.x largely automates this process, and eliminates the need for
+writing batch execution scripts. It is the ini file where the user can
+specify iterations over various parameter settings.
+Here is an example:
+
+\begin{inifile}
+[Config AlohaStudy]
+*.numHosts = ${1, 2, 5, 10..50 step 10}
+**.host[*].generationInterval = exponential(${0.2, 0.4, 0.6}s)
+\end{inifile}
+
+This parameter study expands to 8*3 = 24 simulation runs, where the number of
+hosts iterates over the numbers 1, 2, 5, 10, 20, 30, 40, 50, and for
+each host count three simulation runs will be done, with the generation
+interval being exponential(0.2), exponential(0.4), and
+exponential(0.6).
+
+How can it be used? First of all, running the simulation program with the
+\fopt{-q numruns} option will print how many simulation runs a given
+configuration expands to.
+
+\begin{commandline}
+$ ./aloha -c AlohaStudy -q numruns
+
+`\opp` Discrete Event Simulation
+...
+Config: AlohaStudy
+Number of runs: 24
+\end{commandline}
+
+When \fopt{-q runs} is used instead, the program will print the list
+of runs, with the values of the iteration variables for each run.
+(Use \fopt{-q rundetails} to get even more info.)
+Note that the parameter study actually maps to nested loops, with the last
+\ttt{\$\{...\}} becoming the innermost loop. The iteration variables are
+just named \ttt{\$0} and \ttt{\$1} -- we'll see that it is possible to give
+meaningful names to them. Please ignore the \ttt{\$repetition=0} part in
+the printout for now.
+
+\begin{commandline}
+$ ./aloha -c AlohaStudy -q runs
+`\opp` Discrete Event Simulation
+...
+Config: AlohaStudy
+Number of runs: 24
+Run 0: $0=1, $1=0.2, $repetition=0
+Run 1: $0=1, $1=0.4, $repetition=0
+Run 2: $0=1, $1=0.6, $repetition=0
+Run 3: $0=2, $1=0.2, $repetition=0
+Run 4: $0=2, $1=0.4, $repetition=0
+Run 5: $0=2, $1=0.6, $repetition=0
+Run 6: $0=5, $1=0.2, $repetition=0
+Run 7: $0=5, $1=0.4, $repetition=0
+...
+Run 19: $0=40, $1=0.4, $repetition=0
+Run 20: $0=40, $1=0.6, $repetition=0
+Run 21: $0=50, $1=0.2, $repetition=0
+Run 22: $0=50, $1=0.4, $repetition=0
+Run 23: $0=50, $1=0.6, $repetition=0
+\end{commandline}
+
+Any of these runs can be executed by passing the \fopt{-r <runnumber>}
+option to Cmdenv. So, the task is now to run the simulation program 24
+times, with \fopt{-r} running from 0 through 23:
+
+\begin{commandline}
+$ ./aloha -u Cmdenv -c AlohaStudy -r 0
+$ ./aloha -u Cmdenv -c AlohaStudy -r 1
+$ ./aloha -u Cmdenv -c AlohaStudy -r 2
+...
+$ ./aloha -u Cmdenv -c AlohaStudy -r 23
+\end{commandline}
+
+This batch can be executed either from the {\opp} IDE (where you are
+prompted to pick an executable and an ini file, choose the configuration
+from a list, and just click Run), or using a little command-line
+batch execution tool (\fprog{opp\_runall}) supplied with {\opp}.
+
+Actually, it is also possible to make Cmdenv execute all runs in one go,
+by simply omitting the \fopt{-r} option.
+
+\begin{commandline}
+$ ./aloha -u Cmdenv -c AlohaStudy
+
+`\opp` Discrete Event Simulation
+Preparing for running configuration AlohaStudy, run #0...
+...
+Preparing for running configuration AlohaStudy, run #1...
+...
+...
+Preparing for running configuration AlohaStudy, run #23...
+\end{commandline}
+
+However, this approach is not recommended, because it is more
+susceptible to C++ programming errors in the model. (For example, if
+any of the runs crashes, the whole batch stops -- which may
+not be what the user wants.)
+
+
+\subsection{Iterations}
+\label{sec:config-sim:iterations}
+
+Let us return to the example ini file in the previous section:
+
+\begin{inifile}
+[Config AlohaStudy]
+*.numHosts = ${1, 2, 5, 10..50 step 10}
+**.host[*].generationInterval = exponential( ${0.2, 0.4, 0.6}s )
+\end{inifile}
+
+The \ttt{\$\{...\}} syntax specifies an iteration. It is sort of a macro: at
+each run, the whole \ttt{\$\{...\}} string is textually replaced with the
+current iteration value. The values to iterate over do not need to be
+numbers (although the \textit{"a..b"} and \textit{"a..b step c"} forms
+only work on numbers), and the substitution takes place even inside
+string constants. So, the following examples are all valid (note that
+textual substitution is used):
+
+\begin{Verbatim}[commandchars=\\\{\}]
+*.param = 1 + \$\{1e-6, 1/3, sin(0.5)\}
+    ==> *.param = 1 + 1e-6
+        *.param = 1 + 1/3
+        *.param = 1 + sin(0.5)
+*.greeting = "We will simulate \$\{1,2,5\} host(s)."
+    ==> *.greeting = "We will simulate 1 host(s)."
+        *.greeting = "We will simulate 2 host(s)."
+        *.greeting = "We will simulate 5 host(s)."
+\end{Verbatim}
+
+To write a literal \ttt{\$\{..\}} inside a string constant, quote
+the left brace with a backslash: \ttt{\${\textbackslash}\{..\}}.
+
+\begin{note}
+Inside \ttt{\$\{..\}}, the values are separated with commas. However,
+not every comma is taken as a value separator because the parser
+tries to be smart about what is meant. Commas inside (nested) parentheses,
+brackets or curly braces are ignored so that \ttt{\$\{uniform(0,3)\}} is
+parsed as one value and not as \ttt{uniform(0} plus \ttt{3)}. Commas, curly
+braces and other charachers inside double-quoted string literals are
+also ignored, so \ttt{\$\{"Hello, world"\}} yields a single \ttt{"Hello, world"}
+string and not \ttt{"Hello} plus \ttt{world"}. It is assumed that string literals
+use backslash as an escape characher, like in C/C++ and NED.
+
+To include a literal comma or close-brace inside a value, one needs
+to escape it with a backslash: \ttt{\$\{foo{\textbackslash},bar{\textbackslash}\}baz\}}
+will parse as a single value, \ttt{foo,bar\}baz}. Backslashes themselves must be doubled.
+As the above examples illustrate, the parser removes one level of backslashes,
+except inside string literals where they are left intact.
+\end{note}
+
+
+\subsection{Named Iteration Variables}
+\label{sec:config-sim:named-iteration-variables}
+
+One can assign names to iteration variables, which has the advantage
+that meaningful names will be displayed in the Cmdenv output instead
+of \ttt{\$0} and \ttt{\$1}, and also lets one reference iteration
+variables at other places in the ini file. The syntax is
+\ttt{\$\{<varname>=<iteration>\}}, and variables can be referred to simply as
+\ttt{\$\{<varname>\}}:
+
+\begin{inifile}
+[Config Aloha]
+*.numHosts = ${N=1, 2, 5, 10..50 step 10}
+**.host[*].generationInterval = exponential( ${mean=0.2, 0.4, 0.6}s )
+**.greeting = "There are ${N} hosts"
+\end{inifile}
+
+The scope of the variable name is the section that defines it, plus
+sections based on that section (via \fconfig{extends}).
+
+\subsubsection{Referencing Other Iteration Variables}
+\label{sec:config-sim:referencing-other-iteration-variables}
+
+Iterations may refer to other iteration variables, using the dollar syntax
+(\ttt{\$var}) or the dollar-brace syntax (\ttt{\$\{var\}}).
+
+This feature makes it possible to have loops where the inner iteration range
+depends on the outer one. An example:
+
+\begin{inifile}
+**.foo = ${i=1..10}  # outer loop
+**.bar = ${j=1..$i}  # inner loop depends on $i
+\end{inifile}
+
+When needed, the default top-down nesting order of iteration loops is
+modified (loops are reordered) to ensure that expressions only refer to
+more outer loop variables, but not to inner ones. When this is not
+possible, an error is generated with the ``circular dependency'' message.
+
+For instance, in the following example the loops will be nested in
+\textit{k - i - j} order, \textit{k} being the outermost and \textit{j}
+the innermost loop:
+
+\begin{inifile}
+**.foo = ${i=0..$k}   # must be inner to $k
+**.bar = ${j=$i..$k}  # must be inner to both $i and $k
+**.baz = ${k=1..10}   # may be the outermost loop
+\end{inifile}
+
+And the next example will stop with an error because there is no ``good''
+ordering:
+
+\begin{inifile}
+**.foo = ${i=0..$j}
+**.bar = ${j=0..$k}
+**.baz = ${k=0..$i} # --> error: circular references
+\end{inifile}
+
+Variables are substituted \textit{textually}, and the result is normally
+\textit{not} evaluated as an arithmetic expression.  The result of the
+substitution is only evaluated where needed, namely in the three arguments
+of iteration ranges (\textit{from}, \textit{to}, \textit{step}), and in the
+value of the \fconfig{constraint} configuration option.
+
+To illustrate textual substitution, consider the following contorted example:
+
+\begin{inifile}
+**.foo = ${i=1..3, 1s+, -}001s
+\end{inifile}
+
+Here, the \ttt{foo} NED parameter will receiving the following values in subsequent runs:
+\ttt{1001s}, \ttt{2001s}, \ttt{3001s}, \ttt{1s+001s}, \ttt{-001s}.
+
+\begin{caution}
+Due to textual substitution, variables in arithmetic expressions should be
+protected with parentheses -- just like in C/C++ function-style macros.
+Consider the following example:
+
+\begin{inifile}
+**.foo = ${i=10}
+**.bar = ${j=$i+5}
+**.baz = ${k=2*$j}   # bogus! $j should be written as ($j)
+constraint = $i+50 < 2*$j  # ditto: should use ($i) and ($j)
+\end{inifile}
+
+Here, the \ttt{baz} parameter will receive the string \ttt{2*10+5} after
+the substitutions and hence evaluate to $25$ instead of the correct
+$2*(10+5)=30$; the constraint expression is similarly wrong. Mind the parens!
+\end{caution}
+
+Substitution also works inside string constants within iterations (\ttt{\$\{..\}}).
+
+\begin{inifile}
+**.foo = "${i=Jo}"  # -> Jo
+**.bar = ${"Hi $i", "Hi ${i}hn"}  # -> Hi Jo /John
+\end{inifile}
+
+However, outside iterations the plain dollar syntax is not understood, only
+the dollar-brace syntax is:
+
+\begin{inifile}
+**.foo = "${i=Day}"
+**.baz = "Good $i"     # -> remains "Good $i"
+**.baz = "Good ${i}"   # -> becomes "Good Day"
+\end{inifile}
+
+\begin{rationale}
+The text substitution model was chosen for greater flexibility as well as
+the ability to produce more consistent semantics. The advantages outweigh
+the inconvenience of having to parenthesize variable references in
+arithmetic expressions.
+\end{rationale}
+
+
+\subsection{Parallel Iteration}
+\label{sec:config-sim:parallel-iteration}
+
+The body of an iteration may end in an exclamation mark followed by the
+name of another iteration variable. This syntax denotes a \textit{parallel
+iteration}. A parallel iteration does not define a loop of its own, but
+rather, the sequence is advanced in lockstep with the variable after the
+``!''. In other words, the ``!'' syntax chooses the \textit{kth} value from
+the iteration, where \textit{k} is the position (iteration count) of the
+iteration variable after the ``!''.
+
+An example:
+
+\begin{inifile}
+**.plan =     ${plan= "A", "B", "C", "D"}
+**.numHosts = ${hosts= 10,  20,  50, 100 ! plan}
+**.load =     ${load= 0.2, 0.3, 0.3, 0.4 ! plan}
+\end{inifile}
+
+In the above example, the only loop is defined by the first line, the \ttt{plan}
+variable. The other two iterations, \ttt{hosts} and \ttt{load} just follow it;
+for the first value of \ttt{plan} the first values of \ttt{host} and \ttt{load}
+are selected, and so on.
+
+
+
+\subsection{Predefined Variables, Run ID}
+\label{sec:config-sim:predefined-variables}
+
+There are a number of predefined variables: \ttt{\$\{configname\}} and
+\ttt{\$\{runnumber\}} with the obvious meanings; \ttt{\$\{network\}} is the
+name of the network that is simulated; \ttt{\$\{processid\}} and
+\ttt{\$\{datetime\}} expand to the OS process id of the simulation and the
+time it was started; and there are some more: \ttt{\$\{runid\},}
+\ttt{\$\{iterationvars\}} and \ttt{\$\{repetition\}.}
+
+\ttt{\$\{runid\}} holds the \textit{run ID}. When a simulation is run, a
+run ID is assigned that uniquely identifies that instance of running the
+simulation: every subsequent run of the same simulation will produce a different
+run ID. The run ID is generated as the concatenation of several variables like
+\ttt{\$\{configname\},} \ttt{\$\{runnumber\},} \ttt{\$\{datetime\}} and
+\ttt{\$\{processid\}.} This yields an identifier that is unique ``enough''
+for all practical purposes, yet it is meaningful for humans. The run ID is
+recorded into result files written during the simulation, and can be used
+to match vectors and scalars written by the same simulation run.
+
+
+\subsection{Constraint Expression}
+\label{sec:config-sim:constraint-expression}
+
+In cases when not all combinations of the iteration variables make sense
+or need to be simulated, it is possible to specify an additional
+constraint expression. This expression is interpreted as a conditional
+(an "if" statement) within the innermost
+loop, and it must evaluate to \ttt{true} for
+the variable combination to generate a run. The expression should be
+given with the \fconfig{constraint} configuration option. An example:
+
+\begin{inifile}
+*.numNodes = ${n=10..100 step 10}
+**.numNeighbors = ${m=2..10 step 2}
+constraint = ($m) <= sqrt($n)  # note: parens needed due to textual substitution
+\end{inifile}
+
+The expression syntax supports most C language operators including boolean,
+conditional and binary shift operations, and most \ttt{<math.h>} functions;
+data types are boolean, double and string. The expression must evaluate to
+a boolean.
+
+\begin{note}
+Remember that variables are substituted textually into the expresssion, so
+they must be protected with parentheses to preserve evaluation order.
+\end{note}
+
+
+\subsection{Repeating Runs with Different Seeds}
+\label{sec:config-sim:repeating-runs-with-different-seeds}
+
+It is directly supported to perform several runs with the same
+parameters but different random number seeds. There are two
+configuration options related to this: \fconfig{repeat} and \fconfig{seed-set}.
+The first one simply specifies how many times a run needs to be repeated. For
+example,
+
+\begin{inifile}
+repeat = 10
+\end{inifile}
+
+causes every combination of iteration variables to be repeated 10 times,
+and the \ttt{\$\{repetition\}} predefined variable holds the loop counter.
+Indeed, \ttt{repeat=10} is equivalent to adding \ttt{\$\{repetition=0..9\}}
+to the ini file. The \ttt{\$\{repetition\}} loop always becomes the innermost loop.
+
+The \fconfig{seed-set} configuration key affects seed selection. Every
+simulation uses one or more random number generators (as configured by
+the \fconfig{num-rngs} key), for which the simulation kernel can automatically
+generate seeds. The first simulation run may use one set of seeds (seed
+set 0), the second run may use a second set (seed set 1), and so on.
+Each set contains as many seeds as there are RNGs configured. All
+automatic seeds generate random number sequences that are far apart in
+the RNG's cycle, so they will never overlap during
+simulations.
+
+\begin{note}
+Mersenne Twister, the default RNG of {\opp} has a cycle length of
+$2^{19937}$, which is more than enough for any conceivable purpose.
+\end{note}
+
+The \fconfig{seed-set} key tells the simulation kernel which seed set to use.
+It can be set to a concrete number (such as \ttt{seed-set=0}), but it
+usually does not make sense as it would cause every simulation to run
+with exactly the same seeds. It is more practical to set it to either
+\ttt{\$\{runnumber\}} or to \ttt{\$\{repetition\}}. The default setting is
+\ttt{\$\{runnumber\}}:
+
+\begin{inifile}
+seed-set = ${runnumber}   # this is the default
+\end{inifile}
+
+This causes every simulation run to execute with a unique seed set. The
+second option is:
+
+\begin{inifile}
+seed-set = ${repetition}
+\end{inifile}
+
+where all \ttt{\$repetition=0} runs will use the same seeds (seed set 0), all
+\ttt{\$repetition=1} runs use another seed set, \ttt{\$repetition=2} a third seed
+set, etc.
+
+To perform runs with manually selected seed sets, one needs to define an
+iteration for the \fconfig{seed-set} key:
+
+\begin{inifile}
+seed-set = ${5,6,8..11}
+\end{inifile}
+
+In this case, the \fconfig{repeat} key should be left out, as \fconfig{seed-set}
+already defines an iteration and there is no need for an extra loop.
+
+It is of course also possible to manually specify individual seeds for
+simulations. The parallel iteration feature is very convenient here:
+
+\begin{inifile}
+repeat = 4
+seed-1-mt = ${53542, 45732, 47853, 33434 ! repetition}
+seed-2-mt = ${75335, 35463, 24674, 56673 ! repetition}
+seed-3-mt = ${34542, 67563, 96433, 23567 ! repetition}
+\end{inifile}
+
+The meaning of the above is this: in the first repetition, the first
+column of seeds is chosen, for the second repetition, the second
+column, etc. The "!" syntax chooses the
+\textit{kth} value from the iteration, where \textit{k} is the position
+(iteration count) of the iteration variable after the
+"!". Thus, the above example is equivalent to the following:
+
+\begin{inifile}
+# no repeat= line!
+seed-1-mt = ${seed1 = 53542, 45732, 47853, 33434}
+seed-2-mt = ${        75335, 35463, 24674, 56673 ! seed1}
+seed-3-mt = ${        34542, 67563, 96433, 23567 ! seed1}
+\end{inifile}
+
+That is, the iterators of \ttt{seed-2-mt} and \ttt{seed-3-mt} are advanced
+in lockstep with the \ttt{seed1} iteration.
+
+
+
+\subsection{Experiment-Measurement-Replication}
+\label{sec:config-sim:experiment-measurement-replication}
+
+We have introduced three concepts that are useful for organizing
+simulation results generated by batch executions or several batches of
+executions.
+
+During a simulation study, a user prepares several
+\textit{experiments}. The purpose of an experiment is to find out the
+answer to questions like \textit{"how does the number of
+nodes affect response times in the network?"} For an
+experiment, several \textit{measurements} are performed on the
+simulation model, and each measurement runs the simulation model with a
+different set of parameters. To eliminate the bias introduced by the
+particular random number stream used for the simulation, several
+\textit{replications} of every measurement are run with different
+random number seeds, and the results are averaged.
+
+{\opp} result analysis tools can take advantage of the \textit{experiment},
+\textit{measurement} and \textit{replication} labels recorded into result
+files, and display simulation runs and recorded results accordingly on
+the user interface.
+
+These labels can be explicitly specified in the ini file using the
+\fconfig{experiment-label}, \fconfig{measurement-label} and \fconfig{replication-label}
+config options. If they are missing, the default is the following:
+
+\begin{inifile}
+experiment-label = "${configname}"
+measurement-label = "${iterationvars}"
+replication-label = "#${repetition},seed-set=<seedset>"
+\end{inifile}
+
+That is, the default experiment label is the configuration name; the
+measurement label is concatenated from the iteration variables; and the
+replication label contains the repeat loop variable and seed-set.
+Thus, for our first example the \textit{experiment-measurement-replication}
+tree would look like this:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+"PureAloha"\textrm{\textit{--experiment}}
+  \$N=1,\$mean=0.2\textrm{\textit{ -- measurement}}
+    \#0, seed-set=0\textrm{\textit{ -- replication}}
+    \#1, seed-set=1
+    \#2, seed-set=2
+    \#3, seed-set=3
+    \#4, seed-set=4
+  \$N=1,\$mean=0.4
+    \#0, seed-set=5
+    \#1, seed-set=6
+    ...
+    \#4, seed-set=9
+  \$N=1,\$mean=0.6
+    \#0, seed-set=10
+    \#1, seed-set=11
+    ...
+    \#4, seed-set=14
+  \$N=2,\$mean=0.2
+    ...
+  \$N=2,\$mean=0.4
+    ...
+    ...
+\end{Verbatim}
+
+The \textit{experiment-measurement-replication} labels should be enough to
+reproduce the same simulation results, given of course that the ini
+files and the model (NED files and C++ code) haven't changed.
+
+Every instance of running the simulation gets a unique run ID. We can
+illustrate this by listing the corresponding run IDs under each
+repetition in the tree. For example:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+"PureAloha"
+  \$N=1,\$mean=0.2
+    \#0, seed-set=0
+      \textit{PureAloha-0-20070704-11:38:21-3241}
+      \textit{PureAloha-0-20070704-11:53:47-3884}
+      \textit{PureAloha-0-20070704-16:50:44-4612}
+    \#1, seed-set=1
+      \textit{PureAloha-1-20070704-16:50:55-4613}
+    \#2, seed-set=2
+      \textit{PureAloha-2-20070704-11:55:23-3892}
+      \textit{PureAloha-2-20070704-16:51:17-4615}
+      ...
+\end{Verbatim}
+
+The tree shows that ("PureAloha", "\$N=1,\$mean=0.2", "\#0, seed-set=0")
+was run three times. The results produced
+by these three executions should be identical, unless, for example,
+some parameter was modified in the ini file, or a bug got fixed in the
+C++ code.
+
+The default way of generating the \textit{experiment/measurement/replication}
+labels is useful and sufficient for the majority of simulation studies.
+However, it can be customized if needed. For example, here is a way to join two
+configurations into one experiment:
+
+\begin{inifile}
+[Config PureAloha_Part1]
+experiment-label = "PureAloha"
+...
+[Config PureAloha_Part2]
+experiment-label = "PureAloha"
+...
+\end{inifile}
+
+Measurement and replication labels can be customized in a similar way,
+making use of named iteration variables, \ttt{\$\{repetition\}},
+\ttt{\$\{runnumber\}} and other predefined variables. One possible benefit is
+to customize the generated measurement and replication labels. For
+example:
+
+\begin{inifile}
+[Config PureAloha_Part1]
+measurement = "${N} hosts, exponential(${mean}) packet generation interval"
+\end{inifile}
+
+One should be careful with the above technique though, because if some
+iteration variables are left out of the measurement labels, runs with
+all values of those variables will be grouped together to the same
+replications.
+
+
+\section{Configuring the Random Number Generators}
+\label{sec:config-sim:rng-config}
+
+The random number architecture of {\opp} was already outlined
+in section \ref{sec:sim-lib:random-number-generators}. Here
+we'll cover the configuration of RNGs in \ffilename{omnetpp.ini}.
+
+\subsection{Number of RNGs}
+\label{sec:config-sim:number-of-rngs}
+
+The \fconfig{num-rngs} configuration option sets the number of
+random number generator instances (i.e. random number streams)
+available for the simulation model (see \ref{sec:sim-lib:random-number-generators}).
+Referencing an RNG number greater or equal to this number
+(from a simple module or NED file) will cause a runtime error.
+
+
+\subsection{RNG Choice}
+\label{sec:config-sim:rng-choice}
+
+The \fconfig{rng-class} configuration option sets the random number
+generator class to be used. It defaults to \ttt{"cMersenneTwister"},
+the Mersenne Twister RNG. Other available classes are \ttt{"cLCG32"}
+(the "legacy" RNG of {\opp} 2.3 and earlier versions, with a cycle length
+of $2^{31}-2$), and \ttt{"cAkaroaRNG"} (Akaroa's random number generator,
+see section \ref{sec:run-sim:akaroa}).
+
+\subsection{RNG Mapping}
+\label{sec:config-sim:rng-mapping}
+
+The RNG numbers used in simple modules may be arbitrarily mapped to the
+actual random number streams (actual RNG instances) from \ffilename{omnetpp.ini}.
+The mapping allows for great flexibility in RNG usage and random number
+streams configuration -- even for simulation models which were not
+written with RNG awareness.
+
+RNG mapping may be specified in \ffilename{omnetpp.ini}. The syntax of
+configuration entries is the following.
+
+\begin{inifile}
+[General]
+<modulepath>.rng-N = M  # where N,M are numeric, M < num-rngs
+\end{inifile}
+
+This maps module-local RNG N to physical RNG M. The following
+example maps all \ttt{gen} module's default (N=0) RNG to physical RNG 1,
+and all \ttt{noisychannel} module's default (N=0) RNG to physical RNG 2.
+
+\begin{inifile}
+[General]
+num-rngs = 3
+**.gen[*].rng-0 = 1
+**.noisychannel[*].rng-0 = 2
+\end{inifile}
+
+The value also allows expressions, including those containing \fkeyword{index},
+\fkeyword{parentIndex}, and \fkeyword{ancestorIndex(level)}. This allows things
+like assigning a separate RNG to each element of a module vector.
+
+This mapping allows variance reduction techniques to be applied to
+{\opp} models, without any model change or recompilation.
+
+
+\subsection{Automatic Seed Selection}
+\label{sec:config-sim:automatic-seed-selection}
+
+Automatic seed selection is used for an RNG if one does not explicitly
+specify seeds in \ffilename{omnetpp.ini}. Automatic and manual seed selection can
+co-exist; for a particular simulation, some RNGs can be configured
+manually, and some automatically.
+
+The automatic seed selection mechanism uses two inputs: the \textit{run number}
+ and the \textit{RNG number}. For the same run number and RNG number,
+{\opp} always selects the same seed value for any simulation model.
+If the run number or the RNG number is different, {\opp} does its best
+to choose different seeds which are also sufficiently separated in the RNG's sequence
+so that the generated sequences don't overlap.
+
+The run number can be specified either in in \ffilename{omnetpp.ini} (e.g. via the
+\fconfig{cmdenv-runs-to-execute} option) or on the command line:
+
+\begin{commandline}
+$ ./mysim -r 1
+$ ./mysim -r 2
+$ ./mysim -r 3
+\end{commandline}
+
+For the \ttt{cMersenneTwister} random number generator, selecting seeds
+so that the generated sequences don't overlap is easy,
+due to the extremely long sequence of the RNG.
+The RNG is initialized from the 32-bit seed value $seed = runNumber*numRngs + rngNumber$.
+(This implies that simulation runs participating in the study should have
+the same number of RNGs set).
+    \footnote{While (to our knowledge) no one has proven that the seeds 0,1,2,...
+    are well apart in the sequence, this is probably true, due to the extremely
+    long sequence of MT. The author would however be interested in papers
+    published about seed selection for MT.}
+
+For the \ttt{cLCG32} random number generator, the situation is more difficult,
+because the range of this RNG is rather short ($2^{31}-1$, about 2 billion).
+For this RNG, {\opp} uses a table of 256 pre-generated seeds, equally spaced
+in the RNG's sequence. Index into the table is calculated with the
+$runNumber*numRngs + rngNumber$ formula. Care should be taken that
+one doesn't exceed 256 with the index, or it will wrap and the
+same seeds will be used again. It is best not to use the \ttt{cLCG32}
+at all -- \ttt{cMersenneTwister} is superior in every respect.
+
+
+\subsection{Manual Seed Configuration}
+\label{sec:config-sim:manual-seed-configuration}
+
+In some cases, one may want to manually configure seed values. The
+motivation for doing so may be the use of variance reduction techniques, or
+the intention to reuse the same seeds for several simulation runs.
+
+To manually set seeds for the Mersenne Twister RNG, use the \ttt{seed-}\textit{k}\ttt{-mt}
+option, where \textit{k} is the RNG index. An example:
+
+\begin{inifile}
+[General]
+num-rngs = 3
+seed-0-mt = 12
+seed-1-mt = 9
+seed-2-mt = 7
+\end{inifile}
+
+\label{sec:config-sim:seedtool}
+
+For the now obsolete cLCG32 RNG, the name of the corresponding option is
+\ttt{seed-}\textit{k}\ttt{-lcg32}.
+
+\section{Logging}
+\label{sec:config-sim:logging}
+
+The {\opp} logging infrastructure provides a few configuration options that
+affect what is written to the log output. It supports configuring multiple
+filters: global compile-time, global runtime, and per-component runtime log
+level filters. For a log statement to actually produce output, it must pass
+each filter simulatenously. In addition, one can also specify a log prefix
+format string which determines the context information that is written before
+each log line. In the following sections, we look how to configure logging.
+
+\subsection{Compile-Time Filtering}
+\label{sec:config-sim:compile-time-log-filtering}
+
+The \fmac{COMPILETIME\_LOGLEVEL} macro determines which log statements
+are compiled into the executable. Any log statment which uses a log level below
+the specified compile-time log level is omitted. In other words, no matter how
+the runtime log levels are configured, such log statements are not even executed.
+This is mainly useful to avoid the performance penalty paid for log statements
+which are not needed.
+
+\begin{cpp}
+#define COMPILETIME_LOGLEVEL LOGLEVEL_INFO
+EV_INFO << "Packet received successfully" << endl;
+EV_DEBUG << "CRC check successful" << endl;
+\end{cpp}
+
+In the above example, the output of the second log statement is omitted:
+
+\begin{filelisting}
+[INFO] Packet received successfully
+\end{filelisting}
+
+If simulation performance is critical, and if there are lots of log statements
+in the code, it might be useful to omit all log statements from the executable.
+This can be very simply achieved by putting the following macro into effect for
+the compilation of all source files.
+
+\begin{cpp}
+#define COMPILETIME_LOGLEVEL LOGLEVEL_OFF
+\end{cpp}
+
+On the other hand, if there's some hard to track down issue, it might be useful
+to just do the opposite. Compiling with the lowest log level ensures that the
+log output contains as much information as possible.
+
+\begin{cpp}
+#define COMPILETIME_LOGLEVEL LOGLEVEL_TRACE
+\end{cpp}
+
+By default, the \fmac{COMPILETIME\_LOGLEVEL} macro is set to
+\fmac{LOGLEVEL\_TRACE} if the code is compiled in debug mode (\fmac{NDEBUG} is
+not set). However, it is set to \fmac{LOGLEVEL\_DETAIL} if the code is compiled
+in release mode (\fmac{NDEBUG} is set).
+
+In fact, the \fmac{COMPILETIME\_LOG\_PREDICATE} macro is the most generic compile
+time predicate that determines which log statements are compiled into the executable.
+Mostly, there's no need to redefine this macro, but it can be useful sometimes.
+For example, one can do compile-time filtering for log categories by redefining
+this macro. By default, the \fmac{COMPILETIME\_LOG\_PREDICATE} macro is defined
+as follows:
+
+\begin{cpp}
+#define COMPILETIME_LOG_PREDICATE(object, loglevel, category) \
+        (loglevel >= COMPILETIME_LOGLEVEL)
+\end{cpp}
+
+\subsection{Runtime Filtering}
+\label{sec:config-sim:runtime-log-filtering}
+
+The \fvar{cLog::logLevel} variable restricts during runtime which log statements
+produce output. By default, the global runtime log level doesn't filter logging,
+it is set to \fmac{LOGLEVEL\_TRACE}. Although due to its global nature it's not
+really modular, nevertheless it's still allowed to change the value of this
+variable. It is mainly used in interactive user interfaces to implement efficient
+global filtering, but it may also be useful for various debugging purposes.
+
+In addition to the global variable, there's also a per-component runtime log
+level which only restricts the output of a particular component of the
+simulation. By default, the runtime log level of all components are set to
+\fmac{LOGLEVEL\_TRACE}. Programmatically, these log levels can be retrieved
+with \ffunc{cComponent::getLogLevel()} and changed with
+\ffunc{cComponent::setLogLevel()}.
+
+In general, any log statment which uses a log level below the specified global
+runtime log level, or below the specified per-component runtime log level, is
+omitted. If the log statement appears in a module source, then the module's
+per-component runtime log level is checked. In any other C++ code, the context
+module's per-component runtime log level is checked.
+
+In fact, the \fvar{cLog::noncomponentLogPredicate} and the \fvar{cLog::componentLogPredicate}
+are the most generic runtime predicates that determines which log statements are
+executed. Mostly, there's no need to redefine these predicates, but it can be
+useful sometimes. For example, one can do runtime filtering for log categories
+by redefining them. To cite a real example, the \fvar{cLog::componentLogPredicate} function
+contains the following runtime checks:
+
+\begin{cpp}
+return statementLogLevel >= cLog::loglevel &&
+       statementLogLevel >= sourceComponent->getLogLevel() &&
+       getEnvir()->isLoggingEnabled(); // for express mode
+\end{cpp}
+
+\subsection{Log Prefix Format}
+\label{sec:config-sim:log-prefix-format}
+
+The log prefix format is a string which determines the log prefix that is written
+before each log line. The format string contains constant parts interleaved with
+special format directives. The latter always start with the \ttt{\%} character
+followed by another character that identifies the format directive. Constant
+parts are simply written to the output, while format directives are substituted
+at runtime with the corresponding data that is captured by the log statement.
+
+The following is the list of predefined log prefix format directives. They are
+organized into groups based on what kind of information they provide.
+
+Log statement related format directives:
+\begin{itemize}
+  \item \ttt{\%l} log level name
+  \item \ttt{\%c} log category
+\end{itemize}
+
+Current simulation state related format directives:
+\begin{itemize}
+  \item \ttt{\%e} current event number
+  \item \ttt{\%t} current simulation time
+  \item \ttt{\%g} current fingerprint if fingerprint verification is enabled in the configuration, otherwise empty
+  \item \ttt{\%v} current message or event name
+  \item \ttt{\%a} current message or event class name
+  \item \ttt{\%n} module name of current event
+  \item \ttt{\%m} module path of current event
+  \item \ttt{\%o} module class name of current event
+  \item \ttt{\%s} simple NED type name of module of current event
+  \item \ttt{\%q} fully qualified NED type name of module of current event
+  \item \ttt{\%N} context component name
+  \item \ttt{\%M} context component path
+  \item \ttt{\%O} context component class name
+  \item \ttt{\%S} context component NED type simple name
+  \item \ttt{\%Q} context component NED type fully qualified name
+\end{itemize}
+
+Simulation run related format directives:
+\begin{itemize}
+  \item \ttt{\%G} config name
+  \item \ttt{\%R} run number
+  \item \ttt{\%X} network module class name
+  \item \ttt{\%Y} network module NED type simple name
+  \item \ttt{\%Z} network module NED type fully qualified name
+\end{itemize}
+
+C++ source related (where the log statement is) format directives:
+\begin{itemize}
+  \item \ttt{\%p} source object pointer
+  \item \ttt{\%b} source object name
+  \item \ttt{\%d} source object path
+  \item \ttt{\%z} source class name
+  \item \ttt{\%u} source function name
+  \item \ttt{\%x} source component NED type simple name
+  \item \ttt{\%y} source component NED type fully qualified
+  \item \ttt{\%f} source file name
+  \item \ttt{\%i} source line number
+\end{itemize}
+
+Operating system related format directives:
+\begin{itemize}
+  \item \ttt{\%w} user time in seconds
+  \item \ttt{\%W} human readable wall time
+  \item \ttt{\%H} host name
+  \item \ttt{\%I} process id
+\end{itemize}
+
+Compound field format directives:
+\begin{itemize}
+  \item \ttt{\%E} event object (class name, name)
+  \item \ttt{\%U} module of current event (NED type, full path)
+  \item \ttt{\%C} context component (NED type, full path)
+  \item \ttt{\%K} context component, if different from current module (NED type, full path)
+  \item \ttt{\%J} source component or object (NED type or class, full path or pointer)
+  \item \ttt{\%L} source component or object, if different from context component (NED type or class, full path or pointer)
+\end{itemize}
+
+Padding format directives:
+\begin{itemize}
+  \item \ttt{\%[0-9]+} add spaces until specified column
+  \item \ttt{\%|} adaptive tabstop: add padding until longest prefix seen so far
+  \item \ttt{\%>} function call depth times 2-space indentation (see Enter\_Method, Enter\_Method\_Silent)
+  \item \ttt{\%<} remove preceding whitespace characters
+\end{itemize}
+
+Conditional format directives:
+\begin{itemize}
+  \item \ttt{\%?} ignore the following constant part if the preceding directive didn't print anything (useful for separators)
+\end{itemize}
+
+Escaping the \% character:
+\begin{itemize}
+  \item \ttt{\%\%} one \% character
+\end{itemize}
+
+\subsection{Configuring Logging in Cmdenv}
+\label{sec:config-sim:configuring-logging-in-cmdenv}
+
+In Cmdenv, logging can be configured using \ffilename{omnetpp.ini} configuration
+options. The configured settings remain in effect during the whole simulation run
+unless overridden programmatically.
+
+\begin{itemize}
+  \item \fconfig{cmdenv-output-file} redirects standard output to a file
+  \item \fconfig{cmdenv-log-prefix} determines the log prefix of each line
+  \item \fconfig{<object-full-path>.cmdenv-log-level} restricts output on a per-component basis
+\end{itemize}
+
+By default, the log is written to the standard output but it can be redirected to
+a file. The output can be completely disabled from \ffilename{omnetpp.ini}, so
+that it doesn't slow down simulation when it is not needed. The per-component
+runtime log level option must match the full path of the targeted component. The
+supported values for this configuration option are the following:
+
+\begin{itemize}
+  \item \ttt{off} completely disables log output
+  \item \ttt{fatal} omits log output below \ttt{LOGLEVEL\_FATAL}
+  \item \ttt{error} omits log output below \ttt{LOGLEVEL\_ERROR}
+  \item \ttt{warn} omits log output below \ttt{LOGLEVEL\_WARN}
+  \item \ttt{info} omits log output below \ttt{LOGLEVEL\_INFO}
+  \item \ttt{detail} omits log output below \ttt{LOGLEVEL\_DETAIL}
+  \item \ttt{debug} omits log output below \ttt{LOGLEVEL\_DEBUG}
+  \item \ttt{trace} completely enables log output
+\end{itemize}
+
+By default, the log prefix format is set to \ttt{"[\%l]\textbackslash{}t"}. The
+default setting is intentionally quite simple to avoid cluttered standard output,
+it produces similar log output:
+
+\begin{filelisting}
+[INFO]  Packet received successfully
+[DEBUG] CRC check successful
+\end{filelisting}
+
+The log messages are aligned vertically because there's a \ttt{TAB} character
+in the format string. Setting the log prefix format to an empty string disables
+writing a log prefix altogether. Finally, here is a more detailed format string:
+\ttt{"[\%l]\textbackslash{}t\%C for \%E: \%|"}, it produces similar output:
+
+\begin{filelisting}
+[INFO]  (IPv4)host.ip for (ICMPMessage)ping0:     Pending (IPv4Datagram)ping0
+[INFO]  (ARP)host.arp for (ICMPMessage)ping0:     Starting ARP resolution
+[DEBUG] (ARP)host.arp for (ICMPMessage)ping0:     Sending (ARPPacket)arpREQ
+[INFO]  (Mac)host.wlan.mac for (ARPPacket)arpREQ: Enqueing (ARPPacket)arpREQ
+\end{filelisting}
+
+In express mode, for performance reasons, log output is disabled during the whole
+simulation. However, during the simulation finish stage, logging is automatically
+re-enabled to allow writing statistical and other results to the log. One can
+completely disable all logging by adding following configuration option at the
+beginning of \ffilename{omnetpp.ini}:
+
+\begin{inifile}
+[General]
+**.cmdenv-log-level = off
+\end{inifile}
+
+Finally, the following is a more complex example that sets the per-component
+runtime log levels for all PHY components to \fmac{LOGLEVEL\_WARN}, except for
+all MAC modules where it is set to \fmac{LOGLEVEL\_DEBUG}, and for all other
+modules it is set \fmac{LOGLEVEL\_OFF}.
+
+\begin{inifile}
+[General]
+**.phy.cmdenv-log-level = warn
+**.mac.cmdenv-log-level = debug
+**.cmdenv-log-level = off
+\end{inifile}
+
+\subsection{Configuring Logging in Qtenv}
+\label{sec:config-sim:configuring-logging-in-qtenv}
+
+The graphical user interface Qtenv provides its own configuration
+dialog where the user can configure logging. This dialog offers setting the
+global runtime log level and the log prefix format string. The per-component
+runtime log levels can be set from the context menu of components. As in Cmdenv,
+it's also possible to set the log levels to \ttt{off}, effectively disabling
+logging globally or for specific components only.
+
+In contrast to Cmdenv, setting the runtime log levels is possible even if the
+simulation is already running. This feature allows continuous control over the
+level of detail of what is written to the log output. For obvious reasons,
+changing the log levels has no effect back in time, so already written log
+content in the log windows will not change.
+
+By default, the log prefix format is set to \ttt{"\%l \%C: "}, it produces
+similar log output:
+
+\begin{filelisting}
+INFO  Network.server.wlan[0].mac: Packet received successfully
+DEBUG Network.server.wlan[0].mac: CRC check successful
+\end{filelisting}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "usman"
+%%% End:
+

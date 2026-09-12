@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension-point id="org.omnetpp.common.wizard.contenttemplates" name="Content Templates for New... Wizards" schema="schema/org.omnetpp.common.wizard.contenttemplates.exsd"/>
+   <extension-point id="org.omnetpp.common.wizard.templatecontributors" name="Content Template Contributors" schema="schema/org.omnetpp.common.wizard.templatecontributors.exsd"/>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            name="OMNeT++"
+            id="org.omnetpp.wizards">
+      </category>
+      <wizard
+            category="org.omnetpp.wizards"
+            class="org.omnetpp.common.wizardwizard.NewWizardWizard"
+            finalPerspective="org.omnetpp.main.OmnetppPerspective"
+            icon="icons/obj16/NewWizard.png"
+            id="org.omnetpp.common.wizards.NewWizard"
+            name="Wizard"
+            preferredPerspectives="org.omnetpp.main.OmnetppPerspective, org.eclipse.cdt.ui.CPerspective">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="org.omnetpp.importwizards"
+            name="OMNeT++">
+      </category>
+      <wizard
+            category="org.omnetpp.importwizards"
+            class="org.omnetpp.common.importexportwizards.ImportWizard"
+            icon="icons/obj16/importwizard.png"
+            id="org.omnetpp.common.wizards.ImportWizard"
+            name="Networks, simulations and other items">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.exportWizards">
+     <category
+           id="org.omnetpp.exportwizards"
+           name="OMNeT++">
+     </category>
+     <wizard
+           category="org.omnetpp.exportwizards"
+           class="org.omnetpp.common.importexportwizards.ExportWizard"
+           icon="icons/obj16/exportwizard.png"
+           id="org.omnetpp.common.wizards.ExportWizard"
+           name="Networks, simulations and other items">
+     </wizard>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="org.omnetpp.views"
+            name="OMNeT++"/>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            adaptable="true"
+            class="org.omnetpp.common.decorators.ProblemDecorator"
+            id="org.omnetpp.common.decorators.ProblemDecorator"
+            label="Problem Decorator"
+            lightweight="true"
+            state="true">
+         <enablement>
+            <objectClass name="org.eclipse.core.resources.IResource"/>
+         </enablement>
+      </decorator>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.omnetpp.common.ConfigurationPreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.omnetpp.common.wizard.contenttemplates">
+      <plugin
+            pluginId="org.omnetpp.common">
+      </plugin>
+   </extension>
+   <extension
+         point="org.swtworkbench.xswt.classloaders">
+      <plugin
+            pluginId="org.omnetpp.common"
+            referenceClass="org.omnetpp.common.CommonPlugin">
+      </plugin>
+   </extension>
+   <extension
+         point="org.eclipse.ui.themes">
+      <fontDefinition
+            categoryId="org.eclipse.ui.workbenchMisc"
+            id="org.omnetpp.common.smallFont"
+            isEditable="true"
+            label="Small font"
+            value="Arial-regular-7">
+         <fontValue
+               value="Segoe UI-regular-7"
+               ws="win32">
+         </fontValue>
+      </fontDefinition>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.omnetpp.common.editor.WebBrowserEditor"
+            default="true"
+            extensions="html"
+            id="org.omnetpp.common.editor.WebBrowserEditor"
+            name="OMNeT++ Web Browser">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.ui.category.help"
+            defaultHandler="org.omnetpp.common.editor.OpenWebBrowserHandler"
+            description="Open Web Page From Plugin"
+            id="org.omnetpp.common.openWebBrowser"
+            name="Open Web Page From Plugin">
+         <commandParameter
+               id="pluginId"
+               name="pluginId"
+               optional="false">
+         </commandParameter>
+         <commandParameter
+               id="path"
+               name="path"
+               optional="false">
+         </commandParameter>
+      </command>
+   </extension>
+</plugin>

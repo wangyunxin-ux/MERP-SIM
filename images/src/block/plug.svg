@@ -1,0 +1,59 @@
+
+<svg enable-background="new 0 0 69.15 69.15" height="69.15"
+     viewBox="0 0 69.15 69.15" width="69.15" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a"
+                    gradientTransform="matrix(1 0 0 -1 262.4995 453.5391)"
+                    gradientUnits="userSpaceOnUse" x1="-198.5942" x2="-257.256"
+                    y1="388.7705" y2="449.1567">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".6196" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="b">
+        <stop offset="0" stop-color="#da251d"/>
+        <stop offset="1" stop-color="#fcc"/>
+    </linearGradient>
+    <linearGradient id="c"
+                    gradientTransform="matrix(-.6852 .7284 .7284 .6852 -424.5221 -85.482)"
+                    gradientUnits="userSpaceOnUse" x1="-223.3169" x2="-228.773"
+                    xlink:href="#b" y1="397.5039" y2="397.6055"/>
+    <linearGradient id="d"
+                    gradientTransform="matrix(-.6852 .7284 .7284 .6852 -424.5221 -85.482)"
+                    gradientUnits="userSpaceOnUse" x1="-207.6348" x2="-237.2353"
+                    xlink:href="#b" y1="401.9834" y2="434.0772"/>
+    <linearGradient id="e"
+                    gradientTransform="matrix(-.6852 .7284 .7284 .6852 -424.5221 -85.482)"
+                    gradientUnits="userSpaceOnUse" x1="-244.7144" x2="-207.376"
+                    xlink:href="#b" y1="428.3877" y2="428.3877"/>
+    <switch>
+        <foreignObject height="1"
+                       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+                       width="1"/>
+        <g>
+            <path d="m10.898 1.5h47.354c5.19 0 9.398 4.208 9.398 9.398v47.354c0 5.19-4.208 9.398-9.398 9.398h-47.354c-5.19 0-9.398-4.208-9.398-9.398v-47.354c0-5.19 4.208-9.398 9.398-9.398z"
+                  fill="url(#a)" stroke="#000" stroke-width="3"/>
+            <g stroke-width="1.9996">
+                <path d="m26.776 25.249-3.448 3.666-10.246-9.639 3.448-3.666z"
+                      fill="url(#c)" stroke="#000"/>
+                <path d="m55.178 29.79-25.583 27.196c-8.353-7.858-14.292-24.754-7.144-32.353s24.373-2.701 32.727 5.157z"
+                      fill="url(#d)" stroke="#000" stroke-linejoin="round"/>
+                <path d="m44.194 45.088c-7.064 7.51-13.602 12.837-14.6 11.898s3.92-7.789 10.984-15.299 13.601-12.837 14.599-11.898c.999.939-3.918 7.788-10.983 15.299z"
+                      fill="url(#e)" stroke="#000"/>
+                <path d="m59.374 46.731-.001.002c-.892.947-2.396.994-3.344.102l-8.356-7.859 3.242-3.447 8.356 7.86c.949.891.995 2.395.103 3.342z"
+                      fill="#ccf" stroke="#000"/>
+                <path d="m46.583 60.33c-.892.948-2.396.994-3.345.103l-8.355-7.86 3.242-3.447 8.356 7.859c.949.892.995 2.397.102 3.345z"
+                      fill="#ccf" stroke="#000"/>
+                <path d="m26.683 56.729c-6.967-8.08-11.381-18.917-7.946-29.42l-8.435-7.935 4.276-4.519"
+                      fill="none" stroke="#ccc" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <path d="m26.683 56.729c-5.463-6.413-6.417-9.457-8.139-14.718"
+                      fill="none" stroke="#aaa" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <path d="m17.549 35.107c-.237-4.65.526-5.338 1.188-7.798l-3.779-3.555"
+                      fill="none" stroke="#e0e0e0" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+        </g>
+    </switch>
+</svg>

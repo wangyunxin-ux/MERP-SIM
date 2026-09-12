@@ -1,0 +1,487 @@
+2022-04-11  ------ omnetpp-6.0 released ------
+
+2022-04-08  Rudolf Hornig
+
+	* Appendices refreshed
+
+2021-04-11  Andras Varga
+
+	* Refresh info on display string tags; document new "g" tag (layout group)
+
+2022-01-11  Andras Varga
+
+	* "Message Descriptions" chapter completely rewritten, due to
+	reimplementation and massive feature changes of the message compiler in
+	version 6.0.
+
+2022-01-11  Andras Varga
+
+	* Appendices refreshed
+
+2022-01-06  Andras Varga
+
+	* "Intro" chapter: Update omnetpp directory structure
+
+2022-01-10  Attila Torok
+
+	* "Result Analysis": Actualize the "An Example Chart Script" section
+
+2022-01-11  Rudolf Hornig
+
+	* Neddoc: added info about how to extend generated NED documentation with
+	externally generated info
+
+2020-12-01  Andras Varga
+
+	* Document preDelete() and opp_component_ptr<T>
+
+2021-10-15  Andras Varga
+
+	* Document inifile syntax changes: indentation, "Config" prefix made optional
+
+2022-01-06  Andras Varga
+
+	* Refreshed generated content in Appendices
+
+2021-11-26  Rudolf Hornig
+
+	* Updated section on opp_test wrt possible new test case outcomes (PASS,
+	FAIL, ERROR, SKIP and EXPECTEDFAIL)
+
+2021-10-13  Andras Varga
+
+	* Update section that shows how manually created result filters/recorders
+	should be initialized, see init() method signature change.
+
+2021-09-16  Andras Varga
+
+	* Document autoWarmupFilter=false and warmup filter; nits
+
+2021-09-15  Andras Varga
+
+	* NED parts: take over parameter references, "this" and
+	"parent" qualifiers text from omnetpp-5.7
+
+2021-04-11  Andras Varga
+
+	* appendix-display-strings: updated, add "g" tag
+	* appendix-config-options updated
+
+2021-03-03  Andras Varga
+
+	* Document object parameters and JSON data
+
+2021-03-02  Andras Varga
+
+	* Mention JSON parameters, reworked the XML section to be
+	consistent with it
+
+2021-03-02  Andras Varga
+
+	* NED reference: document the constant 'undefined'.
+
+2021-03-02  Andras Varga
+
+	* NED reference: document object parameters and JSON notation
+
+2021-03-02  Andras Varga
+
+	* Improve NED grammar representation
+
+2021-03-02  Andras Varga
+
+	* Chart API documentation improved
+
+2021-03-02  Andras Varga
+
+	* Update generated appendices
+
+2021-03-02  Andras Varga
+
+	* extract_chart_api.py: support for class documentation; added
+	Analysis class.
+
+2021-03-02  Andras Varga
+
+	* Makefile: make pdflatex exit on first error
+
+2021-03-01  Andras Varga
+
+	* setDeliverOnReceptionStart() was renamed to
+	setDeliverImmediately()
+
+2021-03-01  Andras Varga
+
+	* Refinement in module deletion section
+
+2021-03-01  Andras Varga
+
+	* Update appendix-config-options
+
+2021-03-01  Andras Varga
+
+	* Update NEDFunction capitalization; mention NedFunctionExt
+
+2021-03-01  Andras Varga
+
+	* cIListener: update for intval_t/uintval_t overloads
+
+2021-03-01  Andras Varga
+
+	* Emitting nullptr as string is no longer allowed
+
+2021-03-01  Andras Varga
+
+	* Update: cModule::size() was removed
+
+2021-03-01  Andras Varga
+
+	* Document cIListener destructor behavior change. It now unsubscribes
+	from all places it was subscribed to, instead of insisting on being
+	already unsubscribed.
+
+2021-03-01  Andras Varga
+
+	* cMatchExpression: updated for new field matcher syntax 'fieldname=~pattern'
+
+2020-12-04  Andras Varga
+
+	* Document scheduleAfter(), rescheduleAt(), rescheduleAfter()
+
+2020-12-04  Andras Varga
+
+	* Fix c++ code style in example snippets: move "{" to end of previous line
+
+2020-12-02  Andras Varga
+
+	* Update Result File Formats section
+
+2020-12-01  Andras Varga
+
+	* Document change in getModuleByPath()/findModuleByPath()
+
+2020-12-01  Andras Varga
+
+	* Fix mention of obsolete options -x, -g and -G
+
+2020-12-01  Andras Varga
+
+	* Document longValue()->intValue() and related changes
+
+2020-12-04  Andras Varga
+
+	* Added Python-based result analysis with annotated chart script
+	example/
+
+2021-02-25  Andras Varga
+
+	* opp_scavetool section was out of date
+
+2021-02-25  Andras Varga
+
+	* Result files section: adjust section levels
+
+2021-02-23  Andras Varga
+
+	* Updated Chart API appendix
+
+2021-02-07  Andras Varga
+
+	* Cleaner look for Python method docs in the manual.
+
+2021-02-02  Andras Varga
+
+	* Added chart API vectorops to manual.
+
+2020-01-20  Attila Torok
+
+	* Follow Python API changes
+
+2019-12-20  Attila Torok
+
+	* Include the Python chart API documentation in the manual, generated
+	from Python docstrings (appendix "Python API for Chart Scripts").
+
+2019-11-25  Andras Varga
+
+	* Added appendix "Message Class/Field Properties" to document supported
+	msg properties.
+
+2019-10-25  Attila Torok
+
+	* Mention manual connection routing using the "m" display string tag.
+
+2019-10-23  Andras Varga
+
+	* Follow renaming of cNedValue to cValue
+
+2019-03-28  Andras Varga
+
+	* Operator precedence table updated, added new operators <=> and =~
+
+2019-05-02  Andras Varga
+
+	* cNedValue (later: cValue) documentation brought up to date
+
+2016-12-21  Rudolf Hornig
+
+	* Follow removal of the "bgl" display string tag. "bgl" could be used to
+	specify the layout seed for the compound module. It was not supported
+	by Qtenv, as it was unclear how it was supposed to coexist with Qtenv's
+	"Relayout" function. We are now removing it altogether.
+
+2018-06-27  Andras Varga
+
+	* Follow removal of Tkenv
+
+2020-01-06  ------ omnetpp-5.6 released ------
+
+2019-12-03  Andras Varga
+
+	* Documented @reconnect.
+
+2019-12-03  Attila Torok
+
+	* Documented cLabelFigure::angle.
+
+2019-10-25  Attila Torok
+
+	* Mention manual connection routing using the "m" display string tag
+
+2019-07-08  Andras Varga
+
+	* Added "%<" log prefix format char to the manual
+
+2019-05-15  ------ omnetpp-5.5 released ------
+
+2016-12-21  Rudolf Hornig
+
+	* Removing "bgl" display string tag
+
+2018-11-27  Andras Varga
+
+	* ltoh: fixes; allow the definition of b/e verbatim etc to be
+	overridden from the specs file
+
+2018-05-08  Andras Varga
+
+	* ltoh fixes and improvements:
+	math: support $$...$$ notation; recognize \bar{}, \infty etc; added \b
+	(matches word boundary) support command names that end in '*', e.g.
+	\subsection*{}
+
+2018-05-08  Andras Varga
+
+	* usman.tex: latex definitions harmonized with inet user guide
+
+2018-06-18  Rudolf Hornig
+
+	* use qpdf instead of pdftk for building documentation
+
+2018-06-25  ------ omnetpp-5.4.1 released ------
+
+2018-06-11  ------ omnetpp-5.4 released ------
+
+2018-04-11  ------ omnetpp-5.3 released ------
+
+2017-12-08  ------ omnetpp-5.2.1 released ------
+
+2017-09-18  ------ omnetpp-5.2 released ------
+
+2017-05-08  ------ omnetpp-5.1.1 released ------
+
+2017-03-31  ------ omnetpp-5.1 released ------
+
+2017-02-06  ------ omnetpp-5.1pre3 released ------
+
+2016-12-23  ------ omnetpp-5.1pre2 released ------
+
+2016-04-13  ------ omnetpp-5.0 released ------
+
+2016-03-10  ------ omnetpp-5.0rc released ------
+
+2015-12-07  ------ omnetpp-5.0b3 released ------
+
+2015-07-20  ------ omnetpp-5.0b2 released ------
+
+2015-03-04  ------ omnetpp-5.0b1 released ------
+
+2014-11-27  ------ omnetpp-4.6 released ------
+
+2014-06-30  ------ omnetpp-4.5 released ------
+
+2014-02-13  ------ omnetpp-4.4.1 released ------
+
+2013-12-20  ------ omnetpp-4.4 released ------
+
+2013-09-12  ------ omnetpp-4.3.1 released ------
+
+2013-04-02  ------ omnetpp-4.3 released ------
+
+2013-02-08  ------ omnetpp-4.3rc1 released ------
+
+2012-03-13  ------ omnetpp-4.2.2 released ------
+
+2012-01-17  ------ omnetpp-4.2.1 released ------
+
+2011-10-28  ------ omnetpp-4.2 released ------
+
+2011-09-11  ------ omnetpp-4.2rc1 released ------
+
+2011-05-05  ------ omnetpp-4.2b2 released ------
+
+2011-02-23  ------ omnetpp-4.2b1 released ------
+
+2010-06-11  ------ omnetpp-4.1 released ------
+
+2010-05-31  ------ omnetpp-4.1rc2 released ------
+
+2010-04-20  ------ omnetpp-4.1b4 released ------
+
+2010-03-14  ------ omnetpp-4.1b3 released ------
+
+2009-03-12  ------ omnetpp-4.0 released ------
+
+2009-02-27  ------ omnetpp-4.0rc2 released ------
+
+2008-12-12  ------ omnetpp-4.0rc1 released ------
+
+2008-05-26  Andras Varga
+
+	* removed history.tex; earlier contents merged into this ChangeLog.
+
+2005-10-19  ------ omnetpp-3.2 released ------
+
+	* updated for the 3.2 release
+
+2005-03-31  ------ omnetpp-3.1 released ------
+
+	* updated for the 3.1 release
+
+2004-12-29  ------ omnetpp-3.0 released ------
+
+	* updated for the 3.0 release
+
+2004-11-23  ------ omnetpp-3.0b1 released ------
+
+2004-11-03  ------ omnetpp-3.0a9 released ------
+
+2004-10-04  ------ omnetpp-3.0a8 released ------
+
+2004-09-24  ------ omnetpp-3.0a7 released ------
+
+2004-07-22  ------ omnetpp-3.0a6 released ------
+
+2004-06-07  ------ omnetpp-3.0a5 released ------
+
+2004-05-15  ------ omnetpp-3.0a4 released ------
+
+2004-03-22  ------ omnetpp-3.0a3 released ------
+
+2004-03-03  ------ omnetpp-3.0a2 released ------
+
+2004-02-04  ------ omnetpp-3.0pre1 released ------
+
+2004-01-20  Andras Varga
+
+	* ch-simple-modules.tex: clarified dynamic modules and finish()
+	[thanks to Francesco Scialpi]
+
+2003-12-07  Andras Varga
+
+	* ch-messages.tex: hints to call take() and drop() when adding
+	more than one message objects to a message
+
+2003-08-21  Andras Varga
+
+	* Makefile: added usman.html target [thanks Johnny]
+
+2003-08-07  Andras Varga
+
+	* ch-neddoc.tex: added. TBD to be finished
+
+2003-06-16  ------ omnetpp-2.3 released ------
+
+2003-06-15  Andras Varga
+
+	* major revision -- see history.tex for details. Changes we made
+	on a local copy of files, then checked in at once.
+
+	* see relevant parts of history.tex below, copied here on 2008-05-26:
+	    Mentioned Grace and ROOT in section "Visualizing...".
+	    Added section "Using STL in message classes".
+	    "Design of OMNeT++" chapter revised, extended, and renamed to
+	    "Customization and Embedding".
+	    Added "Interpreting Cmdenv output" section to the
+	    "Running the Simulation" chapter. Added section about Akaroa
+	    in "Running the Simulation" chapter. Expanded section about
+	    writing shell scripts to control the simulation.
+	    Added background info about RNGs and warning about old RNG
+	    in "Class Library" chapter;
+	    revised/extended "Deriving new classes" section in same chapter.
+	    Bibliography converted to Bibtex, expanded and cleaned up;
+	    citations added to text.
+	    "Parallel Simulation" chapter: contents removed until new PDES
+	    implementation gets released.
+	    Revised and reorganized NED chapter. Section about message
+	    sending/receiving and other simple module related functions
+	    moved to chapter "Simple Modules"; cMessage treatment from
+	    "Simulation Library" merged with message subclassing chapter
+	    into new chapter "Messages". Deprecated cPacket.
+	    Removed sections "Simulation techniques" and
+	    "Coding conventions", and their useful fragments were incorporated
+	    elsewhere. Added/created sections about message transmission
+	    modeling, and using global variables. Added sections explaining
+	    how to implement broadcasts and retransmissions. Revised section
+	    about dynamic module creation. Deprecated putaside-queue,
+	    receiveNew(), receiveOn().
+	    Added section "Object ownership management"; removed section
+	    on "Using shared objects".
+
+2003-04-30  Andras Varga
+
+	* ch-sim-lib.tex: added section "Object ownership management";
+	removed section "Using shared objects"
+
+	* usman.tex: removed OPNET and Parsec comparisons (ch-parsec.tex,
+	 ch-opnet.tex) from the manual
+
+2003-03-15  ------ omnetpp-2.3b2 released ------
+
+2003-02-15  ------ omnetpp-2.3b1 released ------
+
+2003-02-11  Andras Varga
+
+	* checked in the changes for 2.3b1, the most significant being
+	the new chapter about message subclassing.
+
+2003-01-xx  Andras Varga
+
+	* Added chapter about message subclassing; revised chapter about
+	running the simulation, and incorporated new Cmdenv options; added new
+	distributions and clarified many details in NED expr. handling section
+
+2002-06-12  Ulrich Kaage  <kaage@int.uni-karlsruhe.de>
+
+	* ch-build-sim-progs.tex (subsection{Producing a Makefile with the
+	opp_makemake script}): turned paragraph about available make
+	targets into a table
+
+2002-06-11  Ulrich Kaage  <kaage@int.uni-karlsruhe.de>
+
+	* Makefile (default usman.dvi usman.pdf clean): new targets
+
+Summer 2002
+	* Ulrich Kaage converted the Manual from Microsoft Word to LaTeX
+
+2002-03-18  Andras Varga
+
+	* Documented new ini file options about Envir plugins
+
+2002-01-24  Andras Varga
+
+	* Refinements on the Parsec chapter
+
+2001-10-23  Andras Varga
+
+	* Updated to reflect changes since 2.1 release (see include/ChangeLog)

@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            default="true"
+            extensions="ned"
+            icon="icons/nedfile.gif"
+            id="org.omnetpp.ned.editor.launcher"
+            launcher="org.omnetpp.ned.editor.NedEditorLauncher"
+            name="NED Editor">
+      </editor>
+      <editor
+            class="org.omnetpp.ned.editor.NedEditor"
+            contributorClass="org.omnetpp.ned.editor.NedEditorActionContributor"
+            icon="icons/nedfile.gif"
+            id="org.omnetpp.ned.editor"
+            name="NED Graphical Editor">
+      </editor>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.omnetpp.wizards"
+            class="org.omnetpp.ned.editor.wizards.NedFileWizard"
+            finalPerspective="org.omnetpp.main.OmnetppPerspective"
+            icon="icons/newnedfile.gif"
+            id="org.omnetpp.ned.editor.wizards.NewNedFile"
+            name="Network Description File (NED)"
+            preferredPerspectives="org.omnetpp.main.OmnetppPerspective, org.eclipse.cdt.ui.CPerspective">
+         <description>
+            Create a file that contains network elements, like simple or compound modules, channels etc.
+         </description>
+      </wizard>
+      <wizard
+            category="org.omnetpp.wizards"
+            class="org.omnetpp.ned.editor.wizards.NewSimpleModuleWizard"
+            finalPerspective="org.omnetpp.main.OmnetppPerspective"
+            icon="icons/obj16/NewSimpleModule.png"
+            id="org.omnetpp.ned.editor.wizards.NewSimpleModule"
+            name="Simple Module"
+            preferredPerspectives="org.omnetpp.main.OmnetppPerspective, org.eclipse.cdt.ui.CPerspective">
+         <description>
+            Create a new simple module (NED and C++ files)
+         </description>
+      </wizard>
+      <wizard
+            category="org.omnetpp.wizards"
+            class="org.omnetpp.ned.editor.wizards.NewCompoundModuleWizard"
+            finalPerspective="org.omnetpp.main.OmnetppPerspective"
+            icon="icons/obj16/NewCompoundModule.png"
+            id="org.omnetpp.ned.editor.wizards.NewCompoundModule"
+            name="Compound Module"
+            preferredPerspectives="org.omnetpp.main.OmnetppPerspective, org.eclipse.cdt.ui.CPerspective">
+         <description>
+            Create a new compound module
+         </description>
+      </wizard>
+      <wizard
+            category="org.omnetpp.wizards"
+            class="org.omnetpp.ned.editor.wizards.NewNetworkWizard"
+            finalPerspective="org.omnetpp.main.OmnetppPerspective"
+            icon="icons/obj16/NewNetwork.png"
+            id="org.omnetpp.ned.editor.wizards.NewNetwork"
+            name="Network"
+            preferredPerspectives="org.omnetpp.main.OmnetppPerspective, org.eclipse.cdt.ui.CPerspective">
+         <description>
+            Create a new Network
+         </description>
+      </wizard>
+      <wizard
+            category="org.omnetpp.wizards"
+            class="org.omnetpp.ned.editor.wizards.NewSimulationWizard"
+            finalPerspective="org.omnetpp.main.OmnetppPerspective"
+            icon="icons/obj16/NewSimulation.png"
+            id="org.omnetpp.ned.editor.wizards.NewSimulation"
+            name="Simulation"
+            preferredPerspectives="org.omnetpp.main.OmnetppPerspective, org.eclipse.cdt.ui.CPerspective">
+         <description>
+            Create a new simulation (NED and ini files)
+         </description>
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+           <commonWizard
+                 associatedExtensionId="org.omnetpp.navigator.content"
+                 menuGroupId="org.eclipse.cdt.ui"
+                 type="new"
+                 wizardId="org.omnetpp.ned.editor.wizards.NewNedFile">
+              <enablement></enablement>
+           </commonWizard>
+           <commonWizard
+                 associatedExtensionId="org.omnetpp.navigator.content"
+                 menuGroupId="org.eclipse.cdt.ui"
+                 type="new"
+                 wizardId="org.omnetpp.ned.editor.wizards.NewSimpleModule">
+              <enablement></enablement>
+           </commonWizard>
+           <commonWizard
+                 associatedExtensionId="org.omnetpp.navigator.content"
+                 menuGroupId="org.eclipse.cdt.ui"
+                 type="new"
+                 wizardId="org.omnetpp.ned.editor.wizards.NewCompoundModule">
+              <enablement></enablement>
+           </commonWizard>
+           <commonWizard
+                 associatedExtensionId="org.omnetpp.navigator.content"
+                 menuGroupId="org.eclipse.cdt.ui"
+                 type="new"
+                 wizardId="org.omnetpp.ned.editor.wizards.NewNetwork">
+              <enablement></enablement>
+           </commonWizard>
+           <commonWizard
+                 associatedExtensionId="org.omnetpp.navigator.content"
+                 menuGroupId="org.eclipse.cdt.ui"
+                 type="new"
+                 wizardId="org.omnetpp.ned.editor.wizards.NewSimulation">
+              <enablement></enablement>
+           </commonWizard>
+           <commonWizard
+                 associatedExtensionId="org.omnetpp.navigator.content"
+                 menuGroupId="org.eclipse.cdt.ui"
+                 type="new"
+                 wizardId="org.omnetpp.common.wizards.NewWizard">
+              <enablement></enablement>
+           </commonWizard>
+   </extension>
+
+
+<!-- =========================================================================== -->
+<!-- Text based NED editor                                                       -->
+<!-- =========================================================================== -->
+
+
+   <extension
+         id="NedDocumentSetupParticipant"
+         name="NED Document Setup Participant"
+         point="org.eclipse.core.filebuffers.documentSetup">
+      <participant
+            extensions="ned"
+            class="org.omnetpp.ned.editor.text.NedDocumentSetupParticipant">
+      </participant>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.editors.templates">
+      <contextType
+            class="org.omnetpp.ned.editor.text.assist.NedContextType"
+            id="org.omnetpp.ned.editor.text.default"
+            name="NED File global context"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.omnetpp.ned.editor.text.ToggleComment"
+            contextId="org.omnetpp.context.nedTextEditor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+/">
+      </key>
+      <key
+            commandId="org.omnetpp.ned.editor.text.FormatSource"
+            contextId="org.omnetpp.context.nedTextEditor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+F">
+      </key>
+      <key
+            commandId="org.omnetpp.ned.editor.text.GotoDeclaration"
+            contextId="org.omnetpp.context.nedTextEditor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="F3">
+      </key>
+      <key
+            commandId="org.omnetpp.ned.editor.text.OrganizeImports"
+            contextId="org.omnetpp.context.nedTextEditor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+O">
+      </key>
+      <key
+            commandId="org.omnetpp.ned.editor.text.CorrectIndentation"
+            contextId="org.omnetpp.context.nedTextEditor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+I">
+      </key>
+      <key
+            commandId="org.omnetpp.ned.editor.text.performTextSearchWorkspace"
+            contextId="org.omnetpp.context.nedTextEditor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+G">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Comment/Uncomment the selected lines"
+            id="org.omnetpp.ned.editor.text.ToggleComment"
+            name="Toggle Comment">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Format the NED source file"
+            id="org.omnetpp.ned.editor.text.FormatSource"
+            name="Format NED Source">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Go to declaration of NED element"
+            id="org.omnetpp.ned.editor.text.GotoDeclaration"
+            name="Go to Declaration">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Organizes the import statements in a NED source file"
+            id="org.omnetpp.ned.editor.text.OrganizeImports"
+            name="Organize Imports">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Reindent selected lines of the NED source"
+            id="org.omnetpp.ned.editor.text.CorrectIndentation"
+            name="Correct Indentation">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Perform text search in workspace NED files"
+            id="org.omnetpp.ned.editor.text.performTextSearchWorkspace"
+            name="Search Text in NED Files">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Infer gate labels from connected gates"
+            id="org.omnetpp.ned.editor.text.InferAllGateLabels"
+            name="Infer Gate Labels">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Distribute gate labels to connected gates"
+            id="org.omnetpp.ned.editor.text.DistributeAllGateLabels"
+            name="Distribute Gate Labels">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            description="OMNeT++ NED Editor"
+            id="org.omnetpp.context.nedEditor"
+            name="Editing NED File"
+            parentId="org.eclipse.ui.textEditorScope">
+      </context>
+      <context
+            description="OMNeT++ NED Source Editor"
+            id="org.omnetpp.context.nedTextEditor"
+            name="Editing NED Source"
+            parentId="org.omnetpp.context.nedEditor">
+      </context>
+      <context
+            description="OMNeT++ NED Graphical Editor"
+            id="org.omnetpp.context.nedGraphEditor"
+            name="Editing NED Graphically"
+            parentId="org.omnetpp.context.nedEditor">
+      </context>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.omnetpp.ned.editor.NedEditorPreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.omnetpp.common.wizard.contenttemplates">
+      <plugin
+            pluginId="org.omnetpp.ned.editor">
+      </plugin>
+   </extension>
+   <extension
+         point="org.swtworkbench.xswt.classloaders">
+      <plugin
+            pluginId="org.omnetpp.ned.editor"
+            referenceClass="org.omnetpp.ned.editor.NedEditorPlugin">
+      </plugin>
+   </extension>
+   <extension
+         point="org.omnetpp.common.wizard.templatecontributors">
+      <contributor
+            class="org.omnetpp.ned.editor.wizards.NedContentTemplateContributor">
+      </contributor>
+   </extension>
+
+</plugin>

@@ -1,0 +1,16 @@
+digraph g {
+        fontsize=12; size="3.5,3.5";
+        node [fontname="Arial"];
+        edge [fontname="Arial"];
+
+        node [shape = "rectangle"];
+        edge [dir = "back"];
+
+        cObject -> cNamedObject;
+        cNamedObject -> cOwnedObject;
+        cOwnedObject -> cModule [label="..."];
+        cOwnedObject -> cMessage [label="..."];
+        cOwnedObject -> cQueue;
+        cOwnedObject -> others;
+        others [label="..."];
+}

@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OMNeT++ Launch Plug-in
+Bundle-SymbolicName: org.omnetpp.launch;singleton:=true
+Bundle-Version: 6.0.0.qualifier
+Bundle-Activator: org.omnetpp.launch.LaunchPlugin
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: OpenSim Ltd.
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.core.variables,
+ org.eclipse.ui,
+ org.eclipse.ui.browser,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.console,
+ org.eclipse.debug.core,
+ org.eclipse.debug.ui,
+ org.omnetpp.common,
+ org.omnetpp.ned.core,
+ org.omnetpp.ned.model,
+ org.omnetpp.inifile.editor,
+ org.eclipse.cdt.core,
+ org.eclipse.cdt.managedbuilder.core,
+ org.eclipse.cdt.debug.core,
+ org.eclipse.cdt.launch,
+ org.eclipse.cdt.ui
+Export-Package: org.omnetpp.launch,
+ org.omnetpp.launch.tabs
+Automatic-Module-Name: org.omnetpp.launch

@@ -1,0 +1,27 @@
+
+<svg clip-rule="evenodd" fill-rule="evenodd" height="72"
+     image-rendering="optimizeQuality" shape-rendering="geometricPrecision"
+     text-rendering="geometricPrecision" viewBox="0 0 72 72" width="72"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="65.3315"
+                    x2="6.66969" y1="66.1937" y2="5.80748">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".619608" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <rect fill="url(#a)" height="66.15" rx="9.39803" stroke="#000"
+          stroke-width="3" width="66.15" x="2.92559" y="2.92559"/>
+    <g stroke-linecap="round" stroke-linejoin="round">
+        <rect fill="#aaaae0" height="41.3292" rx=".902362" stroke="#000"
+              stroke-width="4.16693" width="41.3292" x="15.2799" y="15.5184"/>
+        <path d="m20.1 47.0811v-26.6516h25.5177" fill="none" stroke="#ccf"
+              stroke-width="4.16693"/>
+        <path d="m59.589 32.7142v22.213" fill="none" stroke="#949494"
+              stroke-width="1.99961"/>
+        <path d="m59.4661 55.7008c-.780709 2.62087-3.12165 3.77717-5.31142 4.36535"
+              fill="none" stroke="#ccc" stroke-width="1.99961"/>
+        <path d="m22.8283 59.9138h29.9493" fill="none" stroke="#aaa"
+              stroke-width="1.99961"/>
+    </g>
+</svg>

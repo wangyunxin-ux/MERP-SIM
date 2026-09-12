@@ -1,0 +1,43 @@
+
+<svg clip-rule="evenodd" fill-rule="evenodd" height="72"
+     image-rendering="optimizeQuality" shape-rendering="geometricPrecision"
+     text-rendering="geometricPrecision" viewBox="0 0 72 72" width="72"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="44.0776"
+                    x2="28.0854" y1="59.2642" y2="45.5563">
+        <stop offset="0" stop-color="#80742f"/>
+        <stop offset="1" stop-color="#d9d275"/>
+    </linearGradient>
+    <linearGradient id="b" gradientUnits="userSpaceOnUse" x1="11.6941"
+                    x2="60.3059" y1="17.2654" y2="13.6205">
+        <stop offset="0" stop-color="#80742f"/>
+        <stop offset="1" stop-color="#fdffcf"/>
+    </linearGradient>
+    <linearGradient id="c" gradientUnits="userSpaceOnUse" x1="65.3315"
+                    x2="6.66969" y1="66.1937" y2="5.80748">
+        <stop offset="0" stop-color="#a0a0a0"/>
+        <stop offset=".619608" stop-color="#e0e0e0"/>
+        <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="d" gradientUnits="userSpaceOnUse" x1="55.526"
+                    x2="16.5803" xlink:href="#b" y1="46.265" y2="12.8823"/>
+    <rect fill="url(#c)" height="66.15" rx="9.39803" stroke="#000"
+          stroke-width="3" width="66.15" x="2.92559" y="2.92559"/>
+    <path d="m61.6831 18.7878-18.3685 25.0783-1.52717 16.8567c-.177165 1.95709-3.05197 2.98346-8.25591 1.9063"
+          fill="none" stroke="#a3a3a3" stroke-linecap="round" stroke-width=".9"/>
+    <path d="m51.1335 33.1913-7.40197 10.2685-1.52717 16.8567c-.227953 2.52756-5.47441 4.20118-7.95827 3.3874"
+          fill="none" stroke="#ccc" stroke-linecap="round" stroke-width=".9"/>
+    <path d="m43.2921 48.4866-.9295 9.9047" fill="none" stroke="#9f9f9f"
+          stroke-width=".9"/>
+    <g stroke="#000">
+        <path d="m30.8138 42.3732h10.5354l-1.50591 16.8756c-2.10472 2.86063-5.6563 3.19961-7.65354 0l-1.37598-16.8756z"
+              fill="url(#a)" stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="4.00039"/>
+        <path d="m10.9004 15.1311 50.3055.311811-19.8567 26.9303c-3.05315 1.45512-7.29213 1.64409-10.5354 0l-19.9134-27.2421z"
+              fill="url(#d)" stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="4.00039"/>
+        <ellipse cx="36" cy="15.4429" fill="url(#b)" rx="25.2047" ry="3.40039"
+                 stroke-width="4.00039"/>
+    </g>
+</svg>

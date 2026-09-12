@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         point="org.eclipse.cdt.managedbuilder.core.buildDefinitions">
+      <managedBuildRevision
+            fileVersion="4.0.0">
+      </managedBuildRevision>
+      <toolChain
+            id="org.omnetpp.cdt.gnu.toolchain.base"
+            isAbstract="true"
+            name="C++ Toolchain for OMNeT++"
+            osList="all"
+            scannerConfigDiscoveryProfileId="org.omnetpp.cdt.OmnetppGCCPerProjectProfile"
+            resourceTypeBasedDiscovery="false"
+            superClass="cdt.managedbuild.toolchain.gnu.base"
+            supportsManagedBuild="false">
+         <targetPlatform
+               binaryParser="org.eclipse.cdt.core.ELF;org.eclipse.cdt.core.MachO64;org.eclipse.cdt.core.PE"
+               id="org.omnetpp.cdt.targetPlatform"
+               isAbstract="false"
+               name="Windows, Linux, Mac"
+               osList="win32,linux,macosx">
+         </targetPlatform>
+      <builder
+            buildPath="${ProjDirPath}"
+            autoBuildTarget="all"
+            cleanBuildTarget="clean"
+            command="make"
+            errorParsers="org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator"
+            id="org.omnetpp.cdt.gnu.builder"
+            ignoreErrCmd="-k"
+            incrementalBuildTarget="all"
+            isAbstract="true"
+            isVariableCaseSensitive="true"
+            name="OMNeT++ Make Builder (opp_makemake)"
+            parallelBuildCmd="-j*"
+            reservedMacroNames="ROOT,DEPS,OBJS,.*_SRCS,EXECUTABLES,SUBDIRS,LIBS,USER_OBJS,.*_INPUTS,.*_OUTPUTS"
+            supportsManagedBuild="false"
+            variableFormat="${=}">
+      </builder>
+      </toolChain>
+      <projectType
+            id="org.omnetpp.cdt.omnetppProjectType"
+            name="OMNeT++ Simulation"
+            projectEnvironmentSupplier="org.omnetpp.cdt.OmnetppProjectEnvironmentSupplier"
+            projectMacroSupplier="org.omnetpp.cdt.OmnetppProjectMacroSupplier">
+
+         <configuration
+               id="org.omnetpp.cdt.gnu.config.debug"
+               name="debug"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="org.omnetpp.cdt.gnu.toolchain.debug"
+                  superClass="org.omnetpp.cdt.gnu.toolchain.base">
+               <builder
+                     arguments="MODE=debug"
+                     id="org.omnetpp.cdt.gnu.builder.debug"
+                     isAbstract="false"
+                     superClass="org.omnetpp.cdt.gnu.builder">
+               </builder>
+            </toolChain>
+         </configuration>
+         <configuration
+               id="org.omnetpp.cdt.gnu.config.release"
+               name="release"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="org.omnetpp.cdt.gnu.toolchain.release"
+                  superClass="org.omnetpp.cdt.gnu.toolchain.base">
+               <builder
+                     arguments="MODE=release"
+                     id="org.omnetpp.cdt.gnu.builder.release"
+                     isAbstract="false"
+                     superClass="org.omnetpp.cdt.gnu.builder">
+               </builder>
+            </toolChain>
+         </configuration>
+      </projectType>
+   </extension>
+   <extension
+         id="OmnetppGCCPerProjectProfile"
+         name="OMNeT++ per Project Profile"
+         point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile">
+      <scannerInfoCollector
+            class="org.omnetpp.cdt.OmnetppGCCScannerInfoCollector"
+            scope="project">
+      </scannerInfoCollector>
+      <scannerInfoProvider providerId="specsFile">
+         <run
+               command="gcc"
+               arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}"
+               class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider"/>
+         <scannerInfoConsoleParser class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
+      </scannerInfoProvider>
+   </extension>
+   <extension
+         id="MakefileBuilder"
+         name="OMNeT++ Makefile Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            callOnEmptyDelta="true"
+            hasNature="false">
+         <run
+               class="org.omnetpp.cdt.build.MakefileBuilder">
+         </run>
+      </builder>
+   </extension>
+   <extension
+         point="org.eclipse.core.variables.dynamicVariables">
+
+      <variable
+            description="Expands to a workspace path with directories containing a shared library in any dependent project"
+            name="opp_ld_library_path"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver"
+            supportsArgument="true">
+      </variable>
+      <variable
+            description="Expands to a filesystem location path with directories containing a shared library in any dependent project"
+            name="opp_ld_library_path_loc"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver"
+            supportsArgument="true">
+      </variable>
+      <variable
+            description="Expands to the list of shared libraries built by the OMNeT++ project and the projects it references"
+            name="opp_shared_libs"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver"
+            supportsArgument="true">
+      </variable>
+      <variable
+            description="Expands to the list of shared libraries (file system location) built by the OMNeT++ project and the projects it references"
+            name="opp_shared_libs_loc"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver"
+            supportsArgument="true">
+      </variable>
+      <variable
+            description="Expands to the list of static libraries built by the OMNeT++ project and the projects it references"
+            name="opp_static_libs"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver"
+            supportsArgument="true">
+      </variable>
+      <variable
+            description="Expands to the list of static libraries (file system location) built by the OMNeT++ project and the projects it references"
+            name="opp_static_libs_loc"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver"
+            supportsArgument="true">
+      </variable>
+      <variable
+            description="Expands to the list of executable names built by the OMNeT++ project and the projects it references"
+            name="opp_simprogs"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver"
+            supportsArgument="true">
+      </variable>
+      <variable
+            description="Expands to the list of executable names (file system path) built by the OMNeT++ project and the projects it references"
+            name="opp_simprogs_loc"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver"
+            supportsArgument="true">
+      </variable>
+      <variable
+            description="Expands to a string that has to be added to the PATH environment variable so that simulations can be run (e.g. msys/bin, mingw/bin)"
+            name="opp_additional_path"
+            resolver="org.omnetpp.cdt.launch.OppVariableResolver2"
+            supportsArgument="false">
+      </variable>
+   </extension>
+   <extension
+         id="makefileproblem"
+         name="Makefile Problem"
+         point="org.eclipse.core.resources.markers">
+      <persistent
+            value="false">
+      </persistent>
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+   </extension>
+   <extension
+         point="org.eclipse.urischeme.uriSchemeHandlers">
+      <uriSchemeHandler
+            class="org.omnetpp.cdt.handlers.CDTUriSchemeHandler"
+            uriScheme="omnetpp"
+            uriSchemeDescription="OMNeT++ CDT specific URI handler">
+      </uriSchemeHandler>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.launchDelegates">
+      <launchDelegate
+            delegate="org.omnetpp.cdt.launch.SimulationDebugLaunchDelegate"
+            delegateDescription="Allows debugging an OMNeT++ simulation with CDT"
+            id="org.omnetpp.launch.simulationDebugDelegate"
+            modes="debug"
+            name="OMNeT++ Simulation Debugger"
+            sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
+            sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer"
+            type="org.omnetpp.launch.simulationLaunchConfigurationType">
+      </launchDelegate>
+      <launchDelegate
+            delegate="org.omnetpp.cdt.launch.SimulationValgrindProfileLaunchDelegate"
+            delegateDescription="Allows profiling an OMNeT++ simulation with Valgrind"
+            id="org.omnetpp.launch.simulationValgrindProfileDelegate"
+            modes="profile"
+            name="OMNeT++ Simulation Valgrind Profiler"
+            sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
+            sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer"
+            type="org.omnetpp.launch.simulationLaunchConfigurationType">
+      </launchDelegate>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabs">
+      <tab
+            class="org.eclipse.debug.ui.sourcelookup.SourceLookupTab"
+            group="org.omnetpp.launch.simulationLaunchConfigurationTabGroup"
+            id="org.omnetpp.cdt.csourcetab"
+            name="Source">
+         <placement
+               after="org.eclipse.debug.ui.environmentTab">
+         </placement>
+         <associatedDelegate
+               delegate="org.omnetpp.launch.simulationDebugDelegate">
+         </associatedDelegate>
+         <associatedDelegate
+               delegate="org.omnetpp.launch.simulationValgrindProfileDelegate">
+         </associatedDelegate>
+      </tab>
+      <tab
+            class="org.omnetpp.cdt.launch.OmnetppCDebuggerTab"
+            group="org.omnetpp.launch.simulationLaunchConfigurationTabGroup"
+            id="org.omnetpp.cdt.cdebugtab"
+            name="Debugger">
+         <placement
+               after="org.eclipse.debug.ui.environmentTab">
+         </placement>
+         <associatedDelegate
+               delegate="org.omnetpp.launch.simulationDebugDelegate">
+         </associatedDelegate>
+      </tab>
+      <tab
+            class="org.eclipse.linuxtools.internal.valgrind.launch.ValgrindOptionsTab"
+            group="org.omnetpp.launch.simulationLaunchConfigurationTabGroup"
+            id="org.omnetpp.cdt.valgrindoptions"
+            name="Valgrind Options">
+         <placement
+               after="org.eclipse.debug.ui.environmentTab">
+         </placement>
+         <associatedDelegate
+               delegate="org.omnetpp.launch.simulationValgrindProfileDelegate">
+         </associatedDelegate>
+      </tab>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.omnetpp.wizards"
+            class="org.omnetpp.cdt.wizard.OmnetppCCProjectWizard"
+            finalPerspective="org.omnetpp.main.OmnetppPerspective"
+            icon="icons/full/obj16/newoproject.gif"
+            id="org.omnetpp.cdt.wizards.NewOmnetppCCProject"
+            name="OMNeT++ Project..."
+            preferredPerspectives="org.eclipse.cdt.ui.CPerspective, org.omnetpp.main.OmnetppPerspective"
+            project="true">
+         <description>
+            Create a Project that can handle OMNeT++ specific files and supports C++ development using CDT.
+         </description>
+      </wizard>
+   </extension>
+  <extension
+        point="org.eclipse.ui.navigator.navigatorContent">
+     <commonWizard
+           menuGroupId="org.eclipse.cdt.ui.newProject"
+           type="new"
+           wizardId="org.omnetpp.cdt.wizards.NewOmnetppCCProject">
+        <enablement></enablement>
+     </commonWizard>
+     <commonWizard
+           menuGroupId="org.eclipse.cdt.ui"
+           type="new"
+           wizardId="org.omnetpp.cdt.wizards.NewOmnetppClass">
+        <enablement></enablement>
+     </commonWizard>
+  </extension>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            category="org.omnetpp.main.OmnetppCategory"
+            class="org.omnetpp.cdt.ui.FolderMakemakePropertyPage"
+            id="org.omnetpp.cdt.FolderBuildSpec"
+            name="Makemake">
+         <enabledWhen>
+            <and>
+                <adapt
+                      type="org.eclipse.core.resources.IFolder">
+                </adapt>
+                <test property="org.eclipse.core.resources.projectNature" 
+                      value="org.omnetpp.main.omnetppnature" />
+                <test property="org.eclipse.core.resources.projectNature" 
+                      value="org.eclipse.cdt.core.cnature" />
+            </and>
+         </enabledWhen>
+      </page>
+      <page
+            category="org.omnetpp.main.OmnetppCategory"
+            class="org.omnetpp.cdt.ui.ProjectMakemakePropertyPage"
+            id="org.omnetpp.cdt.ProjectBuildSpec"
+            name="Makemake">
+         <enabledWhen>
+            <and>
+                <adapt
+                      type="org.eclipse.core.resources.IProject">
+                </adapt>
+                <test property="org.eclipse.core.resources.projectNature" 
+                      value="org.omnetpp.main.omnetppnature" />
+                <test property="org.eclipse.core.resources.projectNature" 
+                      value="org.eclipse.cdt.core.cnature" />
+            </and>
+         </enabledWhen>
+      </page>
+      <page
+            category="org.omnetpp.main.OmnetppCategory"
+            class="org.omnetpp.cdt.ui.ProjectFeaturesPropertyPage"
+            id="org.omnetpp.cdt.ProjectFeatures"
+            name="Project Features">
+         <enabledWhen>
+            <and>
+                <adapt
+                      type="org.eclipse.core.resources.IProject">
+                </adapt>
+                <test property="org.eclipse.core.resources.projectNature" 
+                      value="org.omnetpp.main.omnetppnature" />
+                <test property="org.eclipse.core.resources.projectNature" 
+                      value="org.eclipse.cdt.core.cnature" />
+            </and>
+         </enabledWhen>
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.cdt.ui.CPerspective">
+         <perspectiveShortcut
+               id="org.omnetpp.main.OmnetppPerspective">
+         </perspectiveShortcut>
+         <newWizardShortcut
+               id="org.omnetpp.cdt.wizards.NewOmnetppCCProject">
+         </newWizardShortcut>
+         <newWizardShortcut
+               id="org.omnetpp.ned.editor.wizards.NewSimpleModule">
+         </newWizardShortcut>
+         <newWizardShortcut
+               id="org.omnetpp.cdt.wizards.NewOmnetppClass">
+         </newWizardShortcut>
+      </perspectiveExtension>
+      <perspectiveExtension
+            targetID="org.eclipse.debug.ui.DebugPerspective">
+         <perspectiveShortcut
+               id="org.omnetpp.main.OmnetppPerspective">
+         </perspectiveShortcut>
+      </perspectiveExtension>
+      <perspectiveExtension
+            targetID="org.omnetpp.main.OmnetppPerspective">
+         <perspectiveShortcut
+               id="org.eclipse.cdt.ui.CPerspective">
+         </perspectiveShortcut>
+         <newWizardShortcut
+               id="org.omnetpp.cdt.wizards.NewOmnetppClass">
+         </newWizardShortcut>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="org.omnetpp.cdt.handlers.GotoCppDefinitionForNedTypeHandler"
+            description="Opens the C++ definition for a NED type (simple module or channel)"
+            id="org.omnetpp.cdt.gotoCppDefinitionForNedType"
+            name="Open C++ Definition">
+      </command>
+      <command
+            defaultHandler="org.omnetpp.cdt.handlers.CleanSelectedProjectsHandler"
+            description="Clean the selected project(s) without cleaning referred projects."
+            id="org.omnetpp.cdt.cleanSelectedProjects"
+            name="Clean Local">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:org.omnetpp.ned.editor.graph?after=org.eclipse.gef.group.find">
+         <command
+               commandId="org.omnetpp.cdt.gotoCppDefinitionForNedType"
+               mnemonic="n"
+               style="push"
+               tooltip="Go To C++ Definition">
+         </command>
+      </menuContribution>
+      <menuContribution
+            locationURI="popup:org.omnetpp.ned.editor.text?after=group.find">
+         <command
+               commandId="org.omnetpp.cdt.gotoCppDefinitionForNedType"
+               mnemonic="n"
+               style="push"
+               tooltip="Go To C++ Definition">
+         </command>
+      </menuContribution>
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any?after=group.build">
+         <command
+               commandId="org.omnetpp.cdt.cleanSelectedProjects"
+               style="push"
+               tooltip="Cleans the selected project only without cleaning projects it is depending on">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="activeMenuSelection">
+                  <iterate
+                        operator="and">
+                     <test
+                           property="org.eclipse.core.resources.projectNature"
+                           value="org.eclipse.cdt.managedbuilder.core.managedBuildNature">
+                     </test>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.omnetpp.cdt.gotoCppDefinitionForNedType"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+TAB">
+      </key>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.eclipse.cdt.ui.newCCWizards"
+            class="org.omnetpp.cdt.wizard.NewOmnetppClassCreationWizard"
+            finalPerspective="org.eclipse.cdt.ui.CPerspective"
+            icon="icons/full/etool16/newclass_wiz.gif"
+            id="org.omnetpp.cdt.wizards.NewOmnetppClass"
+            name="Class (OMNeT++)">
+         <class class="org.eclipse.cdt.internal.ui.wizards.NewClassCreationWizard">
+            <parameter name="ctype" value="true"/>
+            <parameter targetId="org.eclipse.cdt.ui.actions.NewTypeDropDown"/>
+         </class>
+         <description>
+            Create a new C++ class (OMNeT++)
+         </description>
+      </wizard>
+   </extension>
+   <extension
+         point="org.omnetpp.common.wizard.contenttemplates">
+      <plugin
+            folder="template"
+            pluginId="org.omnetpp.cdt">
+      </plugin>
+   </extension>
+   <extension
+         point="org.swtworkbench.xswt.classloaders">
+      <plugin
+            pluginId="org.omnetpp.cdt"
+            referenceClass="org.omnetpp.cdt.Activator">
+      </plugin>
+   </extension>
+   <extension
+         point="org.omnetpp.common.wizard.templatecontributors">
+      <contributor
+            class="org.omnetpp.cdt.wizard.CDTContentTemplateContributor">
+      </contributor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.ui.category.project"
+            defaultHandler="org.omnetpp.cdt.handlers.ProjectFeaturesHandler"
+            id="org.omnetpp.cdt.projectFeaturesCommand"
+            name="Project &amp;Features...">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:project?before=additions">
+         <command
+               commandId="org.omnetpp.cdt.projectFeaturesCommand"
+               id="projectfeatures">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension point="org.eclipse.ui.popupMenus">
+     <objectContribution
+           adaptable="true"
+           id="org.omnetpp.cdt.buildConfigContribution"
+           objectClass="org.eclipse.core.resources.IResource">
+        <visibility>
+           <and>
+              <objectState
+                 name="projectNature"
+                 value="org.eclipse.cdt.core.cnature"/>
+              <objectState
+                 name="projectNature"
+                 value="org.omnetpp.main.omnetppnature"/>
+              <objectClass name="org.eclipse.core.resources.IProject"/>
+           </and>
+        </visibility>
+        <action
+              class="org.omnetpp.cdt.handlers.ProjectFeaturesAction"
+              enablesFor="+"
+              id="org.omnetpp.cdt.projectFeaturesAction"
+              label="Project &amp;Features..."
+              menubarPath="org.eclipse.cdt.ui.cfgmenu/manage"
+              />
+     </objectContribution>
+   </extension>
+</plugin>

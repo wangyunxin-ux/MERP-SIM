@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.omnetpp.inifile.editor.editors.InifileEditor"
+            contributorClass="org.omnetpp.inifile.editor.editors.InifileEditorContributor"
+            default="true"
+            extensions="ini"
+            icon="icons/inifile.png"
+            id="org.omnetpp.inifile.editor.editors.InifileEditor"
+            name="OMNeT++ Ini File Editor">
+      </editor>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.omnetpp.wizards"
+            class="org.omnetpp.inifile.editor.wizards.NewInifileWizard"
+            finalPerspective="org.omnetpp.main.OmnetppPerspective"
+            icon="icons/newinifile.png"
+            id="org.omnetpp.inifile.editor.wizards.NewIniFile"
+            name="Initialization File (ini)"
+            preferredPerspectives="org.omnetpp.main.OmnetppPerspective, org.eclipse.cdt.ui.CPerspective">
+
+         <description>
+            Create a file that contains simulation initalization parameters.
+         </description>
+      </wizard>
+   </extension>
+  <extension
+        id="test"
+        point="org.eclipse.ui.navigator.navigatorContent">
+           <commonWizard
+                 associatedExtensionId="org.omnetpp.navigator.content"
+                 menuGroupId="org.eclipse.cdt.ui"
+                 type="new"
+                 wizardId="org.omnetpp.inifile.editor.wizards.NewIniFile">
+              <enablement></enablement>
+           </commonWizard>
+  </extension>
+
+   <extension
+         id="IniDocumentSetupParticipant"
+         name="Ini Document Setup Participant"
+         point="org.eclipse.core.filebuffers.documentSetup">
+      <participant
+            extensions="ini"
+            class="org.omnetpp.inifile.editor.text.InifileDocumentSetupParticipant">
+      </participant>
+   </extension>
+
+  <extension id="baseinifileproblem" point="org.eclipse.core.resources.markers" name="Inifile Problem">
+    <!-- Note: the "problemmarker" super class makes it appear in the Navigator and in the Problems view -->
+	<super type="org.eclipse.core.resources.problemmarker"/>
+	<super type="org.eclipse.core.resources.textmarker"/>
+	<persistent value="false"/>
+  </extension>
+
+  <extension id="inifileproblem" point="org.eclipse.core.resources.markers" name="Inifile Parse Problem">
+	<super type="org.omnetpp.inifile.editor.baseinifileproblem"/>
+	<persistent value="false"/>
+  </extension>
+
+  <extension id="inifileanalyzerproblem" point="org.eclipse.core.resources.markers" name="Inifile Validation Problem">
+	<super type="org.omnetpp.inifile.editor.baseinifileproblem"/>
+	<persistent value="false"/>
+  </extension>
+
+  <extension id="inifileanalyzer2problem" point="org.eclipse.core.resources.markers" name="Inifile Analysis Problem">
+	<super type="org.omnetpp.inifile.editor.baseinifileproblem"/>
+	<persistent value="false"/>
+  </extension>
+
+  <extension
+        point="org.eclipse.ui.views">
+     <view
+           category="org.omnetpp.views"
+           class="org.omnetpp.inifile.editor.views.ModuleHierarchyView"
+           icon="icons/full/eview16/modulehierarchy.png"
+           id="org.omnetpp.inifile.ModuleHierarchy"
+           name="Module Hierarchy"/>
+     <view
+           category="org.omnetpp.views"
+           class="org.omnetpp.inifile.editor.views.ModuleParametersView"
+           icon="icons/full/eview16/moduleparameters.png"
+           id="org.omnetpp.inifile.ModuleParameters"
+           name="NED Parameters"/>
+     <view
+           category="org.omnetpp.views"
+           class="org.omnetpp.inifile.editor.views.NedInheritanceView"
+           icon="icons/full/eview16/inheritance.png"
+           id="org.omnetpp.inifile.NedInheritance"
+           name="NED Inheritance">
+     </view>
+  </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.omnetpp.inifile.editor.text.ToggleComment"
+            contextId="org.omnetpp.context.inifileEditor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+/">
+      </key>
+      <key
+            commandId="org.omnetpp.inifile.editor.text.AddMissingKeys"
+            contextId="org.omnetpp.context.inifileEditor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+O">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Comment/Uncomment the selected lines"
+            id="org.omnetpp.inifile.editor.text.ToggleComment"
+            name="Toggle Comment">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Add missing keys to the INI file"
+            id="org.omnetpp.inifile.editor.text.AddMissingKeys"
+            name="Add Missing Keys">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            description="OMNeT++ INI File Editor"
+            id="org.omnetpp.context.inifileEditor"
+            name="Editing INI File"
+            parentId="org.eclipse.ui.textEditorScope">
+      </context>
+   </extension>
+   <extension
+         point="org.omnetpp.common.wizard.contenttemplates">
+      <plugin
+            pluginId="org.omnetpp.inifile.editor">
+      </plugin>
+   </extension>
+  <extension
+        point="org.eclipse.ui.preferencePages">
+     <page
+           category="org.omnetpp.main.OmnetppPreferencePage"
+           class="org.omnetpp.inifile.editor.InifileEditorPreferencePage"
+           id="org.omnetpp.inifile.editor.InifileEditorPreferencePage"
+           name="Ini File Editor">
+     </page>
+  </extension>
+
+</plugin>

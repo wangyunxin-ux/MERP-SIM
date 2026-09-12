@@ -1,0 +1,41 @@
+digraph g {
+    size="7.8,0!";
+    node [fontname="Arial"; fontsize=10];
+    edge [fontname="Arial"];
+
+    node [shape = "rectangle"; margin=0.09; width=0; height=0];
+    edge [dir = "back"];
+
+    subgraph a {
+        cFigure -> cAbstractLineFigure;
+        cAbstractLineFigure -> cLineFigure;
+        cAbstractLineFigure -> cArcFigure;
+        cAbstractLineFigure -> cPolylineFigure;
+    }
+
+    subgraph b {
+        cFigure2 [label = cFigure];
+        cFigure2 -> cAbstractTextFigure;
+        cAbstractTextFigure -> cTextFigure;
+        cAbstractTextFigure -> cLabelFigure;
+        cFigure2 -> cAbstractImageFigure;
+        cAbstractImageFigure -> cImageFigure;
+        cAbstractImageFigure -> cIconFigure;  /* cheating: it really subclasses cImageFigure */
+        cAbstractImageFigure -> cPixmapFigure;
+        cFigure2 -> cGroupFigure;
+    }
+
+    subgraph c {
+        cFigure3 [label = cFigure];
+        cFigure3 -> cAbstractShapeFigure;
+        cAbstractShapeFigure -> cRectangleFigure;
+        cAbstractShapeFigure -> cOvalFigure;
+        cAbstractShapeFigure -> cRingFigure;
+        cAbstractShapeFigure -> cPieSliceFigure;
+        cAbstractShapeFigure -> cPolygonFigure;
+        cAbstractShapeFigure -> cPathFigure;
+    }
+
+    cLabelFigure -> cFigure3 [style=invis]; /* hack to place the 3rd subgraph below the first */
+}
+

@@ -1,0 +1,3866 @@
+\chapter{Graphics and Visualization}
+\label{cha:graphics}
+
+\section{Overview}
+\label{sec:graphics:overview}
+
+{\opp} simulations can be run under graphical user interfaces like Qtenv
+that offer visualization and animation in addition to interactive
+execution and other features. This chapter deals with model visualization.
+
+{\opp} essentially provides four main tools for defining and enhancing
+model visualization:
+
+\begin{enumerate}
+
+    \item \textit{Display strings} is the traditional way. It is a
+    per-component string that encodes how the component (module or channel)
+    will show up in the graphical user interface. Display strings can be
+    specified in NED files, and can also be manipulated programmatically at
+    runtime.
+
+    \item \textit{The canvas.} The same user interface area that contains
+    submodules and connections (i.e. the \textit{canvas}) can also display
+    additional graphical elements that {\opp} calls \textit{figures}. Using
+    figures, one can display lines, curves, polygons, images and text items,
+    and anything that can be built by combining them and applying effects like
+    rotation and scaling. Like display strings, figures can also be specified
+    in NED files, but it is generally more useful to create and manipulate them
+    programmatically. Every module has its own default canvas, and extra canvases
+    can also be created at runtime.
+
+    \item \textit{3D visualization} of the simulation's virtual world is a
+    third possiblity. {\opp}'s 3D visualization capabilities come from the
+    open-source OpenSceneGraph library and its osgEarth extension. These
+    libraries build on top of OpenGL, and beyond basic graphics functionality
+    they also offer high-level capabilities, such as reading 3D model files
+    directly from disk, or displaying maps, 3D terrain or Earth as a planet
+    using online map and satellite imagery data sources.
+
+    \item \textit{Support for smooth custom animation} allows models to visualize
+    their operation using sophisticated animations. The key idea is that the
+    simulation model is called back from the runtime GUI (Qtenv) repeatedly
+    at a reasonable ``frame rate,'' allowing it to continually update the
+    canvas (2D) and/or the 3D scene to produce fluid animations.
+
+\end{enumerate}
+
+The following sections will cover the above topics in more detail. But first,
+let us get acquainted with a new \cclass{cModule} virtual method that one
+can redefine and place visualization-related code into.
+
+
+\section{Placement of Visualization Code}
+\label{sec:graphics:refreshdisplay}
+
+Traditionally, when C++ code was needed to enhance visualization, for
+example to update a displayed status label or to refresh the position of a
+mobile node, it was embedded in \ffunc{handleMessage()} functions, enclosed
+in \ttt{if (ev.isGUI())} blocks. This was less than ideal, because the
+visualization code would run for all events in that module and not just
+before display updates when it was actually needed. In \textit{Express} mode,
+for example, Qtenv would only refresh the display once every second or so,
+with a large number of events processed between updates, so visualization
+code placed inside \ffunc{handleMessage()} could potentially waste a
+significant amount of CPU cycles. Also, visualization code embedded in
+\ffunc{handleMessage()} is not suitable for creating smooth animations.
+
+
+\subsection{The refreshDisplay() Method}
+\label{sec:graphics:refreshdisplay-usage-and-semantics}
+
+Starting from {\opp} version 5.0, visualization code can be placed into a
+dedicated method. It is called much more economically, that is, exactly
+as often as needed.
+
+This method is \ffunc{refreshDisplay()}, and is declared on
+\cclass{cModule} as:
+
+\begin{cpp}
+virtual void refreshDisplay() const {}
+\end{cpp}
+
+Components that contain visualization-related code are expected to override
+\ffunc{refreshDisplay()}, and move visualization code such as display string
+manipulation, canvas figure maintenance and OSG scene graph updates into it.
+
+When and how is \ffunc{refreshDisplay()} invoked? Generally, right before
+the GUI performs a display update. With some additional rules, that boils
+down to the following:
+
+\begin{enumerate}
+\item It is invoked only under graphical user interfaces, currently Qtenv.
+     It is never invoked under Cmdenv.
+
+\item When invoked, it will be called on \textit{all} components of the
+      simulation. It does not matter if a module has a graphical inspector
+      open or not. This design decision simplifies the handling
+      of cross-module visualization dependencies. Runtime overhead is
+      still not an issue, because display updates are only done at most
+      a few times per second in \textit{Express} mode, while in other modes,
+      raw event processing performance is of somewhat lesser importance.
+      \footnote{At any rate, only a small portion of components are expected to
+      have (nontrivial) \ffunc{refreshDisplay()} overrides in complex models.
+      If it still becomes too resource-consuming, local caching of related
+      data and the use of a \textit{displayInvalid} flag might help.}
+
+\item It is invoked right before display updates. This includes the following:
+      after network setup; in \textit{Step} and \textit{Run} modes, before and
+      after every event; in \textit{Fast} and \textit{Express} modes, after
+      every "batch" of events; every time a new graphical inspector is opened,
+      zoomed, navigated in, or closed; after model data (cPar, cDisplayString
+      values, etc.) is edited, and after finalization.
+
+\item If smooth animation is used, it is invoked continuously with a reasonably
+      high frequency in \textit{Step}, \textit{Run} and \textit{Fast} modes.
+      This can mean anything from many times between processing two consecutive
+      events to not even once until after the processing of a couple of events,
+      depending on the current animation speed and event density.
+
+\end{enumerate}
+
+Here is an example of how one would use it:
+
+\begin{cpp}
+void FooModule::refreshDisplay() const
+{
+    // refresh statistics
+    char buf[80];
+    sprintf(buf, "Sent:%d  Rcvd:%d", numSent, numReceived);
+    getDisplayString()->setTagArg("t", 0, buf);
+
+    // update the mobile node's position
+    Point pos = ...  // e.g. invoke a computePosition() method
+    getDisplayString()->setTagArg("p", 0, pos.x);
+    getDisplayString()->setTagArg("p", 1, pos.y);
+}
+\end{cpp}
+
+One useful accessory to \ffunc{refreshDisplay()} is the
+\ffunc{isExpressMode()} method of \cclass{cEnvir}. It returns true if the
+simulation is running under a GUI in \textit{Express} mode. Visualization
+code may check this flag and adapt the visualization accordingly. An example:
+
+\begin{cpp}
+if (getEnvir()->isExpressMode()) {
+    // display throughput statistics
+}
+else {
+    // visualize current frame transmission
+}
+\end{cpp}
+
+
+\subsection{Advantages}
+\label{sec:graphics:refreshdisplay-advantages}
+
+Overriding \ffunc{refreshDisplay()} has several advantages over putting the
+simulation code into \ffunc{handleMessage()}. The first one is clearly
+\textit{performance}. When running under Cmdenv,
+the runtime cost of visualization code is literally zero, and when running
+in \textit{Express} mode under Qtenv, it is practically zero because
+the cost of one update is amortized over several hundred thousand or
+million events.
+
+The second advantage is also very practical: \textit{consistency} of the
+visualization. If the simulation has cross-module dependencies such that
+an event processed by one module affects the information displayed
+by another module, with \ffunc{handleMessage()}-based visualization
+the model may have inconsistent visualization until the second module
+also processes an event and updates its displayed state. With
+\ffunc{refreshDisplay()} this does not happen, because all modules
+are refreshed together.
+
+The third advantage is \textit{separation of concerns.} It is generally
+not a good idea to intermix simulation logic with visualization code,
+and \ffunc{refreshDisplay()} allows one to completely separate the two.
+
+
+\subsection{Why is \ffunc{refreshDisplay()} const?}
+\label{sec:graphics:refreshdisplay-constness}
+
+Code in \ffunc{refreshDisplay()} should never alter the state of the
+simulation because that would destroy repeatability, due to the
+fact that the timing and frequency of \ffunc{refreshDisplay()}
+calls is completely unpredictable from the simulation model's point of view.
+The fact that the method is declared \ttt{const} gently encourages this behavior.
+
+If visualization code makes use of internal caches or maintains some
+other mutable state, such data members can be declared \ttt{mutable}
+to allow \ffunc{refreshDisplay()} to change them.
+
+
+\section{Smooth Animation}
+\label{sec:graphics:smooth-animation}
+
+\subsection{Concepts}
+\label{sec:graphics:animation-concepts}
+
+Support for smooth custom animation allows models to visualize their operation
+using sophisticated animations. The key idea is that the simulation model
+is called back from the runtime GUI (Qtenv) repeatedly at a reasonable
+``frame rate,'' allowing it to continually update the canvas (2D) and/or the
+3D scene to produce fluid animations. Callback means that the
+\ffunc{refreshDisplay()} methods of modules and figures are invoked.
+
+\ffunc{refreshDisplay()} knows the animation position from the simulation time
+and the \textit{animation time}, a variable also made accessible to the model.
+If you think about the animation as a movie, animation time is simply the
+position in seconds in the movie. By default, the movie is played in Qtenv at normal (1x)
+speed, and then animation time is simply the number of seconds since the
+start of the movie. The speed control slider in Qtenv's toolbar allows
+you to play it at higher (2x, 10x, etc.) and lower (0.5x, 0.1x, etc.)
+speeds; so if you play the movie at 2x speed, animation time will
+pass twice as fast as real time.
+
+When smooth animation is turned on (more about that later), simulation
+time progresses in the model (piecewise) linearly. The speed at which the simulation
+progresses in the movie is called \textit{animation speed}. Sticking to the
+movie analogy, when the simulation progresses in the movie 100 times
+faster than animation time, animation speed is 100.
+
+Certain actions take zero simulation time, but we still want to animate
+them. Examples of such actions are the sending of a message over a zero-delay link,
+or a visualized C++ method call between two modules. When these animations play
+out, simulation is paused and simulation time stays constant
+until the animation is over. Such periods are called \textit{holds}.
+
+\subsection{Smooth vs. Traditional Animation}
+\label{sec:graphics:animation-modes}
+
+Smooth animation is a relatively new feature in \opp, and not all simulations
+need it. Smooth and traditonal, ``non-smooth'' animation in Qtenv are
+two distinct modes which operate very differently:
+
+\begin{itemize}
+  \item In \tbf{Traditional animation}, simulation events are essentially
+    processed \textit{as fast as possible}, and meanwhile, \ffunc{refreshDisplay()}
+    is called with some policy (e.g. once before/after each event, or at
+    1s intervals real-time) to keep the displayed  graphics up to date.
+  \item \tbf{Smooth animation} is essentially a \textit{scaled realtime simulation},
+    where \ffunc{refreshDisplay()} is continually called with a reasonably
+    high frame rate.
+\end{itemize}
+
+The factor that decides which operation mode is active is the \textit{presence
+of an animation speed}. If there is no animation speed, traditional
+animation is performed; if there is one, smooth animation is done.
+
+The Qtenv GUI has a dialog (\textit{Animation Parameters}) which displays
+the current animation speed, among other things. This dialog allows the
+user to check at any time which operation mode is currently active.\footnote{
+Note that even during traditional animation, some built-in animation effects
+request animation speeds and holds, so there may be periods when smooth animation
+is performed.}
+
+\subsection{The Choice of Animation Speed}
+\label{sec:graphics:animation-speed}
+
+Different animation speeds may be appropriate for different animation effects.
+For example, when animating WiFi traffic where various time slots are on the microsecond scale,
+an animation speed on the order of $10^-5$ might be appropriate; when animating the
+movement of cars or pedestrians, an animation speed of $1$ is a reasonable choice.
+When several animations requiring different animation speeds occur in the same
+scene, one solution is to animate the scene using the lowest animation speed
+so that even the fastest actions can be visually followed by the human viewer.
+
+The solution provided by {\opp} for the above problem is the following.
+Animation speed cannot be controlled explicitly, only requests may be submitted.
+Several parts of the models may request different animation speeds.
+The effective animation speed is computed as the minimum of the animation
+speeds of visible canvases, unless the user interactively overrides it in the UI,
+for example by imposing a lower or upper limit.
+
+An animation speed requests may be submitted using the \ffunc{setAnimationSpeed()}
+method of \cclass{cCanvas}.\footnote{The class that represents the canvas for
+2D graphics, see \ref{sec:graphics:creating-accessing-and-viewing-canvases} for more
+info.} The \ffunc{setAnimationSpeed()} method takes two arguments:
+the animation speed value (a \ttt{double}) and an object pointer (\ttt{cObject*})
+that identifies the part of the model that requests it. The second, object parameter
+is used as a key that allows the request to be updated or withdrawn later.
+Typically, the pointer of the module that makes the request (i.e. \ttt{this}) is
+used for that purpose. Calling \ffunc{setAnimationSpeed()} with zero animation
+speed cancels the request.
+
+An example:
+
+\begin{cpp}
+cCanvas *canvas = getSystemModule()->getCanvas(); // toplevel canvas
+canvas->setAnimationSpeed(2.0, this); // one request
+canvas->setAnimationSpeed(1e-6, macModule); // another request
+...
+canvas->setAnimationSpeed(1.0, this); // overwrite first request
+canvas->setAnimationSpeed(0, macModule); // cancel second request
+\end{cpp}
+
+In practice, built-in animation effects such as message sending animation
+also submit their own animation speed requests internally, so they also
+affect the effective animation speed chosen by Qtenv.
+
+The current effective animation speed can be obtained from the environment of the
+simulation (\cclass{cEnvir}, see chapter \ref{cha:embedding} for context):
+
+\begin{cpp}
+double animSpeed = getEnvir()->getAnimationSpeed();
+\end{cpp}
+
+Animation time can be accessed like this:
+
+\begin{cpp}
+double animTime = getEnvir()->getAnimationTime();
+\end{cpp}
+
+Animation time starts from zero, and monotonically increases with simulation
+time and also during ``holds''.
+
+
+\subsection{Holds}
+\label{sec:graphics:animation-hold}
+
+As mentioned earlier, a hold interval is an interval when only animation
+takes place, but simulation time does not progress and no events
+are processed. Hold intervals are intended for animating actions
+that take zero simulation time.
+
+A hold can be requested with the \ffunc{holdSimulationFor()} method
+of \cclass{cCanvas}, which accepts an animation time delta as parameter.
+If a hold request is issued when there is one already in progress,
+the current hold will be extended as needed to incorporate the
+request. A hold request cannot be cancelled or shrunk.
+
+\begin{cpp}
+cCanvas *canvas = getSystemModule()->getCanvas(); // toplevel canvas
+canvas->holdSimulationFor(0.5); // request a 0.5s (animation time) hold
+\end{cpp}
+
+When rendering frames in \ffunc{refreshDisplay()}) during a hold, the code
+can use animation time to determine the position in the animation.
+If the code needs to know the animation time elapsed since the start of
+the hold, it should query and remember the animation time when issuing
+the hold request.
+
+If the code needs to know the animation time remaining until the end
+of the hold, it can use the \ffunc{getRemainingAnimationHoldTime()}
+method of \cclass{cEnvir}. Note that this is not necessarily the
+time remaining from its own hold request, because other parts of the
+simulation might extend the hold.
+
+
+\subsection{Disabling Built-In Animations}
+\label{sec:graphics:disabling-built-in-anims}
+
+If a model implements such full-blown animations for a compound module that
+{\opp}'s default animations (message sending/method call animations) become
+a liability, they can be programmatically turned off for that module with
+\cclass{cModule}'s \ffunc{setBuiltinAnimationsAllowed()} method:
+
+\begin{cpp}
+// disable animations for the toplevel module
+cModule *network = getSimulation()->getSystemModule();
+network->setBuiltinAnimationsAllowed(false);
+\end{cpp}
+
+
+
+\section{Display Strings}
+\label{sec:graphics:display-strings}
+
+Display strings\index{display strings} are compact textual descriptions
+that specify the arrangement and appearance of the graphical
+representations of modules and connections in graphical user interfaces
+(currently Qtenv).
+
+Display strings are usually specified in NED's \fprop{@display} property,
+but it is also possible to modify them programmatically at runtime.
+
+Display strings can be used in the following contexts:
+\begin{itemize}
+  \item \textit{submodules} -- display strings may contain position, arrangement
+        (for module vectors), icon, icon color, auxiliary icon, status text,
+        communication range (as circle or filled circle), tooltip, etc.
+  \item \textit{compound modules, networks} -- display strings can specify
+        background color, border color, border width,
+        background image, scaling, grid, unit of measurement, etc.
+  \item \textit{connections} -- display strings can specify positioning, color,
+        line width, line style, text and tooltip
+  \item \textit{messages} -- display strings can specify icon, icon color, etc.
+\end{itemize}
+
+
+\subsection{Syntax and Placement}
+\label{sec:graphics:displaystring-syntax-and-placement}
+
+Display strings are specified in \fprop{@display} properties. The property
+must contain a single string as value. The string should contain a
+semicolon-separated list of tags. Each tag consists of a key, an equal sign
+and a comma-separated list of arguments:
+
+\begin{ned}
+@display("p=100,100;b=60,10,rect,blue,black,2")
+\end{ned}
+
+Tag arguments may be omitted both at the end and inside the parameter list.
+If an argument is omitted, a sensible default value is used. In the following
+example, the first and second arguments of the \ttt{b} tag are omitted.
+
+\begin{ned}
+@display("p=100,100;b=,,rect,blue")
+\end{ned}
+
+Display strings can be placed in the \textit{parameters} section of module
+and channel type definitions, and in submodules and connections. The
+following NED sample illustrates the placement of display strings in the
+code:
+
+\begin{ned}
+simple Server
+{
+    parameters:
+        @display("i=device/server");
+    ...
+}
+
+network Example
+{
+    parameters:
+        @display("bgi=maps/europe");
+    submodules:
+        server: Server {
+            @display("p=273,101");
+        }
+        ...
+    connections:
+        client1.out --> { @display("ls=red,3"); } --> server.in++;
+}
+\end{ned}
+
+
+\subsection{Inheritance}
+\label{sec:graphics:displaystring-inheritance}
+
+At runtime, every module and channel object has one single display string object,
+which controls its appearance in various contexts. The initial value of
+this display string object comes from merging the \fprop{@display}
+properties occurring at various places in NED files.
+This section describes the rules for merging \fprop{@display} properties
+to create the module or channel's display string.
+
+\begin{itemize}
+  \item Derived NED types inherit their display string from their base NED type.
+  \item Submodules inherit their display string from their type.
+  \item Connections inherit their display string from their channel type.
+\end{itemize}
+
+The base NED type's display string is merged into the current display string
+using the following rules:
+
+\begin{enumerate}
+\item \tbf{Inheriting.} If a tag or tag argument is present in the base
+    display string but not in the current one, it will be added to the
+    result. Example: \\
+    \ttt{"i=block/sink"} \textit{(base)} + \ttt{"p=20,40;i=,red"} \textit{(current)} $\rightarrow$ \ttt{"p=20,40;i=block/sink,red"}
+\item \tbf{Overwriting.} If a tag argument is present both in the base
+    and in the current display string, the tag argument in the current
+    display string will win. Example: \\
+    \ttt{"b=40,20,oval"} + \ttt{"b=,30"} $\rightarrow$ \ttt{"b=40,30,oval"}
+\item \tbf{Erasing.} If the current display string contains a tag argument
+    with the value ``-'' (hyphen), that tag argument will be empty in
+    the result. Example: \\
+    \ttt{"i=block/sink,red"} + \ttt{"i=,-"} $\rightarrow$ \ttt{"i=block/sink"}
+\end{enumerate}
+
+The result of merging the \fprop{@display} properties will be used to
+initialize the display string object (\cclass{cDisplayString}) of the
+module or channel. The display string object can then still be modified
+programmatically at runtime.
+
+\begin{note}
+If a tag argument is empty, the GUI may use a suitable default value. For
+example, if the border color for a rectangle is not specified in the
+display string, the GUI may use black. This default value cannot be
+queried programmatically.
+\end{note}
+
+Example of display string inheritance:
+
+\begin{ned}
+simple Base {
+    @display("i=block/queue"); // use a queue icon in all instances
+}
+
+simple Derived extends Base {
+    @display("i=,red,60");  // ==> "i=block/queue,red,60"
+}
+
+network SimpleQueue {
+    submodules:
+        submod: Derived {
+            @display("i=,yellow,-;p=273,101;r=70");
+                     // ==> "i=block/queue,yellow;p=273,101;r=70"
+        }
+        ...
+}
+\end{ned}
+
+
+\subsection{Submodule Tags}
+\label{sec:graphics:submodule-displaystring-tags}
+
+The following tags of the module display string are in effect in submodule
+context, that is, when the module is displayed as a submodule of another
+module:
+
+\begin{itemize}
+  \item \ttt{i} -- icon
+  \item \ttt{is} -- icon size
+  \item \ttt{i2} -- auxiliary or status icon
+  \item \ttt{b} -- shape (box, oval, etc.)
+  \item \ttt{p} -- positioning and layout
+  \item \ttt{g} -- layout group
+  \item \ttt{r} -- range indicator
+  \item \ttt{q} -- queue information text
+  \item \ttt{t} -- text
+  \item \ttt{tt} -- tooltip
+\end{itemize}
+
+The following sections provide an overview and examples for each tag. More
+detailed information, such as what each tag argument means, is available in
+Appendix \ref{cha:display-strings}.
+
+\subsubsection{Icons}
+\label{sec:graphics:submodule-icons}
+
+By default, modules are displayed with a simple default icon, but {\opp}
+comes with a large set of categorized icons that one can choose from.
+To see what icons are available, look into the \ttt{images/} folder
+in the {\opp} installation. The stock icons installed with {\opp} have
+several size variants. Most of them have very small (vs), small (s),
+large (l) and very large (vl) versions.
+
+One can specify the icon with the \ttt{i} tag. The icon name should be
+given with the name of the subfolder under \ttt{images/}, but without the
+file name extension. The size may be specified with the icon name suffix
+(\ttt{\_s} for very small, \ttt{\_vl} for very large, etc.), or
+in a separate \ttt{is} tag.
+
+An example that displays the \textit{block/source} in large size:
+
+\begin{ned}
+@display("i=block/source;is=l");
+\end{ned}
+
+Icons may also be colorized, which can often be useful. Color can indicate
+the status or grouping of the module, or simply serve aesthetic purposes.
+The following example makes the icon 20\% red:
+
+\begin{ned}
+@display("i=block/source,red,20")
+\end{ned}
+
+\begin{center}
+\includepng{figures/graphics-itag}
+\end{center}
+
+\subsubsection{Status Icon}
+\label{sec:graphics:submodule-status-icon}
+
+Modules may also display a small auxiliary icon in the top-right corner of
+the main icon. This icon can be useful for displaying the status of the
+module, for example, and can be set with the \ttt{i2} tag. Icons suitable
+for use with \ttt{i2} are in the \ttt{status/} category.
+
+An example:
+
+\begin{ned}
+@display("i=block/queue;i2=status/busy")
+\end{ned}
+
+\begin{center}
+\includepng{figures/graphics-i2tag}
+\end{center}
+
+\subsubsection{Shapes}
+\label{sec:graphics:submodule-shapes}
+
+To have a simple but resizable representation for a module, one can use
+the \ttt{b} tag to create geometric shapes. Currently, \ttt{oval} and
+\ttt{rectangle} are supported.
+
+The following example displays an oval shape of the size 70x30 with a 4-pixel
+black border and red fill:
+
+\begin{ned}
+@display("b=70,30,oval,red,black,4")
+\end{ned}
+
+\begin{center}
+\includepng{figures/graphics-btag}
+\end{center}
+
+\subsubsection{Positioning}
+\label{sec:graphics:submodule-positioning}
+
+The \ttt{p} tag allows one to define the position of a submodule or
+otherwise affect its placement.
+
+\begin{note}
+If the \ttt{p} tag is missing or doesn't specify the position, {\opp} will
+use a layouting algorithm to place the module automatically. The layouting
+algorithm is covered in section \ref{sec:graphics:compound-module-layouting}.
+\end{note}
+
+The following example will place the module at the given position:
+
+\begin{ned}
+@display("p=50,79");
+\end{ned}
+
+\begin{note}
+Coordinates and distances in \ttt{p}, \ttt{b} or \ttt{r} tags need not
+be integers. Fractional numbers make sense because runtime GUIs like
+Qtenv support zooming.
+\end{note}
+
+If the submodule is a module vector, one can also specify in the \ttt{p}
+tag how to arrange the elements of the vector. They can be arranged in a
+row, a column, a matrix or a ring. The rest of the arguments in the \ttt{p}
+tag depend on the layout type:
+
+TODO refine, e.g. list accepted abbreviations for matrix etc; what if x,y are missing; delta args are optional; etc
+
+\begin{itemize}
+  \item Row: \ttt{p=$x$,$y$,r,$deltaX$} (A row of modules with $deltaX$ units between the modules)
+  \item Column: \ttt{p=$x$,$y$,c,$deltaY$} (A column of modules with $deltaY$ units between the modules)
+  \item Matrix: \ttt{p=$x$,$y$,m,$numCols$,$deltaX$,$deltaY$} (A matrix with $numCols$ columns, with
+            $deltaX$ and $deltaY$ units between rows and columns)
+  \item Ring \ttt{p=$x$,$y$,ri,$rx$,$ry$} (A ring (oval) with $rx$ and $ry$ as the horizontal and vertical radius.)
+  \item Exact (default): \ttt{p=$x$,$y$,x,$deltaX$,$deltaY$} (Place each module at $(x+deltaX, y+deltaY)$.
+            The coordinates are often set at runtime.)
+\end{itemize}
+
+A matrix layout for a module vector (note that the first two arguments, $x$
+and $y$ are omitted, so the submodule matrix as a whole will be placed by
+the layouter algorithm):
+
+\begin{ned}
+host[20]: Host {
+    @display("p=,,m,4,50,50");
+}
+\end{ned}
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includepng{figures/graphics-ptag}
+    \caption{Matrix arrangement using the $p$ tag}
+    \label{fig:graphics-ptag}
+  \end{center}
+\end{figure}
+
+
+\subsubsection{Layout Group}
+\label{sec:graphics:submodule-layout-group}
+
+Layout groups allow modules that are not part of the same submodule vector to be
+arranged in a row, column, matrix or ring formation as described in the \ttt{p}
+tag's third (and further) parameters.
+
+The \ttt{g} tag expects a single string parameter, the group name. All sibling
+modules that share the same group name are treated for layouting purposes as if
+they were part of the same submodule vector, the "index" being the order of
+submodules within their parent.
+
+
+\subsubsection{Wireless Range}
+\label{sec:graphics:submodule-wireless-range}
+
+In wireless simulations, it is often useful to be able to display a circle
+or disc around the module to indicate transmission range, reception range,
+or interference range. This can be done with the \ttt{r} tag.
+
+In the following example, the module will have a circle with a 90-unit radius
+around it as a range indicator:
+
+\begin{ned}
+submodules:
+    ap: AccessPoint {
+        @display("p=50,79;r=90");
+    }
+\end{ned}
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includepng{figures/graphics-rtag}
+    \caption{Range indicator using the $r$ tag}
+    \label{fig:graphics-rtag}
+  \end{center}
+\end{figure}
+
+\subsubsection{Queue Length}
+\label{sec:graphics:submodule-queue-length}
+
+If a module contains a queue object (\cclass{cQueue}), it is possible to
+let the graphical user interface display the queue length next to the
+module icon. To achieve that, one needs to specify the queue object's name
+(the string set via the \ffunc{setName()} method) in the \ttt{q} display string tag.
+{\opp} finds the queue object by traversing the object tree inside
+the module.
+
+The following example displays the length of the queue named \ttt{"jobQueue"}:
+
+\begin{ned}
+@display("q=jobQueue");
+\end{ned}
+
+\begin{center}
+\includepng{figures/graphics-qtag}
+\end{center}
+
+\subsubsection{Text and Tooltip}
+\label{sec:graphics:submdule-text-and-tooltip}
+
+It is possible to have a short text displayed next to or above the module icon
+or shape using the \ttt{t} tag. The tag lets one specify the placement (left,
+right, above) and the color of the text. To display text in a tooltip, use
+the \ttt{tt} tag.
+
+The following example displays text above the module icon, and also adds
+tooltip text that can be seen by hovering over the module icon with the
+mouse.
+
+\begin{ned}
+@display("t=Packets sent: 18;tt=Additional tooltip information");
+\end{ned}
+
+\begin{center}
+\includepng{figures/graphics-ttag}
+\end{center}
+
+\begin{note}
+  The \ttt{t} and \ttt{tt} tags, when set at runtime, can be used to display
+  information about the module's state. The \ffunc{setTagArg()} method
+  of \cclass{cDisplayString} can be used to update the text:
+  \ttt{getDisplayString().setTagArg("t", 0, str);}
+\end{note}
+
+For a detailed descripton of the display string tags, check
+Appendix \ref{cha:display-strings}.
+
+
+\subsection{Background Tags}
+\label{sec:graphics:background-displaystring-tags}
+
+The following tags of the module display string are in effect when the
+module itself is opened in a GUI. These tags mostly deal with the visual
+properties of the background rectangle.
+
+\begin{itemize}
+  \item \ttt{bgb} -- size, color and border of the background rectangle
+  \item \ttt{bgi} -- background image and its display mode
+  \item \ttt{bgtt} -- tooltip above the background
+  \item \ttt{bgg} -- background grid: color, spacing, etc.
+  \item \ttt{bgu} -- measurement unit of coordinates/distances
+\end{itemize}
+
+In the following example, the background area is defined to be 6000x4500
+units, and the map of Europe is used as a background, stretched to fill the
+whole area. A grid is also drawn, with 1000 units between major ticks,
+and 2 minor ticks per major tick.
+
+\begin{ned}
+network EuropePlayground
+{
+    @display("bgb=6000,4500;bgi=maps/europe,s;bgg=1000,2,grey95;bgu=km");
+\end{ned}
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includepng{figures/graphics-bgtags}
+    \caption{Background image and grid}
+    \label{fig:graphics-bgtags}
+  \end{center}
+\end{figure}
+
+The \ttt{bgu} tag deserves special attention. It does not affect
+the visual appearance, but instead it is a hint for model code
+on how to interpret coordinates and distances in this compound
+module. The above example specifies \ttt{bgu=km}, which means
+that if the model attaches physical meaning to coordinates and
+distances, then those numbers should be interpreted as kilometers.
+
+More detailed information, such as what each tag argument means, is
+available in Appendix \ref{cha:display-strings}.
+
+
+\subsection{Connection Display Strings}
+\label{sec:graphics:connection-displaystrings}
+
+Connections may also have display strings. Connections inherit the
+display string property from their channel types, in the same way as
+submodules inherit theirs from module types. The default display
+strings are empty.
+
+Connections support the following tags:
+
+\begin{itemize}
+  \item \ttt{ls} -- line style and color
+  \item \ttt{t} -- text
+  \item \ttt{tt} -- tooltip
+  \item \ttt{m} -- orientation and positioning
+\end{itemize}
+
+Example of a thick, red connection:
+\begin{ned}
+source1.out --> { @display("ls=red,3"); } --> queue1.in++;
+\end{ned}
+
+\begin{center}
+\includepng{figures/graphics-lstag}
+\end{center}
+
+\begin{note}
+To hide a connection, specify zero line width in the display string:
+\ttt{"ls=,0"}.
+\end{note}
+
+More detailed information, such as what each tag argument means, is
+available in Appendix \ref{cha:display-strings}.
+
+
+\subsection{Message Display Strings}
+\label{sec:graphics:message-displaystrings}
+
+Message display strings affect how messages are shown during animation.
+By default, they are displayed as a small filled circle, in one of
+8 basic colors (the color is determined as \textit{message kind modulo 8}),
+and with the message class and/or name displayed under it.
+The latter is configurable in the Preferences dialog of Qtenv,
+and message kind dependent coloring can also be turned off there.
+
+\subsubsection{How to Specify}
+\label{sec:graphics:specifying-message-displaystrings}
+
+Message objects do not store a display string by default. Instead,
+\cclass{cMessage} defines a virtual \ffunc{getDisplayString()} method
+that one can override in subclasses to return an arbitrary string.
+The following example adds a display string to a new message class:
+
+\begin{cpp}
+class Job : public cMessage
+{
+  public:
+    const char *getDisplayString() const {return "i=msg/packet;is=vs";}
+    //...
+};
+\end{cpp}
+
+Since message classes are often defined in \ttt{msg} files (see chapter
+\ref{cha:msg-def}), it is often convenient to let the message compiler
+generate the \ffunc{getDisplayString()} method. To achieve that, add a
+string field named \ffunc{displayString} with an initializer to the message
+definition. The message compiler will generate \ffunc{setDisplayString()}
+and \ffunc{getDisplayString()} methods into the new class, and also set the
+initial value in the constructor.
+
+An example message file:
+
+\begin{msg}
+message Job
+{
+    string displayString = "i=msg/package_s,kind";
+    //...
+}
+\end{msg}
+
+\subsubsection{Tags}
+\label{sec:graphics:message-displaystring-tags}
+
+The following tags can be used in message display strings:
+
+\begin{itemize}
+  \item \ttt{b} -- shape, color
+  \item \ttt{i} -- icon
+  \item \ttt{is} -- icon size
+\end{itemize}
+
+\begin{note}
+   In message display strings, \ttt{kind} is accepted as a special color name.
+   It will cause the color to be derived from \textit{message kind} field in the message.
+\end{note}
+
+The following example displays a small red box icon:
+
+\begin{ned}
+@display("i=msg/box,red;is=s");
+\end{ned}
+
+The next one displays a 15x15 rectangle, with while fill, and with a border
+color dependent on the message kind:
+
+\begin{ned}
+@display("b=15,15,rect,white,kind,5");
+\end{ned}
+
+More detailed information, such as what each tag argument means, is
+available in Appendix \ref{cha:display-strings}.
+
+
+\subsection{Parameter Substitution}
+\label{sec:graphics:displaystring-parameter-substitution}
+
+Parameters of the module or channel containing the
+display string can be substituted into the display string
+with the \ttt{\$parameterName} notation:
+
+Example:
+
+\begin{ned}
+simple MobileNode
+{
+    parameters:
+        double xpos;
+        double ypos;
+        string fillColor;
+        // get the values from the module parameters xpos,ypos,fillcolor
+        @display("p=$xpos,$ypos;b=60,10,rect,$fillColor,black,2");
+}
+\end{ned}
+
+\subsection{Colors}
+\label{sec:graphics:displaystring-colors}
+
+\subsubsection{Color Names}
+\label{sec:graphics:displaystring-color-names}
+
+A color may be given in several forms. One is English names: \ttt{blue},
+\ttt{lightgrey}, \ttt{wheat}, etc.; the list includes all standard SVG
+color names.
+
+Another acceptable form is the HTML RGB syntax: \textit{\#rgb} or
+\textit{\#rrggbb}, where \textit{r},\textit{g},\textit{b} are hex digits.
+
+It is also possible to specify colors in HSB (hue-saturation-brightness) as
+\textit{@hhssbb} (with \textit{h}, \textit{s}, \textit{b} being hex digits).
+HSB makes it easier to scale colors e.g. from white to bright red.
+
+One can produce a transparent background by specifying a hyphen (\textit{"-"})
+as background color.
+
+In message display strings, \ttt{kind} can also be used as a special color
+name. It will map message kind to a color. (See the \ffunc{getKind()}
+method of \cclass{cMessage}.)
+
+\subsubsection{Icon Colorization}
+\label{sec:graphics:displaystring-icon-colorization}
+
+The \ttt{"i="} display string tag allows for colorization of icons.
+It accepts a target color and a percentage as the degree of colorization.
+Percentage has no effect if the target color is missing.
+Brightness of the icon is also affected -- to keep the original brightness,
+specify a color with about 50\% brightness (e.g. \ttt{\#808080} mid-grey,
+\ttt{\#008000} mid-green).
+
+Examples:
+
+\begin{itemize}
+  \item \ttt{"i=device/server,gold"} creates a gold server icon
+  \item \ttt{"i=misc/globe,\#808080,100"} makes the icon greyscale
+  \item \ttt{"i=block/queue,white,100"} yields a "burnt-in" black-and-white icon
+\end{itemize}
+
+Colorization works with both submodule and message icons.
+
+
+\subsection{Icons}
+\label{sec:graphics:icon-library}
+
+\subsubsection{The Image Path}
+\label{sec:graphics:image-path}
+
+In the current {\opp} version, module icons are PNG or GIF files. The icons shipped
+with {\opp} are in the \ttt{images/} subdirectory. The IDE and Qtenv
+need the exact location of this directory to be able to load the icons.
+
+Icons are loaded from all directories in the \textit{image path},
+a semicolon-separated list of directories.
+The default image path is compiled into Qtenv with the value
+\ttt{"\textit{<omnetpp>}/\-images;./images"}. This works fine (unless the
+{\opp} installation is moved), and the \ttt{./images} part also allows
+icons to be loaded from the \ttt{images/} subdirectory of the current
+directory. As users typically run simulation models from the model's
+directory, this practically means that custom icons placed in the
+\ttt{images/} subdirectory of the model's directory are automatically
+loaded.
+
+The compiled-in image path can be overridden with the \ttt{OMNETPP\_IMAGE\_PATH}
+environment variable. The way of setting environment variables is system
+specific: in Unix, if one is using the bash shell, adding a line
+
+\begin{commandline}
+export OMNETPP_IMAGE_PATH="$HOME/omnetpp/images;./images"
+\end{commandline}
+
+to \ttt{\textasciitilde/.bashrc} or \ttt{\textasciitilde/.bash\_profile} will do;
+on Windows, environment variables can be set via the \textit{My Computer --> Properties} dialog.
+
+One can extend the image path from \ffilename{omnetpp.ini} with the
+\ttt{image-path} option, which is prepended to the environment
+variable's value.
+
+\begin{inifile}
+[General]
+image-path = "/home/you/model-framework/images;/home/you/extra-images"
+\end{inifile}
+
+
+\subsubsection{Categorized Icons}
+\label{sec:graphics:categorized-icons}
+
+Icons are organized into several categories, represented by folders.
+These categories include:
+
+\begin{itemize}
+  \item \ttt{abstract/} - symbolic icons for various devices
+  \item \ttt{background/} - images useful as background, such as terrain map
+  \item \ttt{block/} - icons for subcomponents (queues, protocols, etc).
+  \item \ttt{device/} - network device icons: servers, hosts, routers, etc.
+  \item \ttt{misc/} - node, subnet, cloud, building, town, city, etc.
+  \item \ttt{msg/} - icons that can be used for messages
+  \item \ttt{status/} - status icons such as up, down, busy, etc.
+\end{itemize}
+
+Icon names to be used with the \ttt{i}, \ttt{bgi} and other tags should
+contain the subfolder (category) name but not the file extension. For
+example, \ttt{/opt/omnetpp/images/block/sink.png} should be referred to as
+\ttt{block/sink}.
+
+
+\subsubsection{Icon Size}
+\label{sec:graphics:icon-size}
+
+Icons come in various sizes: normal, large, small, very small, very large.
+Sizes are encoded into the icon name's suffix: \ttt{\_vl}, \ttt{\_l},
+\ttt{\_s}, \ttt{\_vs}. In display strings, one can either use the suffix
+(\ttt{"i=device/router\_l"}), or the \ttt{"is}" (\textit{icon size})
+display string tag (\ttt{"i=device/router;is=l"}), but not both at the same
+time (we recommend using the \ttt{is} tag.)
+
+
+\subsection{Layouting}
+\label{sec:graphics:compound-module-layouting}
+
+{\opp} implements an automatic layouting feature, using a variation of the
+Spring Embedder algorithm. Modules which have not been assigned explicit
+positions via the \ttt{"p="} tag will be automatically placed by the
+algorithm.
+
+Spring Embedder is a graph layouting algorithm based on a physical model.
+Graph nodes (modules) repel each other like electric charges of the same
+sign, and connections act as springs that pull nodes together. There is
+also friction built in, in order to prevent oscillation of the nodes. The
+layouting algorithm simulates this physical system until it reaches
+equilibrium (or times out). The physical rules above have been slightly
+tweaked to achieve better results.
+
+The algorithm doesn't move any module which has fixed coordinates. Modules
+that are part of a predefined arrangement (row, matrix, ring, etc., defined
+via the 3rd and further args of the \ttt{"p="} tag) will be moved together,
+to preserve their relative positions.
+
+\begin{note}
+The positions of modules placed by the layouting algorithm are not
+available from simulation models. Think about it: what positions should
+{\opp} report if the model is run under Cmdenv, or under Qtenv but
+the compound module was never opened in the GUI? The absence of explicit
+coordinates in the NED file conceptually means that the modeler
+\textit{doesn't care} about the position of that module.
+\end{note}
+
+Caveats:
+
+\begin{itemize}
+  \item If the full graph is too big after layouting, it is scaled
+    back so that it fits on the screen, \textit{unless it contains
+    any fixed-position module}. (For obvious reasons: if there is a module
+    with manually specified position, we don't want to move that one).
+    To prevent rescaling, one can specify a sufficiently large bounding
+    box in the background display string, e.g. \ttt{"b=2000,3000"}.
+  \item Submodule size is ignored by the present layouter, so modules
+    with elongated shapes may not be placed ideally.
+  \item The algorithm may produce erratic results, especially for small graphs
+    when the number of submodules is small, or when using predefined
+    (matrix, row, ring, etc) layouts. The \textit{Relayout} toolbar button
+    can then be very useful. Larger networks usually produce
+    satisfactory results.
+  \item The algorithm starts by placing the nodes randomly, and this initial
+    arrangement greatly affects the end result. The algorithm has its
+    own RNG that starts from a default seed. The \textit{Relayout} button
+    changes this seed, and this seed is persistently stored so later runs
+    of the model will produce the same layout.
+\end{itemize}
+
+
+\subsection{Changing Display Strings at Runtime}
+\label{sec:graphics:changing-displaystrings-at-runtime}
+
+It is often useful to manipulate the display string at runtime.
+Changing colors, icon, or text may convey status change, and
+changing a module's position is useful when simulating mobile
+networks.
+
+Display strings are stored in \cclass{cDisplayString} objects inside
+channels, modules and gates. \cclass{cDisplayString} also lets one
+manipulate the string.
+
+As far as \cclass{cDisplayString} is concerned, a display string
+(e.g. \ttt{"p=100,125;i=cloud"}) is a string that consist of several
+\textit{tags} separated by semicolons, and each tag has a \textit{name}
+and after an equal sign, zero or more \textit{arguments} separated by commas.
+
+The class facilitates tasks such as finding out what tags a display string
+has, adding new tags, adding arguments to existing tags, removing tags or
+replacing arguments. The internal storage method allows very fast
+operation; it will generally be faster than direct string manipulation. The
+class doesn't try to interpret the display string in any way, nor does it
+know the meaning of the different tags; it merely parses the string as data
+elements separated by semicolons, equal signs and commas.
+
+To get a pointer to a \cclass{cDisplayString} object, one can call
+the components's \ffunc{getDisplayString()} method.
+
+\begin{note}
+The connection display string is stored in the channel object, but it
+can also be accessed via the source gate of the connection.
+\end{note}
+
+The display string can be overwritten using the \ffunc{parse()} method.
+Tag arguments can be set with \ffunc{setTagArg()}, and tags removed
+with \ffunc{removeTag()}.
+
+The following example sets a module's position, icon and status icon
+in one step:
+
+\begin{cpp}
+cDisplayString& dispStr = getDisplayString();
+dispStr.parse("p=40,20;i=device/cellphone;i2=status/disconnect");
+\end{cpp}
+
+Setting an outgoing connection's color to red:
+
+\begin{cpp}
+cDisplayString& connDispStr = gate("out")->getDisplayString();
+connDispStr.parse("ls=red");
+\end{cpp}
+
+Setting module background and grid with background display string tags:
+
+\begin{cpp}
+cDisplayString& parentDispStr = getParentModule()->getDisplayString();
+parentDispStr.parse("bgi=maps/europe;bgg=100,2");
+\end{cpp}
+
+The following example updates a display string so that it contains
+the \ttt{p=40,20} and \ttt{i=device/cellphone} tags:
+
+\begin{cpp}
+dispStr.setTagArg("p", 0, 40);
+dispStr.setTagArg("p", 1, 20);
+dispStr.setTagArg("i", 0, "device/cellphone");
+\end{cpp}
+
+\section{Bubbles}
+\label{sec:graphics:bubbles}
+
+Modules can display a transient bubble with a short message (e.g. "Going
+down" or "Connection estalished") by calling the \ffunc{bubble()} method of
+\cclass{cComponent}. The method takes the string to be displayed as a
+\ttt{const char *} pointer.
+
+An example:
+\begin{cpp}
+bubble("Going down!");
+\end{cpp}
+
+\begin{center}
+\includepng{figures/graphics-bubble}
+\end{center}
+
+If the module often displays bubbles, it is recommended to make the
+corresponding code conditional on \ffunc{hasGUI()}. The \ffunc{hasGUI()}
+method returns \textit{false} if the simulation is running under Cmdenv.
+
+\begin{cpp}
+if (hasGUI()) {
+    char text[32];
+    sprintf(text, "Collision! (%s frames)", numCollidingFrames);
+    bubble(text);
+}
+\end{cpp}
+
+
+
+\section{The Canvas}
+\label{sec:graphics:canvas}
+
+\subsection{Overview}
+\label{sec:graphics:canvas-overview}
+
+The canvas is the 2D drawing API of {\opp}. Using the canvas, one can
+display lines, curves, polygons, images, text items and their combinations,
+using colors, transparency, geometric transformations, antialiasing and
+more. Drawings created with the canvas API can be viewed when the simulation
+is run under a graphical user interface like Qtenv.
+
+Use cases for the canvas API include displaying textual annotations,
+status information, live statistics in the form of plots, charts, gauges,
+counters, etc. Other types of simulations may call for different types of
+graphical presentation. For example, in mobile and wireless simulations,
+the canvas API can be used to draw the scene including a background (like a
+street map or floor plan), mobile objects (vehicles, people), obstacles
+(trees, buildings, hills), antennas with orientation, and also extra
+information like connectivity graph, movement trails, individual
+transmissions and so on.
+
+An arbitrary number of drawings (canvases) can be created, and every module
+already has one by default. A module's default canvas is the one on which
+the module's submodules and internal connections are also displayed, so the
+canvas API can be used to enrich the default, display string based
+presentation of a compound module.
+
+{\opp} calls the items that appear on a canvas \textit{figures}. The
+corresponding C++ types are \cclass{cCanvas} and \cclass{cFigure}. In fact,
+\cclass{cFigure} is an abstract base class, and different kinds of figures
+are represented by various subclasses of \cclass{cFigure}.
+
+Figures can be declared statically in NED files using \fprop{@figure}
+properties, and can also be accessed, created and manipulated
+programmatically at runtime.
+
+
+\subsection{Creating, Accessing and Viewing Canvases}
+\label{sec:graphics:creating-accessing-and-viewing-canvases}
+
+A canvas is represented by the \cclass{cCanvas} C++ class. A module's
+default canvas can be accessed with the \ffunc{getCanvas()} method of
+\cclass{cModule}. For example, a toplevel submodule can get hold of the
+network's canvas with the following line:
+
+\begin{cpp}
+cCanvas *canvas = getParentModule()->getCanvas();
+\end{cpp}
+
+Using the canvas pointer, it is possible to check what figures it
+contains, add new figures, manipulate existing ones, and so on.
+
+New canvases can be created by simply creating new \cclass{cCanvas}
+objects, like so:
+
+\begin{cpp}
+cCanvas *canvas = new cCanvas("liveStatistics"); // arbitrary name string
+\end{cpp}
+
+To view the contents of these additional canvases in Qtenv, one
+needs to navigate to the canvas' owner object (which will usually be the
+module that created the canvas), view the list of objects it contains, and
+double-click the canvas in the list. Giving meaningful names to extra
+canvas objects like in the example above can simplify the process of
+locating them in the Qtenv GUI.
+
+
+\subsection{Figure Classes}
+\label{sec:graphics:figure-classes}
+
+The base class of all figure classes is \cclass{cFigure}. The class hierarchy
+is shown in figure \ref{fig:figure-inheritance}.
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includesvg[scale=0.8]{figures/figure-inheritance}
+    \caption{cFigure class hierarchy}
+    \label{fig:figure-inheritance}
+  \end{center}
+\end{figure}
+
+In subsequent sections, we'll first describe features that are common
+to all figures, then we'll briefly cover each figure class. Finally,
+we'll look into how one can define new figure types.
+
+\begin{note}
+Figures are only data storage classes. The real drawing code is inside
+Qtenv; it might involve a parallel data structure, figure renderer
+classes, etc. When the canvas is not viewed, corresponding objects in
+Qtenv do not exist. Therefore, data flow is largely one-directional --
+figures-to-GUI.
+\end{note}
+
+
+\subsection{The Figure Tree}
+\label{sec:graphics:figure-tree}
+
+Figures on a canvas are organized into a tree. The canvas has a
+(hidden) \textit{root figure}, and all toplevel figures are
+children of the root figure. Any figure may contain child figures,
+not only dedicated ones like \cclass{cGroupFigure}.
+
+Every figure also has a name string, inherited from \cclass{cNamedObject}.
+Since figures are in a tree, every figure also has a \textit{hierarchical name}.
+It consists of the names of figures in the path from the root figure down to the
+the figure, joined with dots. (The name of the root figure itself is omitted.)
+
+Child figures can be added to a figure with the \ffunc{addFigure()} method, or
+inserted into the child list of a figure relative to a sibling with the
+\ffunc{insertBefore()} / \ffunc{insertAfter()} methods.
+\ffunc{addFigure()} has two flavours: one for appending, and one for inserting
+at a numeric position. Child figures can be accessed by name
+(\ffunc{getFigure(name)}), or enumerated by index in the child list
+(\ffunc{getFigure(k)}, \ffunc{getNumFigures()}). One can obtain the index of a
+child figure using  \ffunc{findFigure()}. The \ffunc{removeFromParent()} method
+can be used to remove a figure from its parent.
+
+For convenience, \cclass{cCanvas} also has \ffunc{addFigure()},
+\ffunc{getFigure()}, \ffunc{getNumFigures()} and other methods for managing
+toplevel figures without the need to go via the root figure.
+
+The following code enumerates the children of a figure named \ttt{"group1"}:
+
+\begin{cpp}
+cFigure *parent = canvas->getFigure("group1");
+ASSERT(parent != nullptr);
+for (int i = 0; i < parent->getNumFigures(); i++)
+    EV << parent->getFigure(i)->getName() << endl;
+\end{cpp}
+
+It is also possible to locate a figure by its hierarchical name
+(\ffunc{getFigureByPath()}), and to find figure by its (non-hierarchical)
+name anywhere in a figure subtree (\ffunc{findFigureRecursively()}).
+
+The \ffunc{dup()} method of figure classes only duplicates the very figure
+on which it was called. (The duplicate will not have ay children.) To clone
+a figure including children, use the \ffunc{dupTree()} method.
+
+
+\subsection{Creating and Manipulating Figures from NED and C++}
+\label{sec:graphics:creating-and-manipulating-figures}
+
+As mentioned earlier, figures can be defined in the NED file, so they
+don't always need to be created programmatically. This possibility is
+useful for creating static backgrounds or statically defining placeholders
+for dinamically displayed items, among others. Figures defined from NED can
+be accessed and manipulated from C++ code in the same way as dynamically
+created ones.
+
+Figures are defined in NED by adding \fprop{@figure} properties to a module definition.
+The hierarchical name of the figure goes into the property index, that is, in
+square brackets right after \ttt{@figure}. The parent of the figure must
+already exist, that is, when defining \ttt{foo.bar.baz}, both \ttt{foo} and
+\ttt{foo.bar} must have already been defined (in NED).
+
+Type and various attributes of the figure go into property body, as
+\textit{key-valuelist} pairs. \ttt{type=line} creates a
+\cclass{cLineFigure}, \ttt{type=rectangle} creates a
+\cclass{cRectangleFigure}, \ttt{type=text} creates a \cclass{cTextFigure},
+and so on; the list of accepted types is given in appendix
+\ref{cha:figure-definitions}. Further attributes largely correspond to
+getters and setters of the C++ class denoted by the \ttt{type} attribute.
+
+The following example creates a green rectangle and the text
+\textit{"placeholder"} in it in NED, and the subsequent C++ code changes
+the same text to \textit{"Hello World!"}.
+
+NED part:
+
+\begin{ned}
+module Foo
+{
+    @display("bgb=800,500");
+    @figure[box](type=rectangle; coords=10,50; size=200,100; fillColor=green);
+    @figure[box.label](type=text; coords=20,80; text=placeholder);
+}
+\end{ned}
+
+And the C++ part:
+
+\begin{cpp}
+// we assume this code runs in a submodule of the above "Foo" module
+cCanvas *canvas = getParentModule()->getCanvas();
+
+// obtain the figure pointer by hierarchical name, and change the text:
+cFigure *figure = canvas->getFigureByPath("box.label")
+cTextFigure *textFigure = check_and_cast<cTextFigure *>(figure);
+textFigure->setText("Hello World!");
+\end{cpp}
+
+%% In addition to \ttt{type}, there are some more special attributes
+%% (\ttt{visible}, \ttt{tags}, \ttt{transform}, \ttt{childZ})
+
+\subsection{Stacking Order}
+\label{sec:graphics:canvas-stacking-order}
+
+The stacking order (a.k.a. Z-order) of figures is jointly determined by the
+child order and the \cclass{cFigure} attribute called Z-index, with
+the latter taking priority. Z-index is not used  directly, but an
+\textit{effective Z-index} is computed instead, as the \textit{sum}
+of the Z-index values of the figure and all its ancestors up to the root figure.
+
+A figure with a larger effective Z-index will be displayed above figures with
+smaller effective Z-indices, regardless of their positions in the figure tree.
+Among figures whose effective Z-indices are equal, child order determines
+the stacking order. If two such figures are siblings, the one that occurs
+\textit{later} in the child list will be drawn above the other.
+For figures that are not siblings, the child order within the first
+common ancestor matters.
+
+% These two design decisions (the effective Z-index being computed as a sum
+% up to the root, and affecting the order among all figures not just among
+% siblings) result in significant flexibility.
+% As the Z-order of figures is no longer constrained by  order as the figure tree is no longer constrained by .
+
+There are several methods for managing stacking order:
+\ffunc{setZIndex()}, \ffunc{getZIndex()}, \ffunc{getEffectiveZIndex()},
+\ffunc{insertAbove()}, \ffunc{insertBelow()},
+\ffunc{isAbove()}, \ffunc{isBelow()},
+\ffunc{raiseAbove()}, \ffunc{lowerBelow()},
+\ffunc{raiseToTop()}, \ffunc{lowerToBottom()}.
+
+
+\subsection{Transforms}
+\label{sec:graphics:canvas-transforms}
+
+One of the most powerful features of the Canvas API is being able to assign
+geometric transformations to figures. {\opp} uses 2D homogeneous
+transformation matrices, which are able to express affine transforms such
+as translation, scaling, rotation and skew (shearing). The
+transformation matrix used by {\opp} has the following format:
+
+\begin{htmlonly}
+<center>
+<div>
+<span style="vertical-align: middle;">T&nbsp;=</span>
+<table class="matrix">
+  <tr><td>a</td><td>c</td><td>t<sub>1</sub></td></tr>
+  <tr><td>b</td><td>d</td><td>t<sub>2</sub></td></tr>
+  <tr><td>0</td><td>0</td><td>1</td></tr>
+</table>
+</div>
+</center>
+\end{htmlonly}
+
+\begin{pdfonly}
+\[ T = \left( \begin{array}{ccc}
+a & c & t_1 \\
+b & d & t_2 \\
+0 & 0 & 1 \end{array} \right)\]
+\end{pdfonly}
+
+In a nutshell, given a point with its $(x, y)$ coodinates, one can obtain the
+transformed version of it by multiplying the transformation matrix by the
+$(x \ y \ 1)$ column vector (a.k.a. homogeneous coordinates), and dropping the
+third component:
+
+\begin{htmlonly}
+<center>
+<div>
+<table class="matrix">
+  <tr><td>x'</td></tr>
+  <tr><td>y'</td></tr>
+  <tr><td>1</td></tr>
+</table>
+<span style="vertical-align: middle;">&nbsp;=&nbsp;</span>
+<table class="matrix">
+  <tr><td>a</td><td>c</td><td>t<sub>1</sub></td></tr>
+  <tr><td>b</td><td>d</td><td>t<sub>2</sub></td></tr>
+  <tr><td>0</td><td>0</td><td>1</td></tr>
+</table>
+<span>&nbsp;</span>
+<table class="matrix">
+  <tr><td>x</td></tr>
+  <tr><td>y</td></tr>
+  <tr><td>1</td></tr>
+</table>
+</div>
+</center>
+\end{htmlonly}
+
+\begin{pdfonly}
+\[ \left( \begin{array}{c} x' \\ y' \\ 1 \end{array} \right)
+ = \left( \begin{array}{ccc}
+a & c & t_1 \\
+b & d & t_2 \\
+0 & 0 & 1 \end{array} \right)
+\left( \begin{array}{c} x \\ y \\ 1 \end{array} \right)
+\]
+\end{pdfonly}
+
+The result is the point $(ax+cy+t_1, bx+dy+t_2)$. As one can deduce, $a$,
+$b$, $c$, $d$ are responsible for rotation, scaling and skew, and $t_1$ and
+$t_2$ for translation. Also, transforming a point by matrix $T_1$ and then by
+$T_2$ is equivalent to transforming the point by the matrix $T_2 T_1$ due to
+the associativity of matrix multiplication.
+
+
+\subsubsection{The Transform Class}
+\label{sec:graphics:the-transform-class}
+
+Transformation matrices are represented in {\opp} by the \cclass{cFigure::Transform}
+class.
+
+A \cclass{cFigure::Transform} transformation matrix can be initialized in
+several ways. First, it is possible to assign its \ttt{a}, \ttt{b},
+\ttt{c}, \ttt{d}, \ttt{t1}, \ttt{t2} members directly (they are public), or
+via a six-argument constructor. However, it is usually more convenient to
+start from the identity transform (as created by the default constructor), and
+invoke one or more of its several \ffunc{scale()}, \ffunc{rotate()},
+\ffunc{skewx()}, \ffunc{skewy()} and \ffunc{translate()} member functions.
+They update the matrix to (also) perform the given operation (scaling,
+rotation, skewing or translation), as if left-multiplied by a temporary
+matrix that corresponds to the operation.
+
+The \ffunc{multiply()} method allows one to combine transformations:
+\ttt{t1.multiply(t2)} sets \ttt{t1} to the product \ttt{t2*t1}.
+
+To transform a point (represented by the class \cclass{cFigure::Point}),
+one can use the \ffunc{applyTo()} method of \cclass{Transform}. The
+following code fragment should clarify this:
+
+\begin{cpp}
+// allow Transform and Point to be referenced without the cFigure:: prefix
+typedef cFigure::Transform Transform;
+typedef cFigure::Point Point;
+
+// create a matrix that scales by 2, rotates by 45 degrees, and translates by (100,0)
+Transform t = Transform().scale(2.0).rotate(M_PI/4).translate(100,0);
+
+// apply the transform to the point (10, 20)
+Point p(10, 20);
+Point p2 = t.applyTo(p);
+\end{cpp}
+
+
+\subsubsection{Figure Transforms}
+\label{sec:graphics:figure-transforms}
+
+Every figure has an associated transformation matrix, which
+affects how the figure and its figure subtree are displayed.
+In other words, the way a figure displayed is affected by its own
+transformation matrix and the transformation matrices of all of its
+ancestors, up to the root figure of the canvas. The effective transform
+will be the product of those transformation matrices.
+
+A figure's transformation matrix is directly accessible via \cclass{cFigure}'s
+\ffunc{getTransform()}, \ffunc{setTransform()} member functions.
+For convenience, \cclass{cFigure} also has several \ffunc{scale()}, \ffunc{rotate()},
+\ffunc{skewx()}, \ffunc{skewy()} and \ffunc{translate()} member functions,
+which directly operate on the internal transformation matrix.
+
+Some figures have visual aspects that are not, or only optionally affected
+by the transform. For example, the size and orientation of the text
+displayed by \cclass{cLabelFigure}, in contrast to that of
+\cclass{cTextFigure}, is unaffected by transforms (and of manual zoom as
+well). Only the position is transformed.
+
+\subsubsection{Transform vs move()}
+\label{sec:graphics:figure-transform-vs-move}
+
+In addition to the \ffunc{translate()}, \ffunc{scale()}, \ffunc{rotate()},
+etc. functions that update the figure's transformation matrix, figures also
+have a \ffunc{move()} method. \ffunc{move()}, like \ffunc{translate()},
+also moves the figure by a $dx$, $dy$ offset. However, \ffunc{move()} works
+by changing the figure's coordinates, and not by changing the
+transformation matrix.
+
+Since every figure class stores and interprets its position differently,
+\ffunc{move()} is defined for each figure class independently. For example,
+\cclass{cPolylineFigure}'s \ffunc{move()} changes the coordinates of each point.
+
+\ffunc{move()} is recursive, that is, it not only moves the figure on which
+it was called, but also its children. There is also a non-recursive variant,
+called \ffunc{moveLocal()}.
+
+
+\subsection{Showing/Hiding Figures}
+\label{sec:graphics:showing-hiding-figures}
+
+\subsubsection{Visibility Flag}
+\label{sec:graphics:figure-visibility-flag}
+
+Figures have a visibility flag that controls whether the figure is
+displayed. Hiding a figure via the flag will hide the whole figure subtree,
+not just the figure itself. The flag can be accessed via the
+\ffunc{isVisible()}, \ffunc{setVisible()} member functions of
+\cclass{cFigure}.
+
+\subsubsection{Tags}
+\label{sec:graphics:figure-tags}
+
+Figures can also be assigned a number of textual tags. Tags do not directly
+affect rendering, but graphical user interfaces that display canvas
+content, like Qtenv, offer functionality to interactively
+show/hide figures based on tags they contain. This GUI figure filter allows
+one to express conditions like \textit{"Show only figures that have tag
+\ttt{foo} or \ttt{bar}, but among them, hide those that also contain
+tag \ttt{baz}".} Tag-based filtering and the visibility flag are in AND
+relationship -- figures hidden via \ttt{setVisible(false)} cannot be
+displayed using tags. Also when a figure is hidden using the tag filter,
+its figure subtree will also be hidden.
+
+The tag list of a figure can be accessed with the \ffunc{getTags()} and
+\ffunc{setTags()} \cclass{cFigure} methods. They return/accept a single
+string that contains the tags separated by spaces (a tag itself cannot
+contain a space.)
+
+Tags functionality, when used carefully, allows one to define "layers"
+that can be turned on/off from Qtenv.
+
+%% TODO example
+
+
+\subsection{Figure Tooltip, Associated Object}
+\label{sec:graphics:figure-tooltip-associated-object}
+
+\subsubsection{ Tooltip}
+\label{sec:graphics:figure-tooltip}
+
+Figures may be assigned a tooltip text using the \ffunc{setTooltip()} method.
+The tooltip is shown in the runtime GUI when one hovers with the mouse over the
+figure.
+
+\subsubsection{Associated Object}
+\label{sec:graphics:figure-associated-object}
+
+In the visualization of many simulations, some figures correspond to
+certain objects in the simulation model. For example, a truck image
+may correspond to a module that represents the mobile node
+in the simulation. Or, an inflating disc that represents a wireless
+signal may correspond to a message (\cclass{cMessage}) in the simulation.
+
+One can set the associated object on a figure using the
+\ffunc{setAssociatedObject()} method. The GUI can use this information
+provide a shortcut access to the associated object, for example select the
+object in an inspector when the user clicks the figure, or display
+the object's tooltip over the figure if it does not have its own.
+
+\begin{caution}
+The object must exist (i.e. must not be deleted) while it is
+associated with the figure. When the object is deleted, the user
+is responsible for letting  the figure forget the pointer,
+e.g. by a  \ttt{setAssociatedObject(nullptr)} call.
+\end{caution}
+
+
+\subsection{Specifying Positions, Colors, Fonts and Other Properties}
+\label{sec:graphics:figure-positions-colors-fonts-etc}
+
+\subsubsection{Points}
+\label{sec:graphics:canvas-points}
+
+Points are represented by the \cclass{cFigure::Point} struct:
+
+\begin{cpp}
+struct Point {
+    double x, y;
+    ...
+};
+\end{cpp}
+
+In addition to the public \ttt{x}, \ttt{y} members and a two-argument
+constructor for convenient initialization, the struct provides overloaded
+operators (+,-,*,/) and some utility functions like \ffunc{translate()},
+\ffunc{distanceTo()} and \ffunc{str()}.
+
+\subsubsection{Rectangles}
+\label{sec:graphics:canvas-rectangles}
+
+Rectangles are represented by the \cclass{cFigure::Rectangle} struct:
+
+\begin{cpp}
+struct Rectangle {
+    double x, y,
+    double width, height;
+    ...
+};
+\end{cpp}
+
+A rectangle is specified with the coordinates of their top-left corner,
+their width and height. The latter two are expected to be nonnegative. In
+addition to the public \ttt{x}, \ttt{y}, \ttt{width}, \ttt{height} members
+and a four-argument constructor for convenient initialization, the struct
+also has utility functions like \ffunc{getCenter()}, \ffunc{getSize()},
+\ffunc{translate()} and \ffunc{str()}.
+
+\subsubsection{Colors}
+\label{sec:graphics:canvas-colors}
+
+Colors are represented by the \cclass{cFigure::Color} struct as 24-bit RGB colors:
+
+\begin{cpp}
+struct Color {
+    uint8_t red, green, blue;
+    ...
+};
+\end{cpp}
+
+In addition to the public \ttt{red}, \ttt{green}, \ttt{blue} members
+and a three-argument constructor for convenient initialization, the struct
+also has a string-based constructor and \ffunc{str()} function.
+The string form accepts various notations: HTML colors (\ttt{\#rrggbb}),
+HSB colors in a similar notation (\ttt{@hhssbb}), and English color names
+(SVG and X11 color names, to be more precise.)
+
+However, one doesn't need to use \cclass{Color} directly.
+There are also predefined constants for the basic colors (\ttt{BLACK},
+\ttt{WHITE}, \ttt{GREY}, \ttt{RED}, \ttt{GREEN}, \ttt{BLUE}, \ttt{YELLOW},
+\ttt{CYAN}, \ttt{MAGENTA}), as well as a collection of carefully chosen
+dark and light colors, suitable for e.g. chart drawing, in the arrays
+\ttt{GOOD\_DARK\_COLORS[]} and \ttt{GOOD\_LIGHT\_COLORS[]}; for convenience,
+the number of colors in each are in the \ttt{NUM\_GOOD\_DARK\_COLORS}
+and \ttt{NUM\_GOOD\_LIGHT\_COLORS} constants).
+
+The following ways of specifying colors are all valid:
+
+\begin{cpp}
+cFigure::BLACK;
+cFigure::Color("steelblue");
+cFigure::Color("#3d7a8f");
+cFigure::Color("@20ff80");
+cFigure::GOOD_DARK_COLORS[2];
+cFigure::GOOD_LIGHT_COLORS[intrand(NUM_GOOD_LIGHT_COLORS)];
+\end{cpp}
+
+
+\subsubsection{Fonts}
+\label{sec:graphics:canvas-fonts}
+
+The requested font for text figures is represented by the \cclass{cFigure::Font}
+struct. It stores the typeface, font style and font size in one.
+
+\begin{cpp}
+struct Font {
+    std::string typeface;
+    int pointSize;
+    uint8_t style;
+    ...
+};
+\end{cpp}
+
+The font does not need to be fully specified, there are some defaults. When
+\ttt{typeface} is set to the empty string or when \ttt{pointSize} is zero
+or a negative value, that means that the default font or the default size
+should be used, respectively.
+
+The \ttt{style} field can be either \ttt{FONT\_NONE}, or the binary OR of
+the following constants: \ttt{FONT\_BOLD}, \ttt{FONT\_ITALIC},
+\ttt{FONT\_UNDERLINE}.
+
+The struct also has a three-argument constructor for convenient
+initialization, and an \ffunc{str()} function that returns a human-readable
+text representation of the contents.
+
+Some examples:
+
+\begin{cpp}
+cFigure::Font("Arial");  // default size, normal
+cFigure::Font("Arial", 12);  // 12pt, normal
+cFigure::Font("Arial", 12, cFigure::FONT_BOLD | cFigure::FONT_ITALIC);
+\end{cpp}
+
+
+\subsubsection{Other Line and Shape Properties}
+\label{sec:graphics:canvas-line-and-shape-properties}
+
+\cclass{cFigure} also contains a number of enums as inner types to describe
+various line, shape, text and image properties. Here they are:
+
+\tbf{LineStyle}
+
+Values: \ttt{LINE\_SOLID}, \ttt{LINE\_DOTTED}, \ttt{LINE\_DASHED}
+
+This enum (\cclass{cFigure::LineStyle}) is used by line and shape figures
+to determine their line/border style. The precise graphical interpretation,
+e.g. dash lengths for the \textit{dashed} style, depends on the graphics
+library that the GUI was implemented with.
+
+\tbf{CapStyle}
+
+Values: \ttt{CAP\_BUTT}, \ttt{CAP\_ROUND}, \ttt{CAP\_SQUARE}
+
+This enum is used by line and path figures, and it indicates the shape to
+be used at the end of the lines or open subpaths.
+
+\begin{center}
+\includepng[scale=0.8]{figures/graphics-linecaps}
+\end{center}
+
+\tbf{JoinStyle}
+
+Values: \ttt{JOIN\_BEVEL}, \ttt{JOIN\_ROUND}, \ttt{JOIN\_MITER}
+
+This enum indicates the shape to be used when two line segments are joined,
+in line or shape figures.
+
+\begin{center}
+\includepng[scale=0.8]{figures/graphics-linejoins}
+\end{center}
+
+\tbf{FillRule}
+
+Values: \ttt{FILL\_EVENODD}, \ttt{FILL\_NONZERO}.
+
+This enum determines which regions of a self-intersecting shape
+should be considered to be inside the shape, and thus be filled.
+
+\begin{center}
+\includepng[scale=0.8]{figures/graphics-fillrule}
+\end{center}
+
+\tbf{Arrowhead}
+
+Values: \ttt{ARROW\_NONE}, \ttt{ARROW\_SIMPLE}, \ttt{ARROW\_TRIANGLE}, \ttt{ARROW\_BARBED}.
+
+Some figures support displaying arrowheads at one or both ends of a line.
+This enum determines the style of the arrowhead to be used.
+
+\begin{center}
+\includepng[scale=0.8]{figures/graphics-arrowheads}
+\end{center}
+
+\tbf{Interpolation}
+
+Values: \ttt{INTERPOLATION\_NONE}, \ttt{INTERPOLATION\_FAST}, \ttt{INTERPOLATION\_BEST}.
+
+Interpolation is used for rendering an image when it is not displayed at
+its native resolution. This enum indicates the algorithm to be used for
+interpolation.
+
+The mode \textit{none} selects the "nearest neighbor" algorithm.
+\textit{Fast} emphasizes speed, and \textit{best} emphasizes quality;
+however, the exact choice of algorithm (bilinear, bicubic, quadratic, etc.)
+depends on features of the graphics library that the GUI was implemented with.
+
+\tbf{Anchor}
+
+Values:
+\ttt{ANCHOR\_CENTER}, \ttt{ANCHOR\_N}, \ttt{ANCHOR\_E}, \ttt{ANCHOR\_S}, \ttt{ANCHOR\_W},
+\ttt{ANCHOR\_NW}, \ttt{ANCHOR\_NE}, \ttt{ANCHOR\_SE}, \ttt{ANCHOR\_SW};
+\ttt{ANCHOR\_BASELINE\_START}, \ttt{ANCHOR\_BASELINE\_MIDDLE}, \\ \ttt{ANCHOR\_BASELINE\_END}.
+
+Some figures like text and image figures are placed by specifying a single
+point (\textit{position}) plus an anchor mode, a value from this enum. The
+anchor mode indicates which point of the bounding box of the figure should
+be positioned over the specified point. For example, when using
+\ttt{ANCHOR\_N}, the figure is placed so that its top-middle point falls at
+the specified point.
+
+The last three, \textit{baseline} constants are only used with text
+figures, and indicate that the start, middle or end of the text's baseline
+is the anchor point.
+
+
+\subsection{Primitive Figures}
+\label{sec:graphics:primitive-figures}
+
+Now that we know all about figures in general, we can look into the
+specific figure classes provided by {\opp}.
+
+\subsubsection{cAbstractLineFigure}
+\label{sec:graphics:abstractlinefigure}
+
+\cclass{cAbstractLineFigure} is the common base class for various line
+figures, providing line color, style, width, opacity, arrowhead and other
+properties for them.
+
+Line color can be set with \ffunc{setLineColor()}, and line width with
+\ffunc{setLineWidth()}. Lines can be solid, dashed, dotted, etc.; line
+style can be set with \ffunc{setLineStyle()}. The default line color is
+black.
+
+Lines can be partially transparent. This property can be controlled with
+\ffunc{setLineOpacity()} that takes a \ttt{double} between 0 and 1: a zero
+argument means fully transparent, and one means fully opaque.
+
+Lines can have various cap styles: butt, square, round, etc., which can be
+selected with \ffunc{setCapStyle()}. Join style, which is a related
+property, is not part of \cclass{cAbstractLineFigure} but instead added to
+specific subclasses where it makes sense.
+
+Lines may also be augmented with arrowheads at either or both ends.
+Arrowheads can be selected with \ffunc{setStartArrowhead()} and
+\ffunc{setEndArrowhead()}.
+
+Transformations such as scaling or skew do affect the width of the line as it
+is rendered on the canvas. Whether zooming (by the user) should also affect
+it can be controlled by setting a flag (\ffunc{setZoomLineWidth()}).
+The default is non-zooming lines.
+
+Specifying zero for line width is currently not allowed. To hide the line,
+use \ttt{setVisible(false)}.\footnote{It would make sense to display
+zero-width lines as hairlines that are always rendered as one pixel wide
+regardless of transforms and zoom level, but that is not possible on all
+platforms.}
+
+
+\subsubsection{cLineFigure}
+\label{sec:graphics:linefigure}
+
+\cclass{cLineFigure} displays a single straight line segment. The endpoints
+of the line can be set with the \ffunc{setStart()}/\ffunc{setEnd()}
+methods. Other properties such as color and line style are inherited from
+\cclass{cAbstractLineFigure}.
+
+An example that draws an arrow from (0,0) to (100,100):
+
+\begin{cpp}
+cLineFigure *line = new cLineFigure("line");
+line->setStart(cFigure::Point(0,0));
+line->setEnd(cFigure::Point(100,50));
+line->setLineWidth(2);
+line->setEndArrowhead(cFigure::ARROW_BARBED);
+\end{cpp}
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-line}
+\end{center}
+
+
+\subsubsection{cArcFigure}
+\label{sec:graphics:arcfigure}
+
+\cclass{cArcFigure} displays an axis-aligned arc. (To display a
+non-axis-aligned arc, apply a transform to \cclass{cArcFigure}, or use
+\cclass{cPathFigure}.) The arc's geometry is determined by the bounding box
+of the circle or ellipse, and a start and end angle; they can be set with
+the \ffunc{setBounds()}, \ffunc{setStartAngle()} and \ffunc{setEndAngle()}
+methods. Other properties such as color and line style are inherited from
+\cclass{cAbstractLineFigure}.
+
+For angles, zero points east. Angles that go counterclockwise are
+positive, and those that go clockwise are negative.
+
+\begin{note}
+Angles are in radians in the C++ API, but in degrees when the figure is
+defined in the NED file via \fprop{@figure}.
+\end{note}
+
+Here is an example that draws a blue arc with an arrowhead that goes
+counter-clockwise from 3 hours to 12 hours on the clock:
+
+\begin{cpp}
+cArcFigure *arc = new cArcFigure("arc");
+arc->setBounds(cFigure::Rectangle(10,10,100,100));
+arc->setStartAngle(0);
+arc->setEndAngle(M_PI/2);
+arc->setLineColor(cFigure::BLUE);
+arc->setEndArrowhead(cFigure::ARROW_BARBED);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-arc}
+\end{center}
+
+
+\subsubsection{cPolylineFigure}
+\label{sec:graphics:polylinefigure}
+
+By default, \cclass{cPolylineFigure} displays multiple connecting straight
+line segments. The class stores geometry information as a sequence of
+points. The line may be \textit{smoothed}, so the figure can also display
+complex curves.
+
+The points can be set with \ffunc{setPoints()} that takes \ttt{std::vector<Point>},
+or added one-by-one using \ffunc{addPoint()}. Elements in the point list can be
+read and overwritten (\ffunc{getPoint()}, \ffunc{setPoint()}). One can also
+insert and remove points (\ffunc{insertPoint()} and \ffunc{removePoint()}.
+
+A smoothed line is drawn as a series of Bezier curves, which touch the
+start point of the first line segment, the end point of the last line
+segment, and the midpoints of intermediate line segments, while
+intermediate points serve as control points. Smoothing can be turned on/off
+using \ffunc{setSmooth()}.
+
+Additional properties such as color and line style are inherited from
+\cclass{cAbstractLineFigure}. Line join style (which is not part of
+\cclass{cAbstractLineFigure}) can be set with \ffunc{setJoinStyle()}.
+
+Here is an example that uses a smoothed polyline to draw a spiral:
+
+\begin{cpp}
+cPolylineFigure *polyline = new cPolylineFigure("polyline");
+const double C = 1.1;
+for (int i = 0; i < 10; i++)
+    polyline->addPoint(cFigure::Point(5*i*cos(C*i), 5*i*sin(C*i)));
+polyline->move(100, 100);
+polyline->setSmooth(true);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result, with both \textit{smooth=false} and \textit{smooth=true}:
+
+\begin{center}
+\includesvg{figures/figure-polylines}
+\end{center}
+
+
+\subsubsection{cAbstractShapeFigure}
+\label{sec:graphics:abstractshapefigure}
+
+\cclass{cAbstractShapeFigure} is an abstract base class for various shapes,
+providing line and fill color, line and fill opacity, line style, line
+width, and other properties for them.
+
+Both outline and fill are optional, they can be turned on and off
+independently with the \ffunc{setOutlined()} and \ffunc{setFilled()}
+methods. The default is outlined but unfilled shapes.
+
+Similar to \cclass{cAbstractLineFigure}, line color can be set with
+\ffunc{setLineColor()}, and line width with \ffunc{setLineWidth()}.
+Lines can be solid, dashed, dotted, etc.; line style can be set with
+\ffunc{setLineStyle()}. The default line color is black.
+
+Fill color can be set with \ffunc{setFillColor()}. The default fill color
+is blue (although it is indifferent until one calls \ttt{setFilled(true)}).
+
+\begin{note}
+Invoking \ffunc{setFillColor()} alone does not make the shape filled,
+one also needs to call \ffunc{setFilled(true)} for that.
+\end{note}
+
+Shapes can be partially transparent, and opacity can be set individually
+for the outline and the fill, using \ffunc{setLineOpacity()} and
+\ffunc{setFillOpacity()}. These functions accept a \ttt{double} between 0
+and 1: a zero argument means fully transparent, and one means fully opaque.
+
+When the outline is drawn with a width larger than one pixel, it will be
+drawn symmetrically, i.e. approximately 50-50\% of its width will fall
+inside and outside the shape. (This also means that the fill and a wide
+outline will partially overlap, but that is only apparent if the
+outline is also partially transparent.)
+
+Transformations such as scaling or skew do affect the width of the line as it
+is rendered on the canvas. Whether zooming (by the user) should also affect
+it can be controlled by setting a flag (\ffunc{setZoomLineWidth()}).
+The default is non-zooming lines.
+
+Specifying zero for line width is currently not allowed. To hide the outline,
+\ttt{setOutlined(false)} can be used.
+
+
+\subsubsection{cRectangleFigure}
+\label{sec:graphics:rectanglefigure}
+
+\cclass{cRectangleFigure} displays an axis-aligned rectangle with
+optionally rounded corners. As with all shape figures, drawing of both the
+outline and the fill are optional. Line and fill color, and several other
+properties are inherited from \cclass{cAbstractShapeFigure}.
+
+The figure's geometry can be set with the \ffunc{setBounds()} method that
+takes a \cclass{cFigure::Rectangle}. The radii for the rounded corners can
+be set independently for the $x$ and $y$ direction using
+\ffunc{setCornerRx()} and \ffunc{setCornerRy()}, or together with
+\ffunc{setCornerRadius()}.
+
+The following example draws a rounded rectangle of size 160x100, filled with
+a "good dark color".
+
+\begin{cpp}
+cRectangleFigure *rect = new cRectangleFigure("rect");
+rect->setBounds(cFigure::Rectangle(100,100,160,100));
+rect->setCornerRadius(5);
+rect->setFilled(true);
+rect->setFillColor(cFigure::GOOD_LIGHT_COLORS[0]);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-rectangle}
+\end{center}
+
+
+\subsubsection{cOvalFigure}
+\label{sec:graphics:ovalfigure}
+
+\cclass{cOvalFigure} displays a circle or an axis-aligned ellipse. As with
+all shape figures, drawing of both the outline and the fill are optional.
+Line and fill color, and several other properties are inherited from
+\cclass{cAbstractShapeFigure}.
+
+The geometry is specified with the bounding box, and it can be set with the
+\ffunc{setBounds()} method that takes a \cclass{cFigure::Rectangle}.
+
+The following example draws a circle of diameter 120 with a wide dotted line.
+
+\begin{cpp}
+cOvalFigure *circle = new cOvalFigure("circle");
+circle->setBounds(cFigure::Rectangle(100,100,120,120));
+circle->setLineWidth(2);
+circle->setLineStyle(cFigure::LINE_DOTTED);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-oval}
+\end{center}
+
+
+\subsubsection{cRingFigure}
+\label{sec:graphics:ringfigure}
+
+\cclass{cRingFigure} displays a ring, with explicitly controllable
+inner/outer radii. The inner and outer circles (or ellipses) form the
+outline, and the area between them is filled. As with all shape figures,
+drawing of both the outline and the fill are optional. Line and fill color,
+and several other properties are inherited from
+\cclass{cAbstractShapeFigure}.
+
+The geometry is determined by the bounding box that defines the outer
+circle, and the $x$ and $y$ radii of the inner oval. They can be set with
+the \ffunc{setBounds()}, \ffunc{setInnerRx()} and \ffunc{setInnerRy()}
+member functions. There is also a utility method for setting both
+inner radii together, named \ffunc{setInnerRadius()}.
+
+The following example draws a ring with an outer diameter of 50 and
+inner diameter of 20.
+
+\begin{cpp}
+cRingFigure *ring = new cRingFigure("ring");
+ring->setBounds(cFigure::Rectangle(100,100,50,50));
+ring->setInnerRadius(10);
+ring->setFilled(true);
+ring->setFillColor(cFigure::YELLOW);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+\begin{center}
+\includesvg{figures/figure-ring}
+\end{center}
+
+
+\subsubsection{cPieSliceFigure}
+\label{sec:graphics:pieslicefigure}
+
+\cclass{cPieSliceFigure} displays a pie slice, that is, a section of an
+axis-aligned disc or filled ellipse.  The outline of the pie slice consists
+of an arc and two radii. As with all shape figures, drawing of both the
+outline and the fill are optional.
+
+Similar to an arc, a pie slice is determined by the bounding box of the
+full disc or ellipse, and a start and an end angle. They can be set with
+the \ffunc{setBounds()}, \ffunc{setStartAngle()} and \ffunc{setEndAngle()}
+methods.
+
+For angles, zero points east. Angles that go counterclockwise are
+positive, and those that go clockwise are negative.
+
+\begin{note}
+Angles are in radians in the C++ API, but in degrees when the figure is
+defined in the NED file via \fprop{@figure}.
+\end{note}
+
+Line and fill color, and several other properties are inherited from
+\cclass{cAbstractShapeFigure}.
+
+The following example draws pie slice that's one third of a whole pie:
+
+\begin{cpp}
+cPieSliceFigure *pieslice = new cPieSliceFigure("pieslice");
+pieslice->setBounds(cFigure::Rectangle(100,100,100,100));
+pieslice->setStartAngle(0);
+pieslice->setEndAngle(2*M_PI/3);
+pieslice->setFilled(true);
+pieslice->setLineColor(cFigure::BLUE);
+pieslice->setFillColor(cFigure::YELLOW);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-pieslice}
+\end{center}
+
+
+\subsubsection{cPolygonFigure}
+\label{sec:graphics:polygonfigure}
+
+\cclass{cPolygonFigure} displays a (closed) polygon, determined by a sequence of points.
+The polygon may be \textit{smoothed}. A smoothed polygon is drawn as a series
+of cubic Bezier curves, where the curves touch the midpoints of the sides,
+and vertices serve as control points. Smoothing can be turned on/off
+using \ffunc{setSmooth()}.
+
+The points can be set with \ffunc{setPoints()} that takes \ttt{std::vector<Point>},
+or added one-by-one using \ffunc{addPoint()}. Elements in the point list can be
+read and overwritten (\ffunc{getPoint()}, \ffunc{setPoint()}). One can also
+insert and remove points (\ffunc{insertPoint()} and \ffunc{removePoint()}.
+
+As with all shape figures, drawing of both the outline and the fill
+are optional. The drawing of filled self-intersecting polygons is controlled
+by the fill rule, which defaults to even-odd (\ttt{FILL\_EVENODD}), and
+can be set with \ffunc{setFillRule()}. Line join style can be set with
+the \ffunc{setJoinStyle()}.
+
+Line and fill color, and several other properties are inherited from
+\cclass{cAbstractShapeFigure}.
+
+Here is an example of a smoothed polygon that also demonstrates
+the use of \ffunc{setPoints()}:
+
+\begin{cpp}
+cPolygonFigure *polygon = new cPolygonFigure("polygon");
+std::vector<cFigure::Point> points;
+points.push_back(cFigure::Point(0, 100));
+points.push_back(cFigure::Point(50, 100));
+points.push_back(cFigure::Point(100, 100));
+points.push_back(cFigure::Point(50, 50));
+polygon->setPoints(points);
+polygon->setLineColor(cFigure::BLUE);
+polygon->setLineWidth(3);
+polygon->setSmooth(true);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result, with both \textit{smooth=false} and \textit{smooth=true}:
+
+\begin{center}
+\includesvg{figures/figure-polygons}
+\end{center}
+
+
+\subsubsection{cPathFigure}
+\label{sec:graphics:pathfigure}
+
+\cclass{cPathFigure} displays a "path", a complex shape or line modeled after SVG
+paths. A path may consist of any number of straight line segments, Bezier
+curves and arcs. The path can be disjoint as well. Closed paths may be filled.
+The drawing of filled self-intersecting polygons is controlled by the
+\textit{fill rule} property. Line and fill color, and several other properties
+are inherited from \cclass{cAbstractShapeFigure}.
+
+A path, when given as a string, looks like this one that draws a triangle:
+
+\textit{M 150 0 L 75 200 L 225 200 Z}
+
+It consists of a sequence of commands (\textit{M} for \textit{moveto},
+\textit{L} for \textit{lineto}, etc.) that are each followed by numeric
+parameters (except \textit{Z}). All commands can be expressed with
+lowercase letter, too. A capital letter means that the target point is
+given with \textit{absolute} coordinates, a lowercase letter means they are
+given \textit{relative} to the target point of the previous command.
+
+\cclass{cPathFigure} can accept the path in string form (\ffunc{setPath()}),
+or one can assemble the path with a series of method calls like
+\ffunc{addMoveTo()}. The path can be cleared with the \ffunc{clearPath()}
+method.
+
+The commands with argument list and the corresponding \textit{add} methods:
+
+\begin{itemize}
+\item \tbf{M} \textit{x y}: move; \ffunc{addMoveTo()}, \ffunc{addMoveRel()}
+\item \tbf{L} \textit{x y}: line; \ffunc{addLineTo()}, \ffunc{addLineRel()}
+\item \tbf{H} \textit{x}: horizontal line; \ffunc{addHorizontalLineTo()}, \ffunc{addHorizontalLineRel()}
+\item \tbf{V} \textit{y}: vertical line; \ffunc{addVerticalLineTo()}, \ffunc{addVerticalLineRel()}
+\item \tbf{A} \textit{rx ry phi largeArc sweep x y}: arc; \ffunc{addArcTo()}, \ffunc{addArcRel()}
+\item \tbf{Q} \textit{x1 y1 x y}: curve; \ffunc{addCurveTo()}, \ffunc{addCurveRel()}
+\item \tbf{T} \textit{x y}: smooth curve; \ffunc{addSmoothCurveTo()}, \ffunc{addSmoothCurveRel()}
+\item \tbf{C} \textit{x1 y1 x2 y2 x y}: cubic Bezier curve; \ffunc{addCubicBezierCurveTo()}, \ffunc{addCubicBezierCurveRel()}
+\item \tbf{S} \textit{x1 y1 x y}: smooth cubic Bezier curve; \ffunc{addSmoothCubicBezierCurveTo()}, \ffunc{addSmoothCubicBezierCurveRel()}
+\item \tbf{Z}: close path; \ffunc{addClosePath()}
+\end{itemize}
+
+In the parameter lists, $(x,y)$ are the target points (substitute $(dx,dy)$ for
+the lowercase, relative versions.) For the Bezier curves, $x1,y1$ and
+$(x2,y2)$ are control points. For the arc, $rx$ and $ry$ are the radii of the
+ellipse, $phi$ is a rotation angle in degrees for the ellipse, and
+$largeArc$ and $sweep$ are both booleans (0 or 1) that select which portion
+of the ellipse should be taken.\footnote{For more details, consult the SVG
+specification.}
+
+No matter how the path was created, the string form can be obtained with the
+\ffunc{getPath()} method, and the parsed form with the \ffunc{getNumPathItems()},
+\ffunc{getPathItem(k)} methods. The latter returns pointer to a
+\cclass{cPathFigure::PathItem}, which is a base class with subclasses for every
+item type.
+
+Line join style, cap style (for open subpaths), and fill rule (for closed
+subpaths) can be set with the \ffunc{setJoinStyle()},
+\ffunc{setCapStyle()}, \ffunc{setFillRule()} methods.
+
+\cclass{cPathFigure} has one more property, a $(dx,dy)$ offset, which
+exists to simplify the implementation of the \ffunc{move()} method. Offset
+causes the figure to be translated by the given amount for drawing. For
+other figure types, \ffunc{move()} directly updates the coordinates, so it
+is effectively a wrapper for \ffunc{setPosition()} or \ffunc{setBounds()}.
+For path figures, implementing \ffunc{move()} so that it updates every path
+item would be cumbersome and potentially also confusing for users. Instead,
+\ffunc{move()} updates the offset. Offset can be set with
+\ffunc{setOffset()},
+
+In the first example, the path is given as a string:
+
+%% TODO example that draws several disjoint items in one path: a rect, zigzag curve, etc.
+
+\begin{cpp}
+cPathFigure *path = new cPathFigure("path");
+path->setPath("M 0 150 L 50 50 Q 20 120 100 150 Z");
+path->setFilled(true);
+path->setLineColor(cFigure::BLUE);
+path->setFillColor(cFigure::YELLOW);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The second example creates the equivalent path programmatically.
+
+\begin{cpp}
+cPathFigure *path2 = new cPathFigure("path");
+path2->addMoveTo(0,150);
+path2->addLineTo(50,50);
+path2->addCurveTo(20,120,100,150);
+path2->addClosePath();
+path2->setFilled(true);
+path2->setLineColor(cFigure::BLUE);
+path2->setFillColor(cFigure::YELLOW);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-path}
+\end{center}
+
+\subsubsection{cAbstractTextFigure}
+\label{sec:graphics:abstracttextfigure}
+
+\cclass{cAbstractTextFigure} is an abstract base class for figures that
+display (potentially multi-line) text.
+
+The location of the text on the canvas is determined jointly by a
+\textit{position} and an \textit{anchor}. The anchor tells how to
+place the text relative to the positioning point. For example,
+if anchor is \ttt{ANCHOR\_CENTER} then the text is centered on the point;
+if anchor is \ttt{ANCHOR\_N} then the text will be drawn so that its top
+center point is at the positioning point. The values
+\ttt{ANCHOR\_BASELINE\_START}, \ttt{ANCHOR\_BASELINE\_MIDDLE},
+\ttt{ANCHOR\_BASELINE\_END} refer to the beginning, middle and end of the
+baseline of the (first line of the) text as anchor point. The member
+functions to set the positioning point and the anchor are
+\ffunc{setPosition()} and \ffunc{setAnchor()}. Anchor defaults to
+\ttt{ANCHOR\_CENTER}.
+
+The font can be set with the \ffunc{setFont()} member function that takes
+\cclass{cFigure::Font}, a class that encapsulates typeface, font style and
+size. Color can be set with \ffunc{setColor()}. The displayed text can
+also be partially transparent. This is controlled with the \ffunc{setOpacity()}
+member function that accepts an \ttt{double} in the $[0,1]$ range, $0$ meaning
+fully transparent (invisible), and $1$ meaning fully opaque.
+
+It is also possible to have a partially transparent ``halo'' displayed around
+the text. The halo improves readability when the text is displayed over a
+background that has a similar color as the text, or when it overlaps with other
+text items. The halo can be turned on with \ffunc{setHalo()}.
+
+
+\subsubsection{cTextFigure}
+\label{sec:graphics:textfigure}
+
+\cclass{cTextFigure} displays text which is affected by zooming and
+transformations. Font, color, position, anchoring and other properties are
+inherited from \cclass{cAbstractTextFigure}.
+
+The following example displays a text in dark blue 12-point bold Arial
+font.
+
+\begin{cpp}
+cTextFigure *text = new cTextFigure("text");
+text->setText("This is some text.");
+text->setPosition(cFigure::Point(100,100));
+text->setAnchor(cFigure::ANCHOR_BASELINE_MIDDLE);
+text->setColor(cFigure::Color("#000040"));
+text->setFont(cFigure::Font("Arial", 12, cFigure::FONT_BOLD));
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-text}
+\end{center}
+
+
+\subsubsection{cLabelFigure}
+\label{sec:graphics:labelfigure}
+
+\cclass{cLabelFigure} displays text which is unaffected by zooming or
+transformations, except its position. Font, color, position, anchoring and
+other properties are inherited from \cclass{cAbstractTextFigure}.
+The angle of the label can be set with the \ffunc{setAngle()} method. Zero
+angle means horizontal (unrotated) text. Positive values rotate
+counterclockwise, while negative values rotate clockwise.
+
+\begin{note}
+Angles are in radians in the C++ API, but in degrees when the figure is
+defined in the NED file via \fprop{@figure}.
+\end{note}
+
+The following example displays a label in Courier New with the default
+size, slightly transparent.
+
+\begin{cpp}
+cLabelFigure *label = new cLabelFigure("label");
+label->setText("This is a label.");
+label->setPosition(cFigure::Point(100,100));
+label->setAnchor(cFigure::ANCHOR_NW);
+label->setFont(cFigure::Font("Courier New"));
+label->setOpacity(0.9);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-label}
+\end{center}
+
+
+\subsubsection{cAbstractImageFigure}
+\label{sec:graphics:abstractimagefigure}
+
+\cclass{cAbstractImageFigure} is an abstract base class for image figures.
+
+The location of the image on the canvas is determined jointly by a
+\textit{position} and an \textit{anchor}. The anchor tells how to
+place the image relative to the positioning point. For example,
+if anchor is \ttt{ANCHOR\_CENTER} then the image is centered on the point;
+if anchor is \ttt{ANCHOR\_N} then the image will be drawn so that its top
+center point is at the positioning point. The member functions to set the
+positioning point and the anchor are \ffunc{setPosition()} and
+\ffunc{setAnchor()}. Anchor defaults to \ttt{ANCHOR\_CENTER}.
+
+By default, the figure's width/height will be taken from the image's
+dimensions in pixels. This can be overridden with the\ffunc{setWidth()} /
+\ffunc{setHeight()} methods, causing the image to be scaled.
+\ttt{setWidth(0)} / \ttt{setHeight(0)} reset the default (automatic) width
+and height.
+
+One can choose from several interpolation modes that control how the image
+is rendered when it is not drawn in its natural size. Interpolation mode
+can be set with \ffunc{setInterpolation()}, and defaults to
+\ttt{INTERPOLATION\_FAST}.
+
+Images can be tinted; this feature is controlled by a tint color and a tint
+amount, a $[0,1]$ real number. They can be set with the
+\ffunc{setTintColor()} and \ffunc{setTintAmount()} methods, respectively.
+
+Images may also be rendered as partially transparent, which is controlled by
+the opacity property, a $[0,1]$ real number. Opacity can be set with the
+\ffunc{setOpacity()} method. The rendering process will combine this
+property with the transparency information contained within the image, i.e.
+the alpha channel.
+
+
+\subsubsection{cImageFigure}
+\label{sec:graphics:imagefigure}
+
+\cclass{cImageFigure} displays an image, typically an icon or a background
+image, loaded from the {\opp} image path. Positioning and other properties
+are inherited from \cclass{cAbstractImageFigure}. Unlike \cclass{cIconFigure},
+\cclass{cImageFigure} fully obeys transforms and zoom.
+
+The following example displays a map:
+
+\begin{cpp}
+cImageFigure *image = new cImageFigure("map");
+image->setPosition(cFigure::Point(0,0));
+image->setAnchor(cFigure::ANCHOR_NW);
+image->setImageName("maps/europe");
+image->setWidth(600);
+image->setHeight(500);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+
+\subsubsection{cIconFigure}
+\label{sec:graphics:iconfigure}
+
+\cclass{cIconFigure} displays a non-zooming image, loaded from the {\opp}
+image path. Positioning and other properties are inherited from
+\cclass{cAbstractImageFigure}.
+
+\cclass{cIconFigure} is not affected by transforms or zoom, except its position.
+(It can still be resized, though, via \ffunc{setWidth()} / \ffunc{setHeight()}.)
+
+The following example displays an icon similar to the way the
+\ttt{"i=block/sink,gold,30"} display string tag would, and makes
+it slightly transparent:
+
+\begin{cpp}
+cIconFigure *icon = new cIconFigure("icon");
+icon->setPosition(cFigure::Point(100,100));
+icon->setImageName("block/sink");
+icon->setTintColor(cFigure::Color("gold"));
+icon->setTintAmount(0.6);
+icon->setOpacity(0.8);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includepng{figures/figure-icon}
+%% note: this is a png, no need for [scale=4.0]
+\end{center}
+
+
+\subsubsection{cPixmapFigure}
+\label{sec:graphics:pixmapfigure}
+
+\cclass{cPixmapFigure} displays a user-defined raster image. A pixmap
+figure may be used to display e.g. a heat map. Support for scaling and
+various interpolation modes are useful here. Positioning and other
+properties are inherited from \cclass{cAbstractImageFigure}.
+
+A pixmap itself is represented by the \cclass{cFigure::Pixmap} class.
+
+\cclass{cFigure::Pixmap} stores a rectangular array of 32-bit RGBA pixels,
+and allows pixels to be manipulated directly. The size ($width \times
+height$) as well as the default fill can be specified in the constructor.
+The pixmap can be resized (i.e. pixels added/removed at the right and/or bottom)
+using \ffunc{setSize()}, and it can be filled with a color using \ffunc{fill()}.
+Pixels can be directly accessed with \ffunc{pixel(x,y)}.
+
+A pixel is returned as type \cclass{cFigure::RGBA}, which is a convenience
+struct that, in addition to having the four public \ttt{uint8\_t} fields
+(\ttt{red}, \ttt{green}, \ttt{blue}, \ttt{alpha}), is augmented with several
+utility methods.
+
+Many \cclass{Pixmap} and \cclass{RGBA} methods accept or return
+\cclass{cFigure::Color} and opacity, converting between them and
+\cclass{RGBA}. (Opacity is a $[0,1]$ real number that is mapped to the
+0..255 alpha channel. $0$ means fully transparent, and $1$ means fully
+opaque.)
+
+One can set up and manipulate the image that \cclass{cPixmapFigure} displays
+in two ways. First, one can create and fill a \cclass{cFigure::Pixmap}
+separately, and set it on \cclass{cPixmapFigure} using \ffunc{setPixmap()}.
+This will overwrite the figure's internal pixmap instance that it displays.
+The second way is to utilize \cclass{cPixmapFigure}'s methods such as
+\ffunc{setPixmapSize()}, \ffunc{fill()}, \ffunc{setPixel()},
+\ffunc{setPixelColor()}, \ffunc{setPixelOpacity()}, etc. that delegate to
+the internal pixmap instance.
+
+The following example displays a small heat map by manipulating the
+transparency of the pixels. The 9-by-9 pixel image is stretched to
+100 units each direction on the screen.
+
+\begin{cpp}
+cPixmapFigure *pixmapFigure = new cPixmapFigure("pixmap");
+pixmapFigure->setPosition(cFigure::Point(100,100));
+pixmapFigure->setSize(100, 100);
+pixmapFigure->setPixmapSize(9, 9, cFigure::BLUE, 1);
+for (int y = 0; y < pixmapFigure->getPixmapHeight(); y++) {
+    for (int x = 0; x < pixmapFigure->getPixmapWidth(); x++) {
+        double opacity = 1 - sqrt((x-4)*(x-4) + (y-4)*(y-4))/4;
+        if (opacity < 0) opacity = 0;
+        pixmapFigure->setPixelOpacity(x, y, opacity);
+    }
+}
+pixmapFigure->setInterpolation(cFigure::INTERPOLATION_FAST);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result, both with \textit{interpolation=NONE} and \textit{interpolation=FAST}:
+
+\begin{center}
+\includepng{figures/figure-pixmaps}
+%% note: this is a png, no need for [scale=4.0]
+\end{center}
+
+
+\subsubsection{cGroupFigure}
+\label{sec:graphics:groupfigure}
+
+\cclass{cGroupFigure} is for the sole purpose of grouping its children. It
+has no visual appearance. The usefulness of a group figure comes from the
+fact that elements of a group can be hidden / shown together, and also
+transformations are inherited from parent to child, thus, children of a
+group can be moved, scaled, rotated, etc. together by updating the group's
+transformation matrix.
+
+The following example creates a group with two subfigures, then moves and
+rotates them as one unit.
+
+\begin{cpp}
+cGroupFigure *group = new cGroupFigure("group");
+
+cRectangleFigure *rect = new cRectangleFigure("rect");
+rect->setBounds(cFigure::Rectangle(-50,0,100,40));
+rect->setCornerRadius(5);
+rect->setFilled(true);
+rect->setFillColor(cFigure::YELLOW);
+
+cLineFigure *line = new cLineFigure("line");
+line->setStart(cFigure::Point(-80,50));
+line->setEnd(cFigure::Point(80,50));
+line->setLineWidth(3);
+
+group->addFigure(rect);
+group->addFigure(line);
+group->translate(100, 100);
+group->rotate(M_PI/6, 100, 100);
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The result:
+
+\begin{center}
+\includesvg{figures/figure-group}
+\end{center}
+
+
+\subsubsection{cPanelFigure}
+\label{sec:graphics:panelfigure}
+
+\cclass{cPanelFigure} is similar to \cclass{cGroupFigure} in that it is also
+intended for grouping its children and has no visual appearance of its own.
+However, it has a special behavior regarding transformations and especially zooming.
+
+\cclass{cPanelFigure} sets up an axis-aligned, unscaled coordinate system for
+its children, canceling the effect of any transformation (scaling, rotation,
+etc.) inherited from ancestor figures. This allows for pixel-based positioning
+of children, and makes them immune to zooming.
+
+Unlike \cclass{cGroupFigure} which itself has position attribute,
+\cclass{cPanelFigure} uses two points for positioning, a \textit{position} and
+an \textit{anchor point}. Position is interpreted in the coordinate system of
+the panel figure's parent, while the anchor point is interpreted in the
+coordinate system of the panel figure itself. To place the panel figure on the
+canvas, the panel's anchor point is mapped to \textit{position} in the
+parent.
+
+Setting a transformation on the panel figure itself allows for rotation,
+scaling, and skewing of its children. The anchor point is also affected by this
+transformation.
+
+The following example demonstrates \cclass{cPanelFigure} behavior. It
+creates a normal group figure as parent for the panel, and sets up a
+skewed coordinate system on it. A reference image is also added to it,
+in order to make the effect of skew visible. The panel figure is also
+added to it as a child. The panel contains an image (showing the same icon
+as the reference image), and a border around it.
+
+\begin{cpp}
+cGroupFigure *layer = new cGroupFigure("parent");
+layer->skewx(-0.3);
+
+cImageFigure *referenceImg = new cImageFigure("ref");
+referenceImg->setImageName("block/broadcast");
+referenceImg->setPosition(cFigure::Point(200,200));
+referenceImg->setOpacity(0.3);
+layer->addFigure(referenceImg);
+
+cPanelFigure *panel = new cPanelFigure("panel");
+
+cImageFigure *img = new cImageFigure("img");
+img->setImageName("block/broadcast");
+img->setPosition(cFigure::Point(0,0));
+panel->addFigure(img);
+
+cRectangleFigure *border = new cRectangleFigure("border");
+border->setBounds(cFigure::Rectangle(-25,-25,50,50));
+border->setLineWidth(3);
+panel->addFigure(border);
+
+layer->addFigure(panel);
+panel->setAnchorPoint(cFigure::Point(0,0));
+panel->setPosition(cFigure::Point(210,200));
+\end{cpp}
+
+%% NOTE to authors: code should be kept in sync with test/anim/usman/*.cc!
+
+The screenshot shows the result at an approx. 4x zoom level. The large
+semi-transparent image is the reference image, the smaller one is the image within the panel
+figure. Note that neither the skew nor the zoom has affected the panel figure's children.
+
+\begin{center}
+\includesvg{figures/figure-panel}
+\end{center}
+
+
+\subsection{Compound Figures}
+\label{sec:graphics:compound-figures}
+
+Any graphics can be built using primitive (i.e. elementary) figures
+alone. However, when the graphical presentation of a simulation
+grows complex, it is often convenient to be able to group certain
+figures and treat them as a single unit. For example, although
+a bar chart can be displayed using several independent rectangle,
+line and text items, there are clearly benefits to being able to
+handle them together as a single bar chart object.
+
+\textit{Compound figures} are \cclass{cFigure} sublasses that
+are themselves composed of several figures, but can be instantiated
+and manipulated as a single figure. Compound figure classes
+can be used from C++ code like normal figures, and can also
+be made to be able to be instatiated from \fprop{@figure} properties.
+
+Compound figure classes usually subclass from \cclass{cGroupFigure}.
+The class would typically maintain pointers to its subfigures in
+class members, and its methods (getters, setters, etc.) would operate
+on the subfigures.
+
+To be able to use the new C++ class with \fprop{@figure},
+it needs to be registered using the \fmac{Register\_Figure()} macro.
+The macro expects two arguments: one is the type name by which the figure
+is known to \fprop{@figure} (the string to be used with the \ttt{type} property key),
+and the other is the C++ class name. For example, to be able to instantiate
+a class named \ttt{FooFigure} with \ttt{@figure[\ldots](type=foo;\ldots)},
+the following line needs to be added into the C++ source:
+
+\begin{cpp}
+Register_Figure("foo", FooFigure);
+\end{cpp}
+
+If the figure needs to be able take values from \fprop{@figure} properties,
+the class needs to override the \ffunc{parse(cProperty*)} method,
+and proably also \ffunc{getAllowedPropertyKeys()}. We recommend that
+you examine the code of the figure classes built into {\opp} for
+implementation hints.
+
+%% TODO example: change the cGroupFigure example to be a subclass of cGroupFigure
+
+
+\subsection{Self-Refreshing Figures}
+\label{sec:graphics:self-refreshing-figures}
+
+Most figures are entirely passive objects. When they need to be moved
+or updated during the course of the simulation, there must be an
+active component in the simulation that does it for them. Usually it is the
+\ffunc{refreshDisplay()} method of some simple module (or modules) that
+contain the code that updates various properties of the figures.
+
+However, certain figures can benefit from being able to refresh themselves
+during the simulation. Picture, for example, a compound figure (see
+previous section) that displays a line chart which is continually
+updated with new data as the simulation progresses. The \ttt{LineChartFigure}
+class may contain an \ttt{addDataPoint(x,y)} method which is called
+from other parts of the simulation to add new data to the chart.
+The question is when to update the subfigures that make up the chart: the
+line(s), axis ticks and labels, etc. It is clearly not very efficient
+to do it in every \ttt{addDataPoint(x,y)} call, especially when the
+simulation is running in Express mode when the screen is not refreshed
+very often. Luckily, our hypothetical \ttt{LineChartFigure} class
+can do better, and only refresh its subfigures when it matters, i.e.
+when the result can actually be seen in the GUI. To do that, the class
+needs to override \cclass{cFigure}'s \ffunc{refreshDisplay()} method, and
+place the subfigure updating code there.
+
+Figure classes that override \ffunc{refreshDisplay()} to refresh their
+own contents are called \textit{self-refreshing figures}. Self-refreshing
+figures as a feature are available since {\opp} version 5.1.
+
+\ffunc{refreshDisplay()} is declared on \cclass{cFigure} as:
+
+\begin{cpp}
+virtual void refreshDisplay();
+\end{cpp}
+
+The default implementation does nothing.
+
+Like \cclass{cModule}'s \ffunc{refreshDisplay()}, \cclass{cFigure}'s
+\ffunc{refreshDisplay()} is invoked only under graphical user interfaces
+(Qtenv), and right before display updates. However, it is only invoked for
+figures on canvases that are currently displayed. This makes it possible for
+canvases that are never viewed to have zero refresh overhead.
+
+Since \cclass{cFigure}'s \ffunc{refreshDisplay()} is only invoked when the
+canvas is visible, it should only be used to update local state, i.e. only
+local members and local subfigures. The code should certainly not access
+other canvases, let alone change the state of the simulation.
+
+
+\subsection{Figures with Custom Renderers}
+\label{sec:graphics:figures-with-custom-renderers}
+
+In rare cases it might be necessary to create figure types where the rendering
+is entirely custom, and not based on already existing figures. The
+difficulty arises from the point that figures are only data storage classes,
+actual drawing takes place in the GUI library such as Qtenv.
+Thus, in addition to writing the new figure class, one also needs to extend
+Qtenv with the corresponding rendering code.
+We won't go into full details on how to extend Qtenv here, just give
+you a few pointers in case you need it.
+
+In Qtenv, rendering is done with the help of figure renderer
+classes that have a class hierarchy roughly parallel to the
+\cclass{cFigure} inheritance tree. The base classes are incidentally called
+\cclass{FigureRenderer}. How figure renderers do their job may be different in
+various graphical runtime interfaces; in Qtenv, they create and manipulate
+\cclass{QGraphicsItem}s on a \cclass{QGraphicsView}. To be able to render a
+new figure type, one needs to create the appropriate figure renderer
+classes for Qtenv.
+
+The names of the renderer classes are provided by the figures themselves,
+by their \ffunc{getRendererClassName()} methods. For example,
+\cclass{cLineFigure}'s \ffunc{getRendererClassName()} returns
+\ttt{LineFigureRenderer}. Qtenv qualifies that with its own namespace, and
+looks for a registered class named
+\ttt{omnetpp::qtenv::LineFigureRenderer}. If such class exists and is a
+Qtenv figure renderer (the appropriate \ttt{dynamic\_cast} succeeds), an
+instance of that class will be used to render the figure, otherwise an
+error message will be issued.
+
+
+\section{3D Visualization}
+\label{sec:graphics:osg}
+
+\subsection{Introduction}
+\label{sec:graphics:osg-introduction}
+
+{\opp} lets one build advanced 3D visualization for simulation models.
+3D visualization is useful for wide range of simulations, including
+mobile wireless networks, transportation models, factory floorplan
+simulations and more. One can visualize terrain, roads, urban street
+networks, indoor environments, satellites, and more. It is possible to
+augment the 3D scene with various annotations. For wireless network
+simulations, for example, one can create a scene that, in addition to
+the faithful representation of the physical world, also displays the
+transmission range of wireless nodes, their connectivity graph
+and various statistics, indicates individual wireless transmissions
+or traffic intensity, and so on.
+
+In {\opp}, 3D visualization is completely distinct from display
+string-based and canvas-based visualization. The scene appears on a
+separate GUI area.
+
+{\opp}'s 3D visualization is based on the open-source OpenSceneGraph
+and osgEarth libraries. These libraries offer high-level functionality,
+such as the ability of using 3D model files directly, accessing and
+rendering online map and satellite imagery data sources, and so on.
+
+\subsubsection{OpenSceneGraph and osgEarth}
+\label{sec:graphics:osg-and-osgearth}
+
+OpenSceneGraph (openscenegraph.org), or OSG for short, is the base library.
+It is best to quote their web site:
+
+\begin{displayquote}
+``OpenSceneGraph is an open source high performance 3D graphics toolkit,
+used by application developers in fields such as visual simulation, games,
+virtual reality, scientific visualization and modeling. Written entirely in
+Standard C++ and OpenGL, it runs on all Windows platforms, OS X, GNU/Linux,
+IRIX, Solaris, HP-UX, AIX and FreeBSD operating systems. OpenSceneGraph is
+now well established as the world leading scene graph technology, used
+widely in the vis-sim, space, scientific, oil-gas, games and virtual
+reality industries.''
+\end{displayquote}
+
+In turn, osgEarth (osgearth.org) is a geospatial SDK and terrain engine built on top
+of OpenSceneGraph, not quite unlike Google Earth. It has many attractive features:
+
+\begin{itemize}
+\item Able to use various street map providers, satellite imaging providers,
+      elevation data sources, both online and offline
+\item Data from online sources may be exported into a file suitable for offline use
+\item Scene may be annotated with various types of graphical objects
+\item Includes conversion between various geographical coordinate systems
+\end{itemize}
+
+In \opp, osgEarth can be very useful for simulations involving maps, terrain,
+or satellites.
+
+\subsection{The {\opp} API for OpenSceneGraph}
+\label{sec:graphics:opp-api-for-osg}
+
+For 3D visualization, {\opp} basically exposes the OpenSceneGraph API. One
+needs to assemble an OSG scene graph in the model, and give it to {\opp}
+for display. The scene graph can be updated at runtime, and changes will be
+reflected in the display.
+
+\begin{note}
+\tbf{What is a scene graph?} A scene graph is a tree-like directed graph
+data structure that describes a 3D scene. The root node represents the
+whole virtual world. The world is then broken down into a hierarchy of
+nodes representing either spatial groupings of objects, settings of
+the position of objects, animations of objects, or definitions of
+logical relationships between objects. The leaves of the graph
+represent the physical objects themselves, the drawable geometry and
+their material properties.
+\end{note}
+
+When a scene graph has been built by the simulation model, it needs to be
+given to a \cclass{cOsgCanvas} object to let the {\opp} GUI know about it.
+\cclass{cOsgCanvas} wraps a scene graph, plus hints for the GUI on how to
+best display the scene, for example the default camera position. In the
+GUI, the user can use the mouse to manipulate the camera to view the scene
+from various angles and distances, look at various parts of the scene,
+and so on.
+
+It is important to note that the simulation model may only
+manipulate the scene graph, but it cannot directly access the viewer
+in the GUI. There is a very specific technical reason for that.
+The viewer may not even exist or may be displaying a different
+scene graph at the time the model tries to access it. The model
+may even be running under a non-GUI user interface (e.g. Cmdenv)
+where a viewer is not even part of the program. The viewer may
+only be influenced in the form of viewer hints in
+\cclass{cOsgCanvas}.
+
+
+\subsubsection{Creating and Accessing cOsgCanvas Objects}
+\label{sec:graphics:creating-and-accessing-osgcanvas-objects}
+
+Every module has a built-in (default) \cclass{cOsgCanvas}, which can be
+accessed with the \ffunc{getOsgCanvas()} method of \cclass{cModule}.
+For example, a toplevel submodule can get hold of the network's
+OSG canvas with the following line:
+
+\begin{cpp}
+cOsgCanvas *osgCanvas = getParentModule()->getOsgCanvas();
+\end{cpp}
+
+Additional \cclass{cOsgCanvas} instances may be created simply with \ttt{new}:
+
+\begin{cpp}
+cOsgCanvas *osgCanvas = new cOsgCanvas("scene2");
+\end{cpp}
+
+\subsubsection{cOsgCanvas and Scene Graphs}
+\label{sec:graphics:osgcanvas-and-scene-graphs}
+
+Once a scene graph has been assembled, it can be set on \cclass{cOsgCanvas}
+with the \ffunc{setScene()} method.
+
+\begin{cpp}
+osg::Node *scene = ...
+osgCanvas->setScene(scene);
+\end{cpp}
+
+Subsequent changes in the scene graph will be automatically reflected in
+the visualization, there is no need to call \ffunc{setScene()} again or
+otherwise let {\opp} know about the changes.
+
+
+\subsubsection{Viewer Hints}
+\label{sec:graphics:osgcanvas-viewer-hints}
+
+There are several hints that the 3D viewer may take into account when displaying
+the scene graph. Note that hints are only hints, so the viewer may choose to
+ignore them, and the user may also be able to override them interactively,
+(using the mouse, via the context menu, hotkeys or by other means).
+
+\begin{itemize}
+
+\item \tbf{Viewer style.}
+    The viewer style can be set with \ffunc{setViewerStyle()} and it determines
+    the default hints for a scene. Choices are \ttt{STYLE\_GENERIC} that should
+    be set for generic (non-osgEarth) scenes (default), and \ttt{STYLE\_EARTH}
+    for osgEarth scenes. As a rule of thumb, \ttt{STYLE\_EARTH} should be used
+    only when the model is loading \ttt{.earth} files.
+
+\item \tbf{Camera manipulators.}
+    The OSG viewer makes use of camera manipulators that map mouse and keyboard
+    gestures to camera movement. Use \ffunc{setCameraManipulatorType()} to
+    specify a manipulator. Several camera manipulators are available:
+    \ttt{CAM\_TERRAIN} is suitable for flying above an object or terrain;
+    \ttt{CAM\_OVERVIEW} which is similar to the terrain manipulator, but does
+    not allow rolling or looking up (one can only see the object from above);
+    \ttt{CAM\_TRACKBALL} that allows unrestricted movement centered around an
+    object; and \ttt{CAM\_EARTH} that should be used when viewing the whole
+    Earth is useful (i.e. modeling satellites). The default setting is to
+    choose the manipulator automatically (\ttt{CAM\_AUTO}) based on the viewer
+    style (\ttt{CAM\_OVERVIEW} or \ttt{CAM\_EARTH}).
+
+\item \tbf{Scene rendering.} One can set the default background color for
+    non-osgEarth scenes using \ffunc{setClearColor()}. It is also possible
+    to set the distances of the near and far clipping planes
+    (\ffunc{setZNear()} and \ffunc{setZFar()}). Everything in the scene will
+    be truncated to fit between these two planes. If you see parts of objects
+    being clipped away from the scene, try to adjust these values.
+    \footnote{OSG renders the scene using a \textit{Z-buffer}. This means
+    that upon drawing, the distance of every pixel of every object from the
+    camera (called its depth) will be compared to the distance of the last
+    drawn pixel in the same position, which is stored in the Z-buffer. The
+    pixel will only be updated with the new color if it is found to be closer
+    than the previous. Using a Z-buffer simplifies the rendering process,
+    but the limited precision of the depth values will cause some pixels to
+    be considered equidistant from the camera even if they are not. In this
+    case, the result of the comparison, and thus the final color of the pixel
+    is undefined, causing visual glitches called \textit{Z-fighting}
+    (flashing objects). $zNear$ and $zFar$ should be chosen such that no
+    important objects are left out of the rendering, and in the same time
+    Z-fighting is minimized. As a rule of thumb, the $zFar/zNear$
+    ratio should not exceed about 10,000, regardless of their absolute value.}
+
+\item \tbf{Viewpoint and field of view.}
+    Default viewpoints can be set by \ffunc{setGenericViewpoint(cOsgCanvas::Viewpoint\&)}
+    by specifying the $x$, $y$, $z$ coordinates of the camera, the focal
+    point and the "up" direction. For osgEarth scenarios,
+    \ffunc{setEarthViewpoint(osgEarth::Viewpoint\&)} can be used to set the
+    location of the observer and focal point using geographic coordinates. It
+    is also possible to set the camera's field of view angle, with
+    \ffunc{setFieldOfViewAngle()}.
+
+\end{itemize}
+
+An example code fragment that sets some viewer hints:
+
+\begin{cpp}
+osgCanvas->setViewerStyle(cOsgCanvas::STYLE_GENERIC);
+osgCanvas->setCameraManipulatorType(cOsgCanvas::CAM_OVERVIEW);
+osgCanvas->setClearColor(cOsgCanvas::Color("skyblue"));
+osgCanvas->setGenericViewpoint(cOsgCanvas::Viewpoint(
+        cOsgCanvas::Vec3d(20, -30, 30), // observer
+        cOsgCanvas::Vec3d(30, 20, 0),   // focal point
+        cOsgCanvas::Vec3d(0, 0, 1)));   // UP
+\end{cpp}
+
+
+\subsubsection{Making Nodes Selectable}
+\label{sec:graphics:making-osg-nodes-selectable}
+
+If a 3D object in the scene represents a C++ object in the simulation, it
+would often be very convenient to be able to select that object for
+inspection by clicking it with the mouse.
+
+{\opp} provides a wrapper node that associates its children with a particular {\opp}
+object (\cclass{cObject} descendant), making them selectable in the 3D viewer.
+The wrapper class is called \cclass{cObjectOsgNode}, and it subclasses
+from \cclass{osg::Group}.
+
+\begin{cpp}
+auto objectNode = new cObjectOsgNode(myModule);
+objectNode->addChild(myNode);
+\end{cpp}
+
+\begin{note}
+The {\opp} object should exist as long as the wrapper node exists. Otherwise,
+clicking child nodes with the mouse is likely to result in a crash.
+\end{note}
+
+\subsubsection{Finding Resources}
+\label{sec:graphics:finding-resources}
+
+3D visualizations often need to load external resources from disk, for
+example images or 3D models. By default, OSG tries to load these files
+from the current working directory (unless they are given with absolute path).
+However, loading from the folder of the current {\opp} module, from the folder
+of the ini file, or from the image path would often be more convenient.
+{\opp} contains a function for that purpose.
+
+The \ffunc{resolveResourcePath()} method of modules and channels accepts a
+file name (or relative path) as input, and looks into a number of convenient
+locations to find the file. The list of the search folders includes
+the current working directory, the folder of the main ini file, and the folder
+of the NED file that defined the module or channel.
+If the resource is found, the function returns the full path; otherwise
+it returns the empty string.
+
+The function also looks into folders on the NED path and the image
+path, i.e. the roots of the NED and image folder trees. These search
+locations allow one to load files by full NED package name (but using
+slashes instead of dots), or access an icon with its full name (e.g.
+\ttt{block/sink}).
+
+An example that attempts to load a \ttt{car.osgb} model file:
+
+\begin{cpp}
+std::string fileLoc = resolveResourcePath("car.osgb");
+if (fileLoc == "")
+    throw cRuntimeError("car.osgb not found");
+auto node = osgDB::readNodeFile(fileLoc); // use the resolved path
+\end{cpp}
+
+
+\subsubsection{Conditional Compilation}
+\label{sec:graphics:osg-conditional-compilation}
+
+OSG and osgEarth are optional in {\opp}, and may not be available in all
+installations. However, one probably wants simulation models to compile
+even if the particular {\opp} installation doesn't contain the OSG and
+osgEarth libraries. This can be achieved by conditional compilation.
+
+{\opp} detects the OSG and osgEarth libraries and defines the \fmac{WITH\_OSG} macro
+if they are present. OSG-specific code needs to be surrounded with \ttt{\#ifdef WITH\_OSG}.
+
+An example:
+
+\begin{cpp}
+...
+#ifdef WITH_OSG
+#include <osgDB/ReadFile>
+#endif
+
+void DemoModule::initialize()
+{
+#ifdef WITH_OSG
+    cOsgCanvas *osgCanvas = getParentModule()->getOsgCanvas();
+    osg::Node *scene = ... // assemble scene graph here
+    osgCanvas->setScene(scene);
+    osgCanvas->setClearColor(cOsgCanvas::Color(0,0,64)); // hint
+#endif
+}
+\end{cpp}
+
+\subsubsection{Using Additional Libraries}
+\label{sec:graphics:using-additional-osg-libraries}
+
+OSG and osgEarth are comprised of several libraries. By default, {\opp}
+links simulations with only a subset of them: \ttt{osg}, \ttt{osgGA},
+\ttt{osgViewer}, \ttt{osgQt}, \ttt{osgEarth}, \ttt{osgEarthUtil}. When
+additional OSG and osgEarth libraries are needed, one needs to ensure that
+those libraries are linked to the model as well. The best way to achieve that
+is to use the following code fragment in the \ttt{makefrag} file of the
+project:
+
+\begin{filelisting}
+ifneq ($(OSG_LIBS),)
+LIBS += $(OSG_LIBS) -losgDB -losgAnimation ... # additional OSG libs
+endif
+ifneq ($(OSGEARTH_LIBS),)
+LIBS += $(OSGEARTH_LIBS) -losgEarthFeatures -losgEarthSymbology ...
+endif
+\end{filelisting}
+
+The \ttt{ifneq()} statements ensure that \ttt{LIBS} is only updated if {\opp} has detected
+the presence of OSG/osgEarth in the first place.
+
+
+\subsection{Using OSG}
+\label{sec:graphics:using-osg}
+
+OpenScenegraph is a sizable library with 16+ namespaces and 40+ \cclass{osg::Node}
+subclasses, and we cannot fully document it here due to size constraints. Instead,
+in the next sections we have collected some practical advice and useful code snippets
+to help the reader get started. More information can be found on the openscenegraph.org
+web site, in dedicated OpenSceneGraph books (some of which are freely available),
+and in other online resources. We list some OSG-related resources at the end of this
+chapter.
+
+\subsubsection{Loading Models}
+\label{sec:graphics:osg-loading-models}
+
+To display a 3D model in the canvas of a compound module, an \cclass{osg::Node} has
+to be provided as the root of the scene.
+
+One method of getting such a \ttt{Node} is to load it from a file containing the
+model. This can be done with the \ffunc{osgDB::readNodeFile()} method (or with one
+of its variants). This method takes a string as argument, and based on the
+protocol specification and extension(s), finds a suitable loader for it,
+loads it, finally returns with a pointer to the newly created \cclass{osg::Node}
+instance.
+
+This node can now be set on the canvas for display with the \ffunc{setScene()}
+method, as seen in the osg-intro sample (among others):
+
+\begin{cpp}
+osg::Node *model = osgDB::readNodeFile("model.osgb");
+getParentModule()->getOsgCanvas()->setScene(model);
+\end{cpp}
+
+\begin{note}
+\tbf{Where to get model files?} While OpenSceneGraph recognizes and can
+load a wide range of formats, many 3D modeling tools can also export the
+edited scene or part of it in OSG's native file format, osgt, with the
+help of exporter plugins. One such plugin for Blender has been used to
+develop some of the OSG demos for {\opp}, and it was found to be working
+well.
+\end{note}
+
+There is support for so-called "pseudo loaders" in OSG, which provide
+additional options for loading models. Those allow for some basic
+operations to be performed on the model after it is loaded. To use them,
+simply append the parameters for the modifier followed by the name of it to
+the end of the file name upon loading the model.
+
+Take this line from the osg-earth sample for example:
+
+\begin{inifile}
+*.cow[*].modelURL = "cow.osgb.2.scale.0,0,90.rot.0,0,-15e-1.trans"
+\end{inifile}
+
+This string will first scale the original cow model in \ttt{cow.osgb} to
+200\%, then rotate it 90 degrees around the Z axis and finally translate it
+1.5 units downwards. The floating point numbers have to be represented in
+scientific notation to avoid the usage of decimal points or commas in the
+number as those are already used as operator and parameter separators.
+
+Note that these modifiers operate directly on the model data and are
+independent of any further dynamic transformations applied to the node when
+it is placed in the scene. For further information refer to the OSG
+knowledge base.
+
+\subsubsection{Creating Shapes}
+\label{sec:graphics:osg-creating-shapes}
+
+Shapes can also be built programatically. For that, one needs to use the
+\cclass{osg::Geode}, \cclass{osg::Shape\-Drawable} and \cclass{osg::Shape}
+classes.
+
+To create a shape, one first needs to create an \cclass{osg::Shape}.
+\cclass{osg::Shape} is an abstract class and it has several subclasses, like
+\cclass{osg::Box}, \cclass{osg::Sphere}, \cclass{osg::Cone},
+\cclass{osg::Cylinder} or \cclass{osg::Capsule}. That object is only an abstract
+definition of the shape, and cannot be drawn on its own. To make it drawable,
+one needs to create an \cclass{osg::Shape\-Drawable} for it. However, an
+\cclass{osg::Shape\-Drawable} still cannot be attached to the scene, as it is still
+not an \cclass{osg::Node}. The \cclass{osg::Shape\-Drawable} must be added to an
+\cclass{osg::Geode} (\textit{geometry node}) to be able to insert it into the
+scene. This object can then be added to the scene and positioned and oriented
+freely, just like any other \cclass{osg::Node}.
+
+For an example of this see the following snippet from the osg-satellites
+sample. This code creates an \cclass{osg::Cone} and adds it to the scene.
+
+\begin{cpp}
+auto cone = new osg::Cone(osg::Vec3(0, 0, -coneRadius*0.75),
+                          coneHeight, coneRadius);
+auto coneDrawable = new osg::ShapeDrawable(cone);
+auto coneGeode = new osg::Geode;
+coneGeode->addDrawable(coneDrawable);
+locatorNode->addChild(coneGeode);
+\end{cpp}
+
+Note that a single \cclass{ost::Shape} instance can be used to construct many
+\cclass{osg::Shape\-Drawable}s, and a single \cclass{osg::Shape\-Drawable} can be
+added to any number of \cclass{osg::Geode}s to make it appear in multiple
+places or sizes in the scene. This can in fact improve rendering performance.
+
+\subsubsection{Placing and Orienting Models in a Scene}
+\label{sec:graphics:osg-placing-and-orienting-models}
+
+One way to position and orient nodes is by making them children of an
+\cclass{osg::Position\-Attitude\-Transform}. This node provides methods to
+set the position, orientation and scale of its children. Orientation is done
+with quaternions (\cclass{osg::Quat}). Quaternions can be constructed from
+an axis of rotation and a rotation angle around the axis.
+
+The following example places a node at the (x, y, z) coordinates and rotates it
+around the Z axis by \ttt{heading} radians to make it point in the right
+direction.
+
+\begin{cpp}
+osg::Node *objectNode = ...;
+auto transformNode = new osg::PositionAttitudeTransform();
+transformNode->addChild(objectNode);
+transformNode->setPosition(osg::Vec3d(x, y, z));
+double heading = ...; // (in radians)
+transformNode->setAttitude(osg::Quat(heading, osg::Vec3d(0, 0, 1)));
+\end{cpp}
+
+\subsubsection{Adding Labels and Annotations}
+\label{sec:graphics:osg-adding-labels-and-annotations}
+
+OSG makes it possible to display text or image labels in the scene. Labels
+are rotated to be always parallel to the screen, and scaled to appear in a
+constant size. In the following we'll show an example where we create
+a label and display it relative to an arbitrary node.
+
+First, the label has to be created:
+
+\begin{cpp}
+auto label = new osgText::Text();
+label->setCharacterSize(18);
+label->setBoundingBoxColor(osg::Vec4(1.0, 1.0, 1.0, 0.5)); // RGBA
+label->setColor(osg::Vec4(0.0, 0.0, 0.0, 1.0)); // RGBA
+label->setAlignment(osgText::Text::CENTER_BOTTOM);
+label->setText("Hello World");
+label->setDrawMode(osgText::Text::FILLEDBOUNDINGBOX | osgText::Text::TEXT);
+\end{cpp}
+
+Or if desired, a textured rectangle with an image:
+
+\begin{cpp}
+auto image = osgDB::readImageFile("myicon.png");
+auto texture = new osg::Texture2D();
+texture->setImage(image);
+auto icon = osg::createTexturedQuadGeometry(osg::Vec3(0.0, 0.0, 0.0),
+    osg::Vec3(image->s(), 0.0, 0.0), osg::Vec3(0.0, image->t(), 0.0),
+    0.0, 0.0, 1.0, 1.0);
+icon->getOrCreateStateSet()->setTextureAttributeAndModes(0, texture);
+icon->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+\end{cpp}
+
+If the image has transparent parts, one also needs the following lines:\footnote{These lines
+enable blending, and places \ttt{icon} in the \ttt{TRANSPARENT\_BIN}. Normally there are
+two bins, \textit{opaque} and \textit{transparent}. When a scene is rendered, OSG first
+renders the objects in the opaque bin, then the objects in the transparent bin. More bits
+can be created, but that is rarely necessary.}
+
+\begin{cpp}
+icon->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+icon->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+\end{cpp}
+
+The icon and/or label needs an \cclass{osg::Geode} to be placed in the scene.
+Lighting is best disabled for the label.
+
+\begin{cpp}
+auto geode = new osg::Geode();
+geode->getOrCreateStateSet()->setMode(GL_LIGHTING,
+            osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+double labelSpacing = 2;
+label->setPosition(osg::Vec3(0.0, labelSpacing, 0.0));
+geode->addDrawable(label);
+geode->addDrawable(icon);
+\end{cpp}
+
+This \cclass{osg::Geode} should be made a child of an \cclass{osg::AutoTransform}
+node, which applies the correct transformations to it for the label-like behaviour
+to happen:
+
+\begin{cpp}
+auto autoTransform = new osg::AutoTransform();
+autoTransform->setAutoScaleToScreen(true);
+autoTransform->setAutoRotateMode(osg::AutoTransform::ROTATE_TO_SCREEN);
+autoTransform->addChild(geode);
+\end{cpp}
+
+This \ttt{autoTransform} can now be made a child of the \ttt{modelToTransform},
+and moved with it.Alternatively, both can be added to a new \cclass{osg::Group},
+as siblings, and handled together using that.
+
+We want the label to appear relative to an object called \ttt{modelNode}.
+One way would be to make \ttt{autoTransform} the child of \ttt{modelNode},
+but here we rather place both of them under an \cclass{osg::Group}. The group should
+be inserted
+
+\begin{cpp}
+auto modelNode = ... ;
+auto group = new osg::Group();
+group->addChild(modelNode);
+group->addChild(autoTransform);
+\end{cpp}
+
+To place the label above the object, we set its position to $(0,0,z)$, where $z$
+is the radius of the object's bounding sphere.
+
+\begin{cpp}
+auto boundingSphere = modelNode->getBound();
+autoTransform->setPosition(osg::Vec3d(0.0, 0.0, boundingSphere.radius()));
+\end{cpp}
+
+
+
+\subsubsection{Drawing Lines}
+\label{sec:graphics:osg-drawing-lines}
+
+To draw a line between two points in the scene, first the two points
+have to be added into an \cclass{osg::Vec3Array}. Then an \cclass{osg::DrawArrays}
+should be created to specify which part of the array needs to be drawn.
+In this case, it is obviously two points, starting from the one at index 0.
+Finally, an \cclass{osg::Geometry} is necessary to join the two together.
+
+\begin{cpp}
+auto vertices = new osg::Vec3Array();
+vertices->push_back(osg::Vec3(begin_x, begin_y, begin_z));
+vertices->push_back(osg::Vec3(end_x, end_y, end_z));
+
+auto drawArrays = new osg::DrawArrays(osg::PrimitiveSet::LINE_STRIP);
+drawArrays->setFirst(0);
+drawArrays->setCount(vertices->size());
+
+auto geometry = new osg::Geometry();
+geometry->setVertexArray(vertices);
+geometry->addPrimitiveSet(drawArrays);
+\end{cpp}
+
+The resulting \cclass{osg::Geometry} must be added to an \cclass{osg::Geode}
+(\textit{geometry node}), which makes it possible to add it to the scene.
+
+\begin{cpp}
+auto geode = new osg::Geode();
+geode->addDrawable(geometry);
+\end{cpp}
+
+To change some visual properties of the line, the \cclass{osg::StateSet} of the
+\cclass{osg::Geode} has to be modified. The width of the line, for example, is
+controlled by a \cclass{osg::StateAttribute} called \cclass{osg::LineWidth}.
+
+\begin{cpp}
+float width = ...;
+auto stateSet = geode->getOrCreateStateSet();
+auto lineWidth = new osg::LineWidth();
+lineWidth->setWidth(width);
+stateSet->setAttributeAndModes(lineWidth, osg::StateAttribute::ON);
+\end{cpp}
+
+Because of how \cclass{osg::Geometry} is rendered, the specified line width
+will always be constant on the screen (measured in pixels), and will not vary
+based on the distance from the camera. To achieve that effect, a long and thin
+\cclass{osg::Cylinder} could be used instead.
+
+Changing the color of the line can be achieved by setting an appropriate
+\cclass{osg::Material} on the \cclass{osg::StateSet}. It is recommended to
+disable lighting for the line, otherwise it might appear in a different color,
+depending on where it is viewed from or what was rendered just before
+it.\footnote{Since no normals were specified for the vertices upon creation,
+they are undefined (and wouldn't make much sense for a one-dimensional object),
+but still would be used for lighting.}
+
+\begin{cpp}
+auto material = new osg::Material();
+osg::Vec4 colorVec(red, green, blue, opacity); // all between 0.0 and 1.0
+material->setAmbient(Material::FRONT_AND_BACK, colorVec);
+material->setDiffuse(Material::FRONT_AND_BACK, colorVec);
+material->setAlpha(Material::FRONT_AND_BACK, opacity);
+stateSet->setAttribute(material);
+stateSet->setMode(GL_LIGHTING,
+            osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+\end{cpp}
+
+\subsubsection{How to Organize a Scene}
+\label{sec:graphics:osg-organizing-a-scene}
+
+Independent of how the scene has been constructed, it is always important
+to keep track of how the individual nodes are related to each other in the
+scene graph. This is because every modification of an \cclass{osg::Node} is by
+default propagated to all of its children, let it be a transformation, a
+render state variable, or some other flag.
+
+For really simple scenes it might be enough to have an \cclass{osg::Group} as the
+root node, and make every other object a direct child of that. This reduces
+the complications and avoids any strange surprises regarding state
+inheritance. For more complex scenes it is advisable to follow the logical
+hierarchy of the displayed objects in the scene graph.
+
+Once the desired object has been created and added to the scene, it can be easily
+moved and oriented to represent the state of the simulation by making it a
+child of an \cclass{osg::Position\-Attitude\-Transform} node.
+
+\subsubsection{Using Animations}
+\label{sec:graphics:osg-using-animations}
+
+% TODO: this is the early draft version
+%For more sophisticated animation it is also possible to play back stored
+%motion sequences from the model file, as seen in the osg-indoor sample or
+%the BostonPark scenario of the osg-earth sample. The former demonstrates
+%explicit control over which animation is being played when and in what way,
+%while the latter contains a really simple looping clip (the box people)
+%requiring no control from the model code.
+
+If the node loaded by \ffunc{readNodeFile()} contains animations (sometimes called
+actions), the \ttt{osgAnimation} module is capable of playing them back.
+
+In simple cases, when there is only a single animation, and it is set up to play
+in a loop automatically (like the walking man in the osg-indoor sample simulation),
+there is no need to explicitly control it (provided it is the desired behaviour.)
+
+Otherwise, the individual actions can be controlled by an
+\cclass{osgAnimation::AnimationManager}, with methods like \ffunc{playAnimation()},
+\ffunc{stopAnimation()}, \ffunc{isPlaying()}, etc. Animation managers can be
+found among the descendants of the loaded \cclass{osg::Node}s which are animated,
+for example using a custom \cclass{osg::NodeVisitor}:
+
+\begin{cpp}
+osg::Node *objectNode = osgDB::readNodeFile( ... );
+
+struct AnimationManagerFinder : public osg::NodeVisitor {
+    osgAnimation::BasicAnimationManager *result = nullptr;
+    AnimationManagerFinder()
+      : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) {}
+    void apply(osg::Node& node) {
+        if (result) return; // already found it
+        if (osgAnimation::AnimationManagerBase* b =
+              dynamic_cast<osgAnimation::AnimationManagerBase*>(
+                node.getUpdateCallback())) {
+            result = new osgAnimation::BasicAnimationManager(*b);
+            return;
+        }
+        traverse(node);
+    }
+} finder;
+
+objectNode->accept(finder);
+animationManager = finder.result;
+\end{cpp}
+
+This visitor simply finds the first node in the subtree which has an update
+callback of type \cclass{osgAnimation::AnimationManagerBase}. Its result is
+a new \cclass{osgAnimation::BasicAnimation\-Manager} created from the
+base.
+
+This new \ttt{animationManager} now has to be set as an update callback on the
+\ttt{objectNode} to be able to actually drive the animations.
+Then any animation in the list returned by \ffunc{getAnimationList()} can be set
+up as needed and played.
+
+\begin{cpp}
+objectNode->setUpdateCallback(animationManager);
+auto animation = animationManager->getAnimationList().front();
+animation->setPlayMode(osgAnimation::Animation::STAY);
+animation->setDuration(2);
+animationManager->playAnimation(animation);
+\end{cpp}
+
+\subsubsection{State Sets}
+\label{sec:graphics:osg-state-sets}
+
+Every \cclass{osg::Drawable} can have an \cclass{osg::StateSet} attached to it.
+An easy way of accessing it is via the \ffunc{getOrCreateStateSet()} method of
+the drawable node. An \cclass{osg::StateSet} encapsulates a subset of the OpenGL
+state, and can be used to modify various rendering parameters, for example the
+used textures, shader programs and their parameters, color and material,
+face culling, depth and stencil options, and many more
+\cclass{osg::StateAttributes}.
+
+The following example enables blending for a node and sets up a
+transparent, colored material to be used for rendering it, through its
+\cclass{osg::StateSet}.
+
+\begin{cpp}
+auto stateSet = node->getOrCreateStateSet();
+stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+auto matColor = osg::Vec4(red, green, blue, alpha); // all between 0.0 and 1.0
+auto material = new osg::Material;
+material->setEmission(osg::Material::FRONT, matColor);
+material->setDiffuse(osg::Material::FRONT, matColor);
+material->setAmbient(osg::Material::FRONT, matColor);
+material->setAlpha(osg::Material::FRONT, alpha);
+stateSet->setAttributeAndModes(material, osg::StateAttribute::OVERRIDE);
+\end{cpp}
+
+To help OSG with the correct rendering of objects with transparency, they
+should be placed in the \ttt{TRANSPARENT\_BIN} by setting up a rendering hint
+on their \cclass{osg::StateSet}. This ensures that they will be drawn after all
+fully opaque objects, and in decreasing order of their distance from the camera.
+When there are multiple transparent objects intersecting each other in the scene
+(like the transmission ``bubbles'' in the BostonPark configuration of the
+osg-earth sample simulation), there is no order in which they would appear correctly. A
+solution for these cases is to disable writing to the depth buffer during their
+rendering using the \cclass{osg::Depth} attribute.
+
+\begin{cpp}
+stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+osg::Depth* depth = new osg::Depth;
+depth->setWriteMask(false);
+stateSet->setAttributeAndModes(depth, osg::StateAttribute::ON);
+\end{cpp}
+
+Please note that this still does not guarentee a completely physically accurate
+look, since that is a much harder problem to solve, but at least minimizes the
+obvious visual artifacts. Also, too many transparent objects might decrease
+performance, so wildly overusing them is to be avoided.
+
+
+\subsection{Using osgEarth}
+\label{sec:graphics:using-osgearth}
+
+osgEarth is a cross-platform terrain and mapping SDK built on top of OpenSceneGraph.
+The most visible feature of osgEarth is that it adds support for loading \ttt{.earth}
+files to \ttt{osgDB::readNodeFile()}. An \ttt{.earth} file specifies contents and
+appearance of the displayed globe. This can be as simple as a single image
+textured over a sphere or as complex as realistic terrain data and
+satellite images complete with street and building information dynamically
+streamed over the internet from a publicly available provider, thanks to
+the flexibility of osgEarth. osgEarth also defines additional APIs
+to help with coordinate conversions and other tasks. Other than that,
+one's OSG knowledge is also applicable when building osgEarth scenes.
+
+The next sections contain some tips and code fragments to help the reader get
+started with osgEarth. As with OSG, there are numerous other sources of
+information, both printed and online, when the info contained herein
+is insufficient.
+
+
+\subsubsection{Earth Files}
+\label{sec:graphics:earth-files}
+
+When the osgEarth plugin is used to display a map as the visual environment
+of the simulation, its appearance can be described in a .earth file.
+
+It can be loaded using the \ffunc{osgDB::readNodeFile()} method, just like any
+other regular model. The resulting \cclass{osg::Node} will contain a node with a
+type of \cclass{osgEarth::MapNode}, which can be easily found using the
+\ffunc{osgEarth::MapNode::findMapNode()} function. This node serves as the
+data model that contains all the data specified in the \ttt{.earth} file.
+
+\begin{cpp}
+auto earth = osgDB::readNodeFile("example.earth");
+auto mapNode = osgEarth::MapNode::findMapNode(earth);
+\end{cpp}
+
+An .earth file can specify a wide variety of options. The \ttt{type} attribute
+of the \ttt{map} tag (which is always the root of the document) lets the user
+select whether the terrain should be projected onto a flat plane (\ttt{projected}),
+or rendered as a geoid (\ttt{geocentric}).
+
+Where the texture of the terrain is acquired from is specified by \ttt{image}
+tags. Many different kinds of sources are supported, including local files and
+popular online map sources with open access like MapQuest or OpenStreetMap.
+These can display different kinds of graphics, like satellite imagery, street
+or terrain maps, or other features the given on-line service provides.
+
+The following example .earth file will set up a spherical rendering of Earth
+with textures from openstreetmap.org:
+
+% XXX no xml environment?
+\begin{xml}
+<map name="OpenStreetMap" type="geocentric" version="2" >
+    <image name="osm_mapnik" driver="xyz" >
+        <url>http://[abc].tile.openstreetmap.org/{z}/{x}/{y}.png</url>
+    </image>
+</map>
+\end{xml}
+
+Elevation data can also be acquired in a similarly simple fashion using the
+\ttt{elevation} tag. The next snippet demonstrates this:
+
+\begin{xml}
+<map name="readymap.org" type="geocentric" version="2" >
+    <image name="readymap_imagery" driver="tms" >
+        <url>http://readymap.org/readymap/tiles/1.0.0/7/</url>
+    </image>
+    <elevation name="readymap_elevation" driver="tms" >
+        <url>http://readymap.org/readymap/tiles/1.0.0/9/</url>
+    </elevation>
+</map>
+\end{xml}
+
+For a detailed description of the available image and elevation source drivers,
+refer to the online references of osgEarth, or use one of the sample .earth
+files shipped with it.
+
+The following partial .earth file places a label over Los Angeles, an extruded
+ellipse (a hollow cylinder) next to it, and a big red flag nearby.
+
+\begin{xml}
+<map ... >
+    ...
+    <external>
+        <annotations>
+            <label text="Los Angeles" >
+                <position lat="34.051" long="-117.974" alt="100" mode="relative"/>
+            </label>
+
+            <ellipse name="ellipse extruded" >
+                <position lat="32.73" long="-119.0"/>
+                <radius_major value="50" units="km"/>
+                <radius_minor value="20" units="km"/>
+                <style type="text/css" >
+                    fill:             #ff7f007f;
+                    stroke:           #ff0000ff;
+                    extrusion-height: 5000;
+                </style>
+            </ellipse>
+
+            <model name="flag model" >
+                <url>flag.osg.18000.scale</url>
+                <position lat="33" long="-117.75" hat="0"/>
+            </model>
+        </annotations>
+    </external>
+</map>
+\end{xml}
+
+
+\subsubsection{Creating Offline Tile Packages}
+\label{sec:graphics:offline-tiles}
+
+Being able to use online map providers is very convenient, but it is
+often more desirable to use an offline map resource. Doing so not only makes
+the simulation usable without internet access, but also speeds up map
+loading and insulates the simulation against changes in the online environment
+(availablity, content and configuration changes of map servers).
+
+There are two ways map data may come from the local disk: caching, and
+using a self-contained offline map package. In this section we'll cover the
+latter, and show how you can create an offline map package from online sources,
+using the command line tool called \fprog{osgearth\_package}. The resulting
+package, unlike map cache, will also be redistributable.
+
+Given the right arguments, \fprog{osgearth\_package} will download the tiles
+that make up the map, and arrange them in a fairly standardized, self-contained
+package. It will also create a corresponding \ttt{.earth} file that can be later
+used just like any other.
+
+For example, the osg-earth sample simulation uses a tile package which has been
+created with a command similar to this one:
+
+\begin{commandline}
+$ osgearth_package --tms boston.earth --out offline-tiles \
+    --bounds -71.0705566406 42.350425122434 -71.05957031 42.358543917497 \
+    --max-level 18 --out-earth boston_offline.earth --mt --concurrency 8
+\end{commandline}
+
+The \ttt{-{}-tms boston.earth} arguments mean that we want to create a package
+in TMS format from the input file boston.earth. The \ttt{-{}-out offline-tiles}
+argument specifies the output directory.
+
+The \ttt{-{}-bounds} argument specifies the rectangle of the map we want to include
+in the package, in the order \textit{xmin ymin xmax ymax} order, as standard WGS84
+datum (longitude/latitude). These example coordinates include the Boston Common
+area, used in some samples. The size of this rectangle obviously has a big impact
+on the size of the resulting package.
+
+The \ttt{-{}-max-level 18} argument is the maximum level of detail to be saved. This
+is a simple way of adjusting the tradeoff between quality and required disk space.
+Values between 15 and 20 are generally suitable, depending on the size of the
+target area and the available storage capacity.
+
+The \ttt{-{}-out-earth boston\_offline.earth} option tells the utility to generate
+an .earth file with the given name in the output directory that references the
+prepared tile package as image source.
+
+The \ttt{-{}-mt -{}-concurrency 8} arguments will make the process run in multithreaded
+mode, using 8 threads, potentially speeding it up.
+
+The tool has a few more options for controlling the image format and compression
+mode among others. Consult the documentation for details, or the short usage help
+accessible with the \ttt{-h} switch.
+
+\begin{hint}
+There is also a GUI front-end for \fprog{osgearth\_package}, called
+\fprog{osgearth\_package\_qt}. This tool provides an easy way to select
+the bounding rectangle on the actual map using the mouse, lets the user
+choose the input and output files and the export options, and performs the
+exporting, all without having to resort to a command line interface.
+\end{hint}
+
+
+\subsubsection{Placing Objects on a Map}
+\label{sec:graphics:osgearth-placing-objects}
+
+To easily position a part of the scene together on a given geographical
+location, an \cclass{osgEarth::GeoTransform} is of great help. It takes
+geographical coordinates (longitude/latitude/altitude), and creates a simple
+Cartesian coordinate system centered on the given location, in which all of
+its children can be positioned painlessly, without having to worry about
+further coordinate transformations between Cartesian and geographic systems.
+To move and orient the children within this local system,
+\cclass{osg::PositionAttitudeTransform} can be used.
+
+\begin{cpp}
+osgEarth::GeoTransform *geoTransform = new osgEarth::GeoTransform();
+osg::PositionAttitudeTransform *localTransform = new osg::PositionAttitudeTransform();
+
+mapNode->getModelLayerGroup()->addChild(geoTransform);
+geoTransform->addChild(localTransform);
+localTransform->addChild(objectNode);
+
+geoTransform->setPosition(osgEarth::GeoPoint(mapNode->getMapSRS(), longitude, latitude, altitude));
+localTransform->setAttitude(osg::Quat(heading, osg::Vec3d(0, 0, 1)));
+\end{cpp}
+
+\subsubsection{Adding Annotations on a Map}
+\label{sec:graphics:osgearth-adding-annotations}
+
+To display additional information on top of the terrain, annotations can be
+used. These are special objects that can adapt to the shape of the surface.
+Annotations can be of many kinds, for example simple geometric shapes like circles,
+ellipses, rectangles, lines, polygons (which can be extruded upwards to make
+solids); texts or labels, arbitrary 3D models, or images projected onto the
+surface.
+
+All the annotations that can be created declaratively from an .earth file,
+can also be programatically generated at runtime.
+
+This example shows how the circular transmission ranges of the cows in the
+osg-earth sample are created in the form of a
+\cclass{osgEarth::Annotation::CircleNode} annotation. Some basic styling is
+applied to it using an \cclass{osgEarth::Style}, and the rendering technique to
+be used is specified.
+
+\begin{cpp}
+auto scene = ...;
+auto mapNode = osgEarth::MapNode::findMapNode(scene);
+auto geoSRS = mapNode->getMapSRS()->getGeographicSRS();
+osgEarth::Style rangeStyle;
+rangeStyle.getOrCreate<PolygonSymbol>()->fill()->color() =
+                                        osgEarth::Color(rangeColor);
+rangeStyle.getOrCreate<AltitudeSymbol>()->clamping() =
+                                        AltitudeSymbol::CLAMP_TO_TERRAIN;
+rangeStyle.getOrCreate<AltitudeSymbol>()->technique() =
+                                        AltitudeSymbol::TECHNIQUE_DRAPE;
+rangeNode = new osgEarth::Annotation::CircleNode(mapNode.get(),
+    osgEarth::GeoPoint:(geoSRS, longitude, latitude),
+    osgEarth::Linear(radius, osgEarth::Units::METERS), rangeStyle);
+mapNode->getModelLayerGroup()->addChild(rangeNode);
+\end{cpp}
+
+
+\subsection{OpenSceneGraph/osgEarth Programming Resources}
+\label{sec:graphics:osg-osgearth-programming-resources}
+
+\subsubsection{Online resources}
+\label{sec:graphics:osg-osgearth-online-resources}
+
+Loading and manipulating OSG models:
+\begin{itemize}
+\item http://trac.openscenegraph.org/projects/osg/wiki/Support/UserGuides/Plugins
+\item http://trac.openscenegraph.org/projects/osg/wiki/Support/Tutorials/FileLoadingAndTransforms
+\item http://trac.openscenegraph.org/projects/osg/wiki/Support/KnowledgeBase/PseudoLoader
+\end{itemize}
+
+Creating 3D models for OpenSceneGraph using Blender:
+\begin{itemize}
+\item https://github.com/cedricpinson/osgexport
+\end{itemize}
+
+osgEarth online documentation:
+\begin{itemize}
+\item http://docs.osgearth.org/en/latest/references/earthfile.html
+\item http://docs.osgearth.org/en/latest/index.html
+\end{itemize}
+
+\subsubsection{Sample code}
+\label{sec:graphics:osg-osgearth-samples}
+
+Be sure to check the samples coming with the OpenSceneGraph installation, as
+they contain invaluable information.
+\begin{itemize}
+\item https://github.com/openscenegraph/osg/tree/master/examples
+\item https://github.com/openscenegraph/osg-data
+\end{itemize}
+
+\subsubsection{Books}
+\label{sec:graphics:osg-osgearth-books}
+
+The following books can be useful for more complex visualization tasks:
+
+\begin{itemize}
+\item \textit{OpenSceneGraph Quick Start Guide}, by Paul Martz.
+
+This book is a concise introduction to the OpenSceneGraph API. It can be
+purchased from http://www.osgbooks.com, and it is also available as
+a free pdf download.
+
+\item \textit{OpenSceneGraph 3.0: Beginners Guide}, by Wang Rui. Packt Publishing, 2010.
+
+This book is a concise introduction to the main features of OpenSceneGraph
+which then leads the reader into the fundamentals of developing virtual reality
+applications. Practical instructions and explanations accompany every step.
+
+\item \textit{OpenSceneGraph 3.0 Cookbook}, by Wang Rui and Qian Xuelei. Packt Publishing, 2010.
+
+This book contains 100 recipes in 9 chapters, focusing on different
+fields including the installation, nodes, geometries, camera manipulation,
+animations, effects, terrain building, data management, GUI integration.
+
+\end{itemize}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "usman"
+%%% End:

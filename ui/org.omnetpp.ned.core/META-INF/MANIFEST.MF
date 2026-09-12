@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OMNeT++ NED File Resource Management
+Bundle-SymbolicName: org.omnetpp.ned.core;singleton:=true
+Bundle-Version: 6.0.0.qualifier
+Bundle-Activator: org.omnetpp.ned.core.NedResourcesPlugin
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: OpenSim Ltd.
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.omnetpp.ned.model,
+ org.omnetpp.common,
+ org.omnetpp.ide.nativelibs,
+ org.eclipse.jface.text,
+ org.eclipse.ui.ide
+Export-Package: org.omnetpp.ned.core,
+ org.omnetpp.ned.core.refactoring,
+ org.omnetpp.ned.core.ui.actions,
+ org.omnetpp.ned.core.ui.misc
+Automatic-Module-Name: org.omnetpp.ned.core

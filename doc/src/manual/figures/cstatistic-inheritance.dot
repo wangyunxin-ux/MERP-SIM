@@ -1,0 +1,14 @@
+digraph g {
+        fontsize=12; size="6,6";
+        node [fontname="Arial"];
+        edge [fontname="Arial"];
+
+        node [shape = "rectangle"];
+        edge [dir = "back"];
+
+        cStatistic -> cStdDev;
+        cStdDev -> cAbstractHistogram;
+        cAbstractHistogram -> cHistogram;
+        cAbstractHistogram -> cPSquare [label="(...)"];
+        cAbstractHistogram -> cKSplit [label="(...)"];
+}
