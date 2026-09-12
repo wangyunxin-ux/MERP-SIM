@@ -1,35 +1,29 @@
 MERP-SIM
-========
 
-MERP-SIM 是一个基于 OMNeT++ 6.0 的实验性并行离散事件仿真扩展，目标是在保留
-OMNeT++ 现有模型和运行机制的基础上，探索多线程事件调度与并发执行。
+MERP-SIM is an experimental parallel discrete-event simulation extension based on OMNeT++ 6.0. Its goal is to explore multi-threaded event scheduling and concurrent event execution while preserving the existing modeling framework and runtime mechanisms of OMNeT++.
 
-主要修改与贡献
---------------
+Main Modifications and Contributions
 
-本项目在 OMNeT++ 6.0 上实现和集成了以下功能：
+This project implements and integrates the following features into OMNeT++ 6.0:
 
-* 新增 `cParallelSimulation`，使用线程池分发和执行可并行事件。
-* 新增 `cParallelScheduler` 和 `cParallelEventSet`，为并发事件调度、事件队列访问
-  以及任务完成同步提供支持。
-* 新增 `cEventColorer`，并结合模块连接关系和传播延迟分析辅助判断事件之间的
-  并发执行条件。
-* 在仿真内核中引入原子计数器、线程局部仿真上下文和必要的互斥保护，增强事件
-  编号、对象所有权、信号处理、参数配置及字符串池等共享状态的并发安全性。
-* 将运行环境接入并行仿真实现，并更新仿真内核构建清单及公共头文件入口。
+Added cParallelSimulation, which uses a thread pool to dispatch and execute events that can be processed in parallel.
 
-这些修改目前用于多线程/并行仿真机制研究，属于实验性实现。使用前建议针对具体
-模型验证事件因果关系、确定性和线程安全性。
+Added cParallelScheduler and cParallelEventSet to support concurrent event scheduling, event queue access, and synchronization of task completion.
 
-项目作者与维护者：王赟新
+Added cEventColorer, which combines module connectivity information and propagation-delay analysis to assist in determining whether events can be executed concurrently.
 
-上游项目
---------
+Introduced atomic counters, thread-local simulation contexts, and necessary mutex protection into the simulation kernel to improve the thread safety of shared states, including event numbering, object ownership, signal handling, parameter configuration, and string pools.
 
-本项目基于 OpenSim Ltd. 开发的 OMNeT++ 6.0。原项目地址：
-https://github.com/omnetpp/omnetpp
+Integrated the runtime environment with the parallel simulation implementation, and updated the simulation kernel build configuration and public header interfaces accordingly.
 
-以下保留 OMNeT++ 上游项目说明。
+These modifications are currently intended for research on multi-threaded and parallel simulation mechanisms and should be regarded as an experimental implementation. Before using MERP-SIM with a specific model, it is recommended to carefully validate event causality, determinism, and thread safety.
+
+Upstream Project
+
+MERP-SIM is based on OMNeT++ 6.0, developed by OpenSim Ltd.
+
+Original project: https://github.com/omnetpp/omnetpp
+
 
 OMNeT++
 ~~~~~~~
