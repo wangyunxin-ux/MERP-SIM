@@ -1,32 +1,25 @@
-[![Join the chat at https://gitter.im/omnetpp/community](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/omnetpp/community)
+MERP-SIM
 
-# OMNeT++
+MERP-SIM is an experimental parallel discrete-event simulation extension based on OMNeT++ 6.0. Its goal is to explore multi-threaded event scheduling and concurrent event execution while preserving the existing modeling framework and runtime mechanisms of OMNeT++.
 
-OMNeT++ is a public-source, component-based, modular and open-architecture
-simulation environment with strong GUI support and an embeddable simulation
-kernel. Its primary application area is the simulation of communication
-networks, but it has been successfully used in other areas like the simulation
-of IT systems, queueing networks, hardware architectures and business processes
-as well.
+Main Modifications and Contributions
 
-See the main OMNeT++ website [omnetpp.org](https://omnetpp.org) for documentation,
-tutorials and other introductory materials, release downloads, model catalog,
-and other useful information.
+This project implements and integrates the following features into OMNeT++ 6.0:
 
-## License
+Added cParallelSimulation, which uses a thread pool to dispatch and execute events that can be processed in parallel.
 
-OMNeT++ is distributed under the [Academic Public License](../doc/License).
+Added cParallelScheduler and cParallelEventSet to support concurrent event scheduling, event queue access, and synchronization of task completion.
 
-## Installation
+Added cEventColorer, which combines module connectivity information and propagation-delay analysis to assist in determining whether events can be executed concurrently.
 
-To compile OMNeT++ after cloning the repository, first create your local copy
-of the `configure.user` file:
+Introduced atomic counters, thread-local simulation contexts, and necessary mutex protection into the simulation kernel to improve the thread safety of shared states, including event numbering, object ownership, signal handling, parameter configuration, and string pools.
 
-    cd omnetpp
-    cp configure.user.dist configure.user
+Integrated the runtime environment with the parallel simulation implementation, and updated the simulation kernel build configuration and public header interfaces accordingly.
 
-then follow instructions in the [Installation
-Guide](https://doc.omnetpp.org/omnetpp/InstallGuide.pdf) of the last release.
-It contains OS-specific information on installing dependencies, selecting build
-options, compilation, and more. (The hyperlinked PDF is generated from the
-sources in `doc/src/installguide`.)
+These modifications are currently intended for research on multi-threaded and parallel simulation mechanisms and should be regarded as an experimental implementation. Before using MERP-SIM with a specific model, it is recommended to carefully validate event causality, determinism, and thread safety.
+
+Upstream Project
+
+MERP-SIM is based on OMNeT++ 6.0, developed by OpenSim Ltd.
+
+Original project: https://github.com/omnetpp/omnetpp
